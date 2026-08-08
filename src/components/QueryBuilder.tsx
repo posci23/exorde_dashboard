@@ -8,6 +8,7 @@ import {
   type QueryFormState,
 } from "@/lib/query-form";
 import { queryBodySchema } from "@/lib/types";
+import { PlatformPicker } from "./PlatformPicker";
 import { Alert, Button, FieldLabel, Panel, Select, TextArea, TextInput } from "./ui";
 
 type Props = {
@@ -140,13 +141,8 @@ export function QueryBuilder({ form, onChange, mode }: Props) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Domains" description={`Max ${LIMITS.maxDomains} · exact match · OR`}>
-          <TextArea
-            rows={3}
-            placeholder="x.com, smth.com, youtube.com"
-            value={form.domainsText}
-            onChange={(e) => set({ domainsText: e.target.value })}
-          />
+        <Panel title="Platforms" description={`Max ${LIMITS.maxDomains} · maps to domains[] · exact match · OR`}>
+          <PlatformPicker domainsText={form.domainsText} onChange={(domainsText) => set({ domainsText })} />
         </Panel>
         <Panel title="Languages" description={`Max ${LIMITS.maxLanguages} ISO codes`}>
           <TextArea

@@ -35,6 +35,27 @@ export const LIMITS = {
   inFlightPerCustomer: 50,
 } as const;
 
+/** Known platforms for the domains filter (exact match on `domain`). Exorde covers 200+ sources; add custom domains for others. */
+export const PLATFORMS = [
+  { domain: "x.com", label: "X (Twitter)", note: "Profile filters supported" },
+  { domain: "youtube.com", label: "YouTube", note: null },
+  { domain: "reddit.com", label: "Reddit", note: "Or use url_patterns for subreddits" },
+  { domain: "mastodon.social", label: "Mastodon (mastodon.social)", note: "Other instances via custom domain" },
+  { domain: "bluesky.social", label: "Bluesky", note: "If present in your corpus" },
+  { domain: "threads.net", label: "Threads", note: "If present in your corpus" },
+  { domain: "truthsocial.com", label: "Truth Social", note: "If present in your corpus" },
+  { domain: "tiktok.com", label: "TikTok", note: "If present in your corpus" },
+  { domain: "linkedin.com", label: "LinkedIn", note: "If present in your corpus" },
+  { domain: "facebook.com", label: "Facebook", note: "If present in your corpus" },
+  { domain: "instagram.com", label: "Instagram", note: "If present in your corpus" },
+  { domain: "news.ycombinator.com", label: "Hacker News", note: "If present in your corpus" },
+  { domain: "4chan.org", label: "4chan", note: "If present in your corpus" },
+  { domain: "social.com", label: "social.com (docs alias)", note: "X-style IDs in Exorde examples" },
+  { domain: "smth.com", label: "smth.com (docs alias)", note: "Reddit-style t1_* IDs in Exorde examples" },
+] as const;
+
+export const PLATFORM_DOMAINS: Set<string> = new Set(PLATFORMS.map((p) => p.domain));
+
 export const PROFILE_FILTER_FIELDS = [
   { name: "user_description", match: "substring" as const },
   { name: "profile_image_url", match: "substring" as const },

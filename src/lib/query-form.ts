@@ -1,3 +1,4 @@
+import { PLATFORM_DOMAINS } from "./constants";
 import type { QueryBody } from "./types";
 
 export type QueryFormState = {
@@ -67,6 +68,42 @@ function splitList(text: string): string[] {
     .split(/[\n,]/)
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+export function parseDomainList(text: string): string[] {
+  return [...new Set(splitList(text))];
+}
+
+export function formatDomainList(domains: string[]): string {
+  return domains.join(", ");
+}
+
+export function getSelectedPlatformDomains(domainsText: string): string[] {
+  return parseDomainList(domainsText).filter((d) => PLATFORM_DOMAINS.has(d));
+}
+
+export function getCustomDomains(domainsText: string): string[] {
+  return parseDomainList(domainsText).filter((d) => !PLATFORM_DOMAINS.has(d));
+}
+
+export function setPlatformSelection(
+  domainsText: string,
+  domain: string,
+  selected: boolean,
+): string {
+  const current = parseDomainList(domainsText);
+  const next = selected
+    ? current.includes(domain)
+      ? current
+      : [...current, domain]
+    : current.filter((d) => d !== domain);
+  return formatDomainList(next);
+}
+
+export function setCustomDomainsText(domainsText: string, customText: string): string {
+  const selectedPlatforms = parseDomainList(domainsText).filter((d) => PLATFORM_DOMAINS.has(d));
+  const custom = parseDomainList(customText).filter((d) => !PLATFORM_DOMAINS.has(d));
+  return formatDomainList([...selectedPlatforms, ...custom]);
 }
 
 function parseKeywordGroups(groups: QueryFormState["keywordGroups"]) {
