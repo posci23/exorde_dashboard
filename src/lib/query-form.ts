@@ -128,9 +128,13 @@ export function parseDomainList(text: string): string[] {
   return [...new Set(splitList(text))];
 }
 
+/** What the API strips when `exclude_fields` is absent from the request. */
+export const API_DEFAULT_EXCLUDED = ["analysis_embedding"] as const;
+
 /**
  * The `exclude_fields` value for the selected preset, or null to omit the key
- * and let the API apply its own default.
+ * and let the API apply its own default. Single source of truth — the builder's
+ * kept-column counts read this too, so the badge can't drift from the payload.
  */
 export function resolveExcludedFields(form: QueryFormState): string[] | null {
   // Custom always sends the list, empty included: ticking nothing means "keep
@@ -140,6 +144,14 @@ export function resolveExcludedFields(form: QueryFormState): string[] | null {
   // An unknown id (stale localStorage) falls back to the API default.
   if (!preset || preset.exclude === null) return null;
   return [...preset.exclude];
+}
+
+/**
+ * Which columns actually get dropped, with the API's implicit default resolved
+ * to a concrete list so callers can count what survives.
+ */
+export function effectiveExcludedFields(form: QueryFormState): string[] {
+  return resolveExcludedFields(form) ?? [...API_DEFAULT_EXCLUDED];
 }
 
 function parseKeywordGroups(groups: QueryFormState["keywordGroups"]) {
@@ -391,14 +403,17 @@ export const QUERY_PRESETS: QueryPreset[] = [
     id: "sentiment-study",
     label: "Sentiment over time",
     category: "Start here",
-    description: "Keeps the sentiment score and samples evenly per day across a long window.",
+    description:
+      "Keeps the sentiment score and caps rows per day, so a busy news day can't dominate the trend.",
+    // 30 days, not the 90 a per-day cap unlocks: preview drops export-only caps,
+    // so a longer range would load with the Preview button already disabled.
     apply: (form) => ({
       ...form,
       keywordGroups: [{ termsText: "inflation, cost of living", operator: "OR" }],
       languagesText: "en",
       fieldPreset: "sentiment",
       perDayLimit: "5000",
-      ...relativeDateRange(60),
+      ...relativeDateRange(30),
     }),
   },
 

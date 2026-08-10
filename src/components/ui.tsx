@@ -8,6 +8,15 @@ import { apiDateToInput, inputDateToApi } from "@/lib/query-form";
 const CONTROL = "rounded-md";  // 6px
 const CARD = "rounded-xl";     // 12px
 
+/*
+ * For controls whose real <input> is visually hidden: the global :focus-visible
+ * ring would draw around a 1px clipped box, so lift it onto the wrapper. `has-[]`
+ * rather than `focus-within` keeps the design system's keyboard-only promise.
+ */
+const FOCUS_RING =
+  "has-[:focus-visible]:outline has-[:focus-visible]:outline-2 " +
+  "has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--accent-ring)]";
+
 const FIELD_BASE =
   "w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text " +
   "placeholder:text-text-subtle outline-none transition-colors hover:border-border-strong " +
@@ -100,15 +109,17 @@ export function Button({
  * Hover/focus explainer next to a field label. Keyboard-reachable, and the
  * bubble is width-capped so long explanations wrap instead of running off-screen.
  */
-export function HelpIcon({ children }: { children: ReactNode }) {
+export function HelpIcon({ about, children }: { about?: string; children: ReactNode }) {
   const id = useId();
   return (
     <span className="group relative inline-flex">
       <button
         type="button"
-        aria-label="What is this?"
+        // Every icon would otherwise announce the same thing; name it after the
+        // field so a screen reader user knows which one they landed on.
+        aria-label={about ? `More about: ${about}` : "More about this field"}
         aria-describedby={id}
-        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-surface-hover text-[0.625rem] font-semibold text-text-subtle transition-colors hover:bg-accent-soft hover:text-accent"
+        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-surface-hover text-xs leading-none font-semibold text-text-subtle transition-colors hover:bg-accent-soft hover:text-accent"
       >
         ?
       </button>
@@ -128,55 +139,66 @@ export function HelpIcon({ children }: { children: ReactNode }) {
  * the alternative to a dropdown whose labels can't carry that much meaning.
  */
 export function RadioCards<T extends string>({
+  label,
   value,
   options,
   onChange,
   columns = 2,
 }: {
+  /** Names the group for screen readers; the visible label usually repeats it. */
+  label: string;
   value: T;
   options: ReadonlyArray<{ value: T; label: string; description: string; badge?: string }>;
   onChange: (value: T) => void;
   columns?: 1 | 2;
 }) {
+  // Real <input type="radio"> rather than buttons with role="radio": arrow-key
+  // navigation, group semantics and checked state all come for free and behave
+  // the way a screen reader user expects.
+  const name = useId();
   return (
-    <div
-      role="radiogroup"
-      className={`grid gap-2 ${columns === 2 ? "sm:grid-cols-2" : ""}`}
-    >
-      {options.map((option) => {
-        const active = value === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            onClick={() => onChange(option.value)}
-            className={`${CONTROL} border px-3.5 py-3 text-left transition-colors ${
-              active
-                ? "border-accent bg-accent-soft"
-                : "border-border bg-bg hover:border-border-strong hover:bg-surface-hover"
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <span
-                aria-hidden
-                className={`h-3.5 w-3.5 shrink-0 rounded-full border-[4px] transition-colors ${
-                  active ? "border-accent-solid bg-bg" : "border-border-strong bg-bg"
-                }`}
-              />
-              <span className={`text-xs font-medium ${active ? "text-accent" : "text-text"}`}>
-                {option.label}
+    <fieldset className="min-w-0 border-0 p-0">
+      <legend className="sr-only">{label}</legend>
+      <div className={`grid gap-2 ${columns === 2 ? "sm:grid-cols-2" : ""}`}>
+        {options.map((option) => {
+          const active = value === option.value;
+          return (
+            <label
+              key={option.value}
+              className={`${CONTROL} block cursor-pointer border px-3.5 py-3 transition-colors ${FOCUS_RING} ${
+                active
+                  ? "border-accent bg-accent-soft"
+                  : "border-border bg-bg hover:border-border-strong hover:bg-surface-hover"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={name}
+                  value={option.value}
+                  checked={active}
+                  onChange={() => onChange(option.value)}
+                  className="sr-only"
+                />
+                <span
+                  aria-hidden
+                  className={`h-3.5 w-3.5 shrink-0 rounded-full border-[4px] transition-colors ${
+                    active ? "border-accent-solid bg-bg" : "border-border-strong bg-bg"
+                  }`}
+                />
+                <span className={`text-xs font-medium ${active ? "text-accent" : "text-text"}`}>
+                  {option.label}
+                </span>
+                {option.badge && <Badge tone={active ? "accent" : "neutral"}>{option.badge}</Badge>}
               </span>
-              {option.badge && <Badge tone={active ? "accent" : "neutral"}>{option.badge}</Badge>}
-            </span>
-            <span className="mt-1.5 block pl-5.5 text-xs leading-relaxed text-text-muted">
-              {option.description}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+              <span className="mt-1.5 block pl-5.5 text-xs leading-relaxed text-text-muted">
+                {option.description}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 
@@ -201,7 +223,9 @@ export function FieldLabel({
         <Tag htmlFor={htmlFor} className="block text-xs font-medium text-text">
           {children}
         </Tag>
-        {help && <HelpIcon>{help}</HelpIcon>}
+        {help && (
+          <HelpIcon about={typeof children === "string" ? children : undefined}>{help}</HelpIcon>
+        )}
       </div>
       {hint && <span className="font-mono text-xs text-text-subtle">{hint}</span>}
     </div>
@@ -274,6 +298,7 @@ export function Section({
   count = 0,
   help,
   helpHref,
+  helpLabel,
   defaultOpen = false,
   onClear,
   children,
@@ -284,12 +309,15 @@ export function Section({
   help?: string;
   /** Deep link into the Reference page for this filter group. */
   helpHref?: string;
+  /** Topic noun for the help link's label — titles are questions and read badly. */
+  helpLabel?: string;
   defaultOpen?: boolean;
   onClear?: () => void;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const panelId = `section-${title.replace(/\W+/g, "-").toLowerCase()}`;
+  const panelId = useId();
+  const linkText = `Read about ${helpLabel ?? title.toLowerCase()} in the Reference`;
 
   return (
     <section className={`${CARD} border border-border bg-surface transition-colors`}>
@@ -324,8 +352,8 @@ export function Section({
           {helpHref && (
             <Link
               href={helpHref}
-              aria-label={`Read about ${title.toLowerCase()} in the Reference`}
-              title={`Read about ${title.toLowerCase()} in the Reference`}
+              aria-label={linkText}
+              title={linkText}
               className={`${CONTROL} flex h-7 w-7 items-center justify-center text-xs text-text-subtle transition-colors hover:bg-surface-hover hover:text-accent`}
             >
               ?
@@ -333,12 +361,12 @@ export function Section({
           )}
         </div>
       </div>
-      {open && (
-        <div id={panelId} className="border-t border-border px-5 py-5">
-          {help && <p className="mb-4 text-xs leading-relaxed text-text-muted">{help}</p>}
-          {children}
-        </div>
-      )}
+      {/* Always rendered so aria-controls resolves and inputs keep their state
+          across a collapse; `hidden` keeps it out of layout and the a11y tree. */}
+      <div id={panelId} hidden={!open} className="border-t border-border px-5 py-5">
+        {help && <p className="mb-4 text-xs leading-relaxed text-text-muted">{help}</p>}
+        {children}
+      </div>
     </section>
   );
 }

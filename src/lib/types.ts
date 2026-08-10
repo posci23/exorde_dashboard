@@ -21,6 +21,20 @@ export const proximityGroupSchema = z.object({
     .max(LIMITS.proximityDistanceMax),
 });
 
+/**
+ * Day span between two API date strings, or null if either is missing or
+ * unparseable. Local to the schema: query-form.ts imports this module, so it
+ * can't be the other way round.
+ */
+function dateSpanDays(start?: string, end?: string): number | null {
+  if (!start?.trim() || !end?.trim()) return null;
+  // Explicit Z so a bare `YYYY-MM-DD HH:MM:SS` is read as UTC, matching the API.
+  const a = new Date(`${start.trim().replace(" ", "T")}Z`).getTime();
+  const b = new Date(`${end.trim().replace(" ", "T")}Z`).getTime();
+  if (Number.isNaN(a) || Number.isNaN(b)) return null;
+  return (b - a) / 86_400_000;
+}
+
 export const queryBodySchema = z
   .object({
     keyword_groups: z.array(keywordGroupSchema).min(1).max(LIMITS.maxKeywordGroups).optional(),
@@ -100,6 +114,32 @@ export const queryBodySchema = z
           "Provide keyword_groups or a selective filter (external_ids, external_parent_ids, usernames, url_patterns)",
         path: ["keyword_groups"],
       });
+    }
+
+    // The builder already warns inline about both of these. Without matching
+    // schema rules the toolbar would still read "✓ Valid" and let the export
+    // through, so the two would contradict each other on screen.
+    const spanDays = dateSpanDays(data.start_date, data.end_date);
+    if (spanDays != null && spanDays < 0) {
+      ctx.addIssue({
+        code: "custom",
+        message: "end_date is before start_date",
+        path: ["end_date"],
+      });
+    }
+    if (spanDays != null && spanDays >= 0) {
+      const maxSpan =
+        data.per_day_limit != null ? LIMITS.maxPerDaySpanDays : LIMITS.maxDateRangeDays;
+      if (spanDays > maxSpan) {
+        ctx.addIssue({
+          code: "custom",
+          message:
+            data.per_day_limit != null
+              ? `Date range spans ${spanDays.toFixed(1)} days; the maximum is ${LIMITS.maxPerDaySpanDays} even with per_day_limit`
+              : `Date range spans ${spanDays.toFixed(1)} days; the maximum is ${LIMITS.maxDateRangeDays} unless you set a per-day row cap`,
+          path: ["end_date"],
+        });
+      }
     }
 
     if (data.per_day_limit != null && (!data.start_date || !data.end_date)) {

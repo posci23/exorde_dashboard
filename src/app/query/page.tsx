@@ -21,16 +21,21 @@ export default function QueryPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showIssues, setShowIssues] = useState(false);
 
-  // Export bodies are a superset of preview bodies, so validating the export
-  // shape catches every issue either action could hit.
-  const validation = validateQuery(buildQueryBody(form, "export"));
-  const issues = describeIssues(validation);
+  // The two bodies validate differently: preview drops the export-only row caps,
+  // so a long range that a per-day cap makes legal for export is still too wide
+  // to preview. Each button therefore reads its own verdict.
+  const previewIssues = describeIssues(validateQuery(buildQueryBody(form, "preview")));
+  const exportIssues = describeIssues(validateQuery(buildQueryBody(form, "export")));
+  const issues = [...new Set([...exportIssues, ...previewIssues])];
   const busy = previewLoading || exportLoading;
-  const blocked = issues.length > 0 || busy;
 
   async function runPreview() {
     const parsed = validateQuery(buildQueryBody(form, "preview"));
-    if (!parsed.success) return;
+    if (!parsed.success) {
+      setError(`Can't preview this query: ${describeIssues(parsed).join("; ")}`);
+      setShowIssues(true);
+      return;
+    }
 
     setPreviewLoading(true);
     setError(null);
@@ -50,7 +55,11 @@ export default function QueryPage() {
 
   async function startExport() {
     const parsed = validateQuery(buildQueryBody(form, "export"));
-    if (!parsed.success) return;
+    if (!parsed.success) {
+      setError(`Can't export this query: ${describeIssues(parsed).join("; ")}`);
+      setShowIssues(true);
+      return;
+    }
 
     setExportLoading(true);
     setError(null);
@@ -120,14 +129,20 @@ export default function QueryPage() {
           >
             {issues.length ? `${issues.length} issue${issues.length > 1 ? "s" : ""}` : "✓ Valid"}
           </button>
-          <Button type="button" onClick={() => void runPreview()} disabled={blocked}>
+          <Button
+            type="button"
+            onClick={() => void runPreview()}
+            disabled={busy || previewIssues.length > 0}
+            title={previewIssues.length ? previewIssues.join("; ") : "Sample this query for free"}
+          >
             {previewLoading ? "Previewing…" : "Preview (free)"}
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={() => void startExport()}
-            disabled={blocked}
+            disabled={busy || exportIssues.length > 0}
+            title={exportIssues.length ? exportIssues.join("; ") : "Run the full export"}
           >
             {exportLoading ? "Submitting…" : "Start export"}
           </Button>
@@ -142,9 +157,20 @@ export default function QueryPage() {
       {showIssues && issues.length > 0 && (
         <Alert tone="warning">
           <ul className="list-inside list-disc space-y-0.5">
-            {issues.map((issue) => (
-              <li key={issue}>{issue}</li>
-            ))}
+            {issues.map((issue) => {
+              // An issue can block one action and not the other, so say which.
+              const scope = !exportIssues.includes(issue)
+                ? "Preview only"
+                : !previewIssues.includes(issue)
+                  ? "Export only"
+                  : null;
+              return (
+                <li key={issue}>
+                  {issue}
+                  {scope && <span className="ml-1.5 text-text-subtle">({scope})</span>}
+                </li>
+              );
+            })}
           </ul>
         </Alert>
       )}

@@ -18,6 +18,7 @@ import {
   buildCurl,
   buildQueryBody,
   createEmptyQueryForm,
+  effectiveExcludedFields,
   getSpanDays,
   matchDatePreset,
   relativeDateRange,
@@ -78,14 +79,12 @@ const FIELD_OPTIONS: ChipOption[] = SELECTABLE_FIELDS.map((f) => ({
 }));
 
 /**
- * Columns a preset leaves in the file. Shown as a live count on each option so
- * "Just the posts" vs "Everything" is a visible difference, not a promise.
+ * Columns a preset leaves in the file. Derived from the same resolver that
+ * builds the request body, so the count on each card can't drift from what the
+ * export actually contains.
  */
-function keptFields(presetId: string, customExcluded: readonly string[]): string[] {
-  const preset = FIELD_PRESETS.find((p) => p.id === presetId);
-  const excluded = new Set<string>(
-    presetId === "custom" ? customExcluded : (preset?.exclude ?? ["analysis_embedding"]),
-  );
+function keptFields(form: QueryFormState, presetId: string): string[] {
+  const excluded = new Set(effectiveExcludedFields({ ...form, fieldPreset: presetId }));
   return SELECTABLE_FIELDS.filter((f) => !excluded.has(f.name)).map((f) => f.name);
 }
 
@@ -112,17 +111,14 @@ export function QueryBuilder({ form, onChange }: Props) {
   const spanOverLimit = spanDays != null && spanDays > LIMITS.maxDateRangeDays;
   const perDaySet = Boolean(form.perDayLimit.trim());
 
-  // Only the "custom" option reads this, so it must be the user's own list —
-  // not whatever the currently selected preset happens to exclude.
-  const customExcluded = splitList(form.excludeFieldsText);
-  const keptFieldCount = (presetId: string) => keptFields(presetId, customExcluded).length;
-  const keptFieldNames = keptFields(form.fieldPreset, customExcluded);
+  const keptFieldNames = keptFields(form, form.fieldPreset);
 
   return (
     <div className="space-y-3">
       <Section
         title="What words must appear?"
         helpHref="/reference?tab=filters&section=Keywords"
+        helpLabel="keywords"
         summary={summarizeKeywords(form).summary}
         count={summarizeKeywords(form).count}
         defaultOpen
@@ -235,6 +231,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       <Section
         title="When were the posts written?"
         helpHref="/reference?tab=filters&section=Time+range"
+        helpLabel="the time range"
         summary={summarizeTimeRange(form).summary}
         count={summarizeTimeRange(form).count}
         defaultOpen
@@ -329,6 +326,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       <Section
         title="Where should posts come from?"
         helpHref="/reference?tab=filters&section=Sources"
+        helpLabel="platforms and languages"
         summary={summarizeSources(form).summary}
         count={summarizeSources(form).count}
         defaultOpen
@@ -385,6 +383,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       <Section
         title="Which authors or specific posts?"
         helpHref="/reference?tab=filters&section=People+%26+IDs"
+        helpLabel="authors and post IDs"
         summary={summarizePeople(form).summary}
         count={summarizePeople(form).count}
         help="These are selective filters — any one of them lets you run a query with no keywords at all."
@@ -499,6 +498,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       <Section
         title="What should be filtered out?"
         helpHref="/reference?tab=filters&section=Advanced"
+        helpLabel="exclusions and advanced filters"
         summary={summarizeAdvanced(form).summary}
         count={summarizeAdvanced(form).count}
         onClear={() => set({ excludeKeywordGroups: [], proximityGroups: [], profileFilters: [] })}
@@ -718,6 +718,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       <Section
         title="What goes in the file?"
         helpHref="/reference?tab=filters&section=Output"
+        helpLabel="output fields and formats"
         defaultOpen
         summary={summarizeOutput(form).summary}
         count={summarizeOutput(form).count}
@@ -793,22 +794,31 @@ export function QueryBuilder({ form, onChange }: Props) {
             What should each row contain?
           </FieldLabel>
           <RadioCards
+            label="What should each row contain?"
             value={form.fieldPreset}
             options={FIELD_PRESETS.map((p) => ({
               value: p.id,
               label: p.label,
               description: p.description,
-              badge: `${keptFieldCount(p.id)} cols`,
+              badge: `${keptFields(form, p.id).length} cols`,
             }))}
             onChange={(fieldPreset) => set({ fieldPreset })}
           />
 
           <p className="mt-3 text-xs leading-relaxed text-text-muted">
-            Keeping{" "}
-            <span className="font-mono text-text">
-              {keptFieldNames.slice(0, 12).join(", ")}
-              {keptFieldNames.length > 12 && ` +${keptFieldNames.length - 12} more`}
-            </span>
+            {keptFieldNames.length === 0 ? (
+              <span className="text-warning">
+                Every column is excluded — the export would have no data.
+              </span>
+            ) : (
+              <>
+                Keeping{" "}
+                <span className="font-mono text-text">
+                  {keptFieldNames.slice(0, 12).join(", ")}
+                  {keptFieldNames.length > 12 && ` +${keptFieldNames.length - 12} more`}
+                </span>
+              </>
+            )}
           </p>
 
           {form.fieldPreset === "custom" && (

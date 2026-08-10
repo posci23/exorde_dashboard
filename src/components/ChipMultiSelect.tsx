@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, FieldLabel, TextInput } from "./ui";
 
 export type ChipOption = {
@@ -43,7 +43,9 @@ export function ChipMultiSelect({
   footnote,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const panelId = `chips-${label.replace(/\W+/g, "-").toLowerCase()}`;
+  // useId rather than a slug of the label: two pickers can share a label, and
+  // duplicate ids would make aria-controls ambiguous.
+  const panelId = useId();
   const [search, setSearch] = useState("");
   const [customDraft, setCustomDraft] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
@@ -113,11 +115,13 @@ export function ChipMultiSelect({
         {label}
       </FieldLabel>
 
+      {/* The panel unmounts when closed so autoFocus re-fires on each open;
+          aria-controls is therefore only set while it is in the document. */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-controls={panelId}
+        aria-controls={open ? panelId : undefined}
         className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-bg px-3 py-2 text-left text-sm outline-none transition-colors hover:border-border-strong focus:border-accent"
       >
         <span className={`truncate ${selected.length ? "text-text" : "text-text-muted"}`}>{summary}</span>
