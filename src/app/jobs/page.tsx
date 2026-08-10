@@ -18,6 +18,7 @@ import {
 } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { EXPORT_PHASES, LIMITS } from "@/lib/constants";
+import { formatDuration, formatTimestamp } from "@/lib/format";
 import type { ExportJobResponse, UserExportsResponse } from "@/lib/types";
 
 const TERMINAL = ["completed", "failed", "rejected"];
@@ -216,11 +217,11 @@ function JobsView() {
               <Stat label="Size" value={job.file_size_mb != null ? `${job.file_size_mb} MB` : "—"} />
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              <Stat label="Created" value={<span className="text-sm">{job.created_at ?? "—"}</span>} />
-              <Stat label="Completed" value={<span className="text-sm">{job.completed_at ?? "—"}</span>} />
+              <Stat label="Created" value={<span className="text-sm">{formatTimestamp(job.created_at)}</span>} />
+              <Stat label="Completed" value={<span className="text-sm">{formatTimestamp(job.completed_at)}</span>} />
               <Stat
                 label="Execution"
-                value={job.execution_time_seconds != null ? `${job.execution_time_seconds}s` : "—"}
+                value={formatDuration(job.execution_time_seconds)}
               />
             </div>
 
@@ -230,7 +231,7 @@ function JobsView() {
               <div className="rounded-md border border-success/30 bg-success/10 p-3">
                 <div className="text-sm font-medium text-success">Download ready</div>
                 <div className="mt-1 text-xs text-text-muted">
-                  Expires {job.download_expires_at ?? `${LIMITS.downloadsExpiryHours}h after completion`} · no
+                  Expires {job.download_expires_at ? formatTimestamp(job.download_expires_at) : `${LIMITS.downloadsExpiryHours}h after completion`} · no
                   auth needed, treat the link as sensitive
                 </div>
                 <a
@@ -357,14 +358,14 @@ function JobsView() {
                     <td className="px-2 py-2">
                       <StatusBadge status={row.status} />
                     </td>
-                    <td className="whitespace-nowrap px-2 py-2">{row.created_at ?? "—"}</td>
-                    <td className="whitespace-nowrap px-2 py-2">{row.completed_at ?? "—"}</td>
+                    <td className="whitespace-nowrap px-2 py-2">{formatTimestamp(row.created_at)}</td>
+                    <td className="whitespace-nowrap px-2 py-2">{formatTimestamp(row.completed_at)}</td>
                     <td className="px-2 py-2">
                       {(row.rows_returned ?? row.rows)?.toLocaleString() ?? "—"}
                     </td>
                     <td className="px-2 py-2">{row.file_size_mb ?? "—"}</td>
                     <td className="px-2 py-2">
-                      {row.execution_time_seconds ?? row.execution_time ?? "—"}
+                      {formatDuration(row.execution_time_seconds ?? row.execution_time)}
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex gap-1">

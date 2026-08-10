@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Alert, Button, PageHeader, Panel, Stat } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { LIMITS } from "@/lib/constants";
+import { formatTimestamp } from "@/lib/format";
 import type { HealthResponse, QueueCapacityResponse, UserQuotaResponse } from "@/lib/types";
 
 /** `max_rows_per_day` → "Max rows per day" */
@@ -17,6 +18,7 @@ function humanize(key: string) {
 function formatCount(value: number | null | undefined) {
   return value == null ? "unlimited" : value.toLocaleString();
 }
+
 
 /**
  * Usage is reported per period (`usage.today.exports`) while the matching cap
@@ -119,7 +121,9 @@ export default function OverviewPage() {
         }
         actions={
           quota?.reset_at ? (
-            <span className="text-xs text-text-muted">Resets {quota.reset_at}</span>
+            <span className="text-xs text-text-subtle">
+              Quota resets {formatTimestamp(quota.reset_at)}
+            </span>
           ) : undefined
         }
       >
