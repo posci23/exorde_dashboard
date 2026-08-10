@@ -237,7 +237,7 @@ function JobsView() {
                 <a
                   href={job.download_url}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="mt-3 inline-flex h-9 items-center rounded-md bg-accent-solid px-3.5 text-sm font-medium text-accent-fg transition-colors hover:bg-accent-hover"
                 >
                   Download file
@@ -342,7 +342,7 @@ function JobsView() {
               <thead>
                 <tr className="border-b border-border">
                   {["Job ID", "Status", "Created", "Completed", "Rows", "MB", "Secs", ""].map((h) => (
-                    <th key={h || "actions"} className="label-caps px-2 pb-2 font-medium">
+                    <th scope="col" key={h || "actions"} className="label-caps px-2 pb-2 font-medium">
                       {h}
                     </th>
                   ))}

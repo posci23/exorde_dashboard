@@ -117,12 +117,6 @@ export function splitList(text: string): string[] {
     .filter(Boolean);
 }
 
-/** Toggle one value in a comma-separated list, preserving order. */
-export function toggleInList(text: string, value: string, selected: boolean): string {
-  const current = splitList(text);
-  if (selected) return current.includes(value) ? text : [...current, value].join(", ");
-  return current.filter((v) => v !== value).join(", ");
-}
 
 export function parseDomainList(text: string): string[] {
   return [...new Set(splitList(text))];

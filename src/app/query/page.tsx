@@ -202,7 +202,7 @@ export default function QueryPage() {
                 <thead className="text-text-muted">
                   <tr className="border-b border-border">
                     {["Posted", "Platform", "Lang", "Sentiment", "Content", ""].map((h) => (
-                      <th key={h || "actions"} className="px-2 py-2 font-medium">
+                      <th scope="col" key={h || "actions"} className="px-2 py-2 font-medium">
                         {h}
                       </th>
                     ))}

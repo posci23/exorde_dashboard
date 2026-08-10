@@ -82,8 +82,6 @@ export const URL_PATTERN_EXAMPLES = [
   { value: "medium.com/@", label: "A Medium author", note: "Append the handle" },
 ] as const;
 
-export const PLATFORM_DOMAINS: Set<string> = new Set(PLATFORMS.map((p) => p.domain));
-
 export type ProfileFilterField = {
   name: string;
   label: string;
@@ -160,8 +158,6 @@ export const ALL_LANGUAGES: LanguageOption[] = [
     .sort((a, b) => a.label.localeCompare(b.label)),
 ];
 
-/** Kept for the Reference page's quick cheat-sheet. */
-export const COMMON_LANGUAGES = ALL_LANGUAGES.filter((l) => l.tier === "Most used");
 
 /** Relative windows offered as one-click buttons on the time-range section. */
 export const DATE_RANGE_PRESETS = [

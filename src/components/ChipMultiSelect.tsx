@@ -40,6 +40,7 @@ export function ChipMultiSelect({
   footnote,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const panelId = `chips-${label.replace(/\W+/g, "-").toLowerCase()}`;
   const [search, setSearch] = useState("");
   const [customDraft, setCustomDraft] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
@@ -113,7 +114,7 @@ export function ChipMultiSelect({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-haspopup="listbox"
+        aria-controls={panelId}
         className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-bg px-3 py-2 text-left text-sm outline-none transition-colors hover:border-border-strong focus:border-accent"
       >
         <span className={`truncate ${selected.length ? "text-text" : "text-text-muted"}`}>{summary}</span>
@@ -121,9 +122,16 @@ export function ChipMultiSelect({
       </button>
 
       {open && (
-        <div className="rounded-xl border border-border bg-surface-raised p-2 shadow-xl shadow-black/40" role="listbox" aria-multiselectable="true">
+        <div
+          id={panelId}
+          role="group"
+          aria-label={`${label} options`}
+          className="rounded-xl border border-border bg-surface-raised p-2 shadow-xl shadow-black/40"
+        >
           <TextInput
             autoFocus
+            type="search"
+            aria-label={searchPlaceholder}
             placeholder={searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -223,6 +231,7 @@ export function ChipMultiSelect({
               <button
                 key={value}
                 type="button"
+                aria-label={`Remove ${option?.label ?? value}`}
                 title={`Remove ${value}`}
                 onClick={() => toggle(value, false)}
                 className={`rounded-full px-2.5 py-1 text-xs transition-colors ${

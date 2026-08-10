@@ -96,10 +96,24 @@ export function Button({
   );
 }
 
-export function FieldLabel({ children, hint }: { children: ReactNode; hint?: ReactNode }) {
+export function FieldLabel({
+  children,
+  hint,
+  htmlFor,
+}: {
+  children: ReactNode;
+  hint?: ReactNode;
+  /** Only pass this when a single form control owns the label. */
+  htmlFor?: string;
+}) {
+  // Without htmlFor a <label> announces a label that points at nothing, so the
+  // neutral <span> is the honest element for composite widgets.
+  const Tag = htmlFor ? "label" : "span";
   return (
     <div className="mb-2 flex items-baseline justify-between gap-3">
-      <label className="text-xs font-medium text-text">{children}</label>
+      <Tag htmlFor={htmlFor} className="block text-xs font-medium text-text">
+        {children}
+      </Tag>
       {hint && <span className="font-mono text-xs text-text-subtle">{hint}</span>}
     </div>
   );
@@ -186,6 +200,7 @@ export function Section({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const panelId = `section-${title.replace(/\W+/g, "-").toLowerCase()}`;
 
   return (
     <section className={`${CARD} border border-border bg-surface transition-colors`}>
@@ -194,6 +209,7 @@ export function Section({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
+          aria-controls={panelId}
           className="flex min-w-0 flex-1 items-center gap-3 text-left"
         >
           <span
@@ -219,6 +235,7 @@ export function Section({
           {helpHref && (
             <Link
               href={helpHref}
+              aria-label={`Read about ${title.toLowerCase()} in the Reference`}
               title={`Read about ${title.toLowerCase()} in the Reference`}
               className={`${CONTROL} flex h-7 w-7 items-center justify-center text-xs text-text-subtle transition-colors hover:bg-surface-hover hover:text-accent`}
             >
@@ -228,7 +245,7 @@ export function Section({
         </div>
       </div>
       {open && (
-        <div className="border-t border-border px-5 py-5">
+        <div id={panelId} className="border-t border-border px-5 py-5">
           {help && <p className="mb-4 text-xs leading-relaxed text-text-muted">{help}</p>}
           {children}
         </div>
@@ -315,6 +332,7 @@ export function NumberChoice({
           max={max}
           value={value}
           placeholder={placeholder}
+          aria-label={placeholder ? `Custom value in ${placeholder}` : "Custom value"}
           onChange={(e) => onChange(e.target.value)}
         />
       )}
