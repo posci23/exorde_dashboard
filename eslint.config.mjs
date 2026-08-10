@@ -9,6 +9,10 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [...compat.extends("next/core-web-vitals", "next/typescript")];
+const eslintConfig = [
+  // Flat config has no implicit ignores, so build output would otherwise be linted.
+  { ignores: [".next/**", ".vercel/**", "node_modules/**", "out/**", "next-env.d.ts"] },
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+];
 
 export default eslintConfig;

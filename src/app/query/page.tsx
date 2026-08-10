@@ -8,13 +8,7 @@ import { SampleCharts } from "@/components/SampleCharts";
 import { Alert, Button, PageHeader, Panel, Select, Stat, Toolbar } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { describeIssues, submitExport, validateQuery } from "@/lib/export-actions";
-import { DATE_RANGE_PRESETS } from "@/lib/constants";
-import {
-  QUERY_PRESETS,
-  buildQueryBody,
-  matchDatePreset,
-  relativeDateRange,
-} from "@/lib/query-form";
+import { QUERY_PRESETS, buildQueryBody } from "@/lib/query-form";
 import type { PreviewResponse, SamplePost } from "@/lib/types";
 
 export default function QueryPage() {
@@ -81,7 +75,6 @@ export default function QueryPage() {
 
   if (!ready) return <p className="text-sm text-text-muted">Loading saved query…</p>;
 
-  const activeDatePreset = matchDatePreset(form);
   const presetsByCategory = [...new Set(QUERY_PRESETS.map((p) => p.category))];
 
   return (
@@ -109,23 +102,6 @@ export default function QueryPage() {
                   ))}
                 </optgroup>
               ))}
-            </Select>
-          </div>
-
-          <div className="w-36">
-            <Select
-              value={activeDatePreset ?? "custom"}
-              onChange={(e) => {
-                const preset = DATE_RANGE_PRESETS.find((p) => p.id === e.target.value);
-                if (preset) setForm({ ...form, ...relativeDateRange(preset.days) });
-              }}
-            >
-              {DATE_RANGE_PRESETS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-              <option value="custom">Custom range…</option>
             </Select>
           </div>
         </div>
@@ -160,7 +136,7 @@ export default function QueryPage() {
 
       <PageHeader
         title="Query"
-        description="Build one query, then preview it for free or run it as a full export — both use the filters below. Every section header shows what it currently contains."
+        description="Answer as many of the questions below as you need — every one is optional except a keyword or an author. Preview is free and instant; export runs the same query in full and lands in Jobs. Hover any ? for an explanation."
       />
 
       {showIssues && issues.length > 0 && (

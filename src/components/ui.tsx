@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { apiDateToInput, inputDateToApi } from "@/lib/query-form";
 
 /* Radii are fixed by the design system: controls 6px, cards 12px, pills full. */
@@ -96,13 +96,99 @@ export function Button({
   );
 }
 
+/**
+ * Hover/focus explainer next to a field label. Keyboard-reachable, and the
+ * bubble is width-capped so long explanations wrap instead of running off-screen.
+ */
+export function HelpIcon({ children }: { children: ReactNode }) {
+  const id = useId();
+  return (
+    <span className="group relative inline-flex">
+      <button
+        type="button"
+        aria-label="What is this?"
+        aria-describedby={id}
+        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-surface-hover text-[0.625rem] font-semibold text-text-subtle transition-colors hover:bg-accent-soft hover:text-accent"
+      >
+        ?
+      </button>
+      <span
+        id={id}
+        role="tooltip"
+        className="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-md border border-border bg-surface-raised px-3 py-2 text-xs leading-relaxed font-normal text-text-muted opacity-0 shadow-xl transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+      >
+        {children}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * One-click choice list where each option needs a sentence of explanation —
+ * the alternative to a dropdown whose labels can't carry that much meaning.
+ */
+export function RadioCards<T extends string>({
+  value,
+  options,
+  onChange,
+  columns = 2,
+}: {
+  value: T;
+  options: ReadonlyArray<{ value: T; label: string; description: string; badge?: string }>;
+  onChange: (value: T) => void;
+  columns?: 1 | 2;
+}) {
+  return (
+    <div
+      role="radiogroup"
+      className={`grid gap-2 ${columns === 2 ? "sm:grid-cols-2" : ""}`}
+    >
+      {options.map((option) => {
+        const active = value === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(option.value)}
+            className={`${CONTROL} border px-3.5 py-3 text-left transition-colors ${
+              active
+                ? "border-accent bg-accent-soft"
+                : "border-border bg-bg hover:border-border-strong hover:bg-surface-hover"
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className={`h-3.5 w-3.5 shrink-0 rounded-full border-[4px] transition-colors ${
+                  active ? "border-accent-solid bg-bg" : "border-border-strong bg-bg"
+                }`}
+              />
+              <span className={`text-xs font-medium ${active ? "text-accent" : "text-text"}`}>
+                {option.label}
+              </span>
+              {option.badge && <Badge tone={active ? "accent" : "neutral"}>{option.badge}</Badge>}
+            </span>
+            <span className="mt-1.5 block pl-5.5 text-xs leading-relaxed text-text-muted">
+              {option.description}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function FieldLabel({
   children,
   hint,
+  help,
   htmlFor,
 }: {
   children: ReactNode;
   hint?: ReactNode;
+  help?: ReactNode;
   /** Only pass this when a single form control owns the label. */
   htmlFor?: string;
 }) {
@@ -110,10 +196,13 @@ export function FieldLabel({
   // neutral <span> is the honest element for composite widgets.
   const Tag = htmlFor ? "label" : "span";
   return (
-    <div className="mb-2 flex items-baseline justify-between gap-3">
-      <Tag htmlFor={htmlFor} className="block text-xs font-medium text-text">
-        {children}
-      </Tag>
+    <div className="mb-2 flex items-baseline justify-between gap-2">
+      <div className="flex items-baseline gap-1.5">
+        <Tag htmlFor={htmlFor} className="block text-xs font-medium text-text">
+          {children}
+        </Tag>
+        {help && <HelpIcon>{help}</HelpIcon>}
+      </div>
       {hint && <span className="font-mono text-xs text-text-subtle">{hint}</span>}
     </div>
   );

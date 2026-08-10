@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   ALL_LANGUAGES,
   EXPORT_PHASES,
+  FIELD_PRESETS,
   FIELD_REFERENCE,
   HTTP_ERRORS,
   LIMITS,
@@ -380,9 +381,28 @@ function ReferenceView() {
           <div className="space-y-4">
             <Panel
               title={`Output fields (${fields.length} of ${FIELD_REFERENCE.length})`}
-              description="44 are exported by default. Embeddings are excluded unless you pass exclude_fields: []."
+              description="You don't pick these one by one — Query → “What goes in the file?” offers named presets that set exclude_fields for you. This table is what each preset is choosing between."
             >
-              {fields.length === 0 && <EmptyState>Nothing matches “{query}”.</EmptyState>}
+              <div className="grid gap-2 sm:grid-cols-2">
+                {FIELD_PRESETS.filter((p) => p.id !== "custom").map((preset) => (
+                  <div key={preset.id} className="rounded-md border border-border bg-bg px-3.5 py-3">
+                    <div className="text-xs font-medium text-text">{preset.label}</div>
+                    <p className="mt-1 text-xs leading-relaxed text-text-muted">
+                      {preset.description}
+                    </p>
+                    <p className="mt-1.5 font-mono text-xs text-text-subtle">
+                      {preset.exclude === null
+                        ? "exclude_fields omitted"
+                        : `${preset.exclude.length} excluded`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {fields.length === 0 && (
+                <div className="mt-4">
+                  <EmptyState>Nothing matches “{query}”.</EmptyState>
+                </div>
+              )}
             </Panel>
             {FIELD_CATEGORIES.map((category) => {
               const rows = fields.filter((f) => f.category === category);

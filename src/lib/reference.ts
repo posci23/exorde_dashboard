@@ -212,7 +212,7 @@ export const FILTER_REFERENCE: FilterRef[] = [
     type: "string[]",
     limit: "—",
     description:
-      "Columns to leave out of each row. Defaults to excluding analysis_embedding; pass an empty array to include everything.",
+      "Columns to leave out of each row. Omit the key to get the API default (everything except analysis_embedding), or pass an empty array to include everything. The dashboard's field presets set this for you.",
   },
 ];
 

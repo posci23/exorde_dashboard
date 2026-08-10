@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, FieldLabel, TextInput } from "./ui";
 
 export type ChipOption = {
@@ -14,6 +14,8 @@ export type ChipOption = {
 type Props = {
   label: string;
   hint?: string;
+  /** Hover explainer shown next to the label. */
+  help?: ReactNode;
   /** The full option catalog — this is what makes the available choices discoverable. */
   options: readonly ChipOption[];
   /** Currently selected values, including any that aren't in `options`. */
@@ -30,6 +32,7 @@ type Props = {
 export function ChipMultiSelect({
   label,
   hint,
+  help,
   options,
   selected,
   onChange,
@@ -106,7 +109,7 @@ export function ChipMultiSelect({
 
   return (
     <div className="space-y-2" ref={rootRef}>
-      <FieldLabel hint={max ? `${selected.length}/${max}${hint ? ` · ${hint}` : ""}` : hint}>
+      <FieldLabel help={help} hint={max ? `${selected.length}/${max}${hint ? ` · ${hint}` : ""}` : hint}>
         {label}
       </FieldLabel>
 

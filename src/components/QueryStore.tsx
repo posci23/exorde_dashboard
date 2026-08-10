@@ -12,7 +12,8 @@ import {
 import { createEmptyQueryForm, type QueryFormState } from "@/lib/query-form";
 import type { ExportJobResponse, PreviewResponse } from "@/lib/types";
 
-const FORM_KEY = "exorde.queryForm.v1";
+// v2: `excludeFieldsMode` became the richer `fieldPreset`.
+const FORM_KEY = "exorde.queryForm.v2";
 const JOBS_KEY = "exorde.trackedJobs.v1";
 
 type Store = {

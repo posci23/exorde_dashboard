@@ -5,6 +5,7 @@ import { ChipMultiSelect, type ChipOption } from "./ChipMultiSelect";
 import {
   ALL_LANGUAGES,
   DATE_RANGE_PRESETS,
+  FIELD_PRESETS,
   FIELD_REFERENCE,
   LIMITS,
   PER_DAY_LIMIT_PRESETS,
@@ -35,6 +36,7 @@ import {
   DateTimeField,
   FieldLabel,
   NumberChoice,
+  RadioCards,
   Section,
   SegmentedControl,
   Select,
@@ -65,9 +67,27 @@ const LANGUAGE_OPTIONS: ChipOption[] = ALL_LANGUAGES.map((l) => ({
   group: l.tier,
 }));
 
-const FIELD_OPTIONS: ChipOption[] = FIELD_REFERENCE.filter(
-  (f) => f.category !== "Always Excluded",
-).map((f) => ({ value: f.name, label: f.name, note: f.description, group: f.category }));
+/** Columns you can actually choose — the API always strips the other three. */
+const SELECTABLE_FIELDS = FIELD_REFERENCE.filter((f) => f.category !== "Always Excluded");
+
+const FIELD_OPTIONS: ChipOption[] = SELECTABLE_FIELDS.map((f) => ({
+  value: f.name,
+  label: f.name,
+  note: f.description,
+  group: f.category,
+}));
+
+/**
+ * Columns a preset leaves in the file. Shown as a live count on each option so
+ * "Just the posts" vs "Everything" is a visible difference, not a promise.
+ */
+function keptFields(presetId: string, customExcluded: readonly string[]): string[] {
+  const preset = FIELD_PRESETS.find((p) => p.id === presetId);
+  const excluded = new Set<string>(
+    presetId === "custom" ? customExcluded : (preset?.exclude ?? ["analysis_embedding"]),
+  );
+  return SELECTABLE_FIELDS.filter((f) => !excluded.has(f.name)).map((f) => f.name);
+}
 
 /** Comma-separated form field ⇄ the string[] that ChipMultiSelect works with. */
 function listProps(
@@ -92,10 +112,16 @@ export function QueryBuilder({ form, onChange }: Props) {
   const spanOverLimit = spanDays != null && spanDays > LIMITS.maxDateRangeDays;
   const perDaySet = Boolean(form.perDayLimit.trim());
 
+  // Only the "custom" option reads this, so it must be the user's own list —
+  // not whatever the currently selected preset happens to exclude.
+  const customExcluded = splitList(form.excludeFieldsText);
+  const keptFieldCount = (presetId: string) => keptFields(presetId, customExcluded).length;
+  const keptFieldNames = keptFields(form.fieldPreset, customExcluded);
+
   return (
     <div className="space-y-3">
       <Section
-        title="Keywords"
+        title="What words must appear?"
         helpHref="/reference?tab=filters&section=Keywords"
         summary={summarizeKeywords(form).summary}
         count={summarizeKeywords(form).count}
@@ -105,7 +131,12 @@ export function QueryBuilder({ form, onChange }: Props) {
       >
         {form.keywordGroups.length > 1 && (
           <div className="mb-3 flex flex-wrap items-center gap-3">
-            <FieldLabel hint="how the groups below combine">Between groups</FieldLabel>
+            <FieldLabel
+              hint="group_operator"
+              help="AND is stricter: a post has to satisfy every group. Use it to cross two topics, e.g. group 1 = crypto terms, group 2 = regulation terms."
+            >
+              Must a post match every group?
+            </FieldLabel>
             <SegmentedControl
               value={form.groupOperator}
               options={[
@@ -179,7 +210,12 @@ export function QueryBuilder({ form, onChange }: Props) {
         </div>
 
         <div className="mt-4 border-t border-border pt-3">
-          <FieldLabel hint="full_string_scan">Search mode</FieldLabel>
+          <FieldLabel
+            hint="full_string_scan"
+            help="Fast matches whole words only, so “BTC” won’t be found inside “#BTCUSD”. Safe scans the raw text character by character and catches those, at 5–10× the cost."
+          >
+            How closely should terms be matched?
+          </FieldLabel>
           <SegmentedControl
             value={form.fullStringScan ? "safe" : "fast"}
             options={[
@@ -197,7 +233,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       </Section>
 
       <Section
-        title="Time range"
+        title="When were the posts written?"
         helpHref="/reference?tab=filters&section=Time+range"
         summary={summarizeTimeRange(form).summary}
         count={summarizeTimeRange(form).count}
@@ -219,11 +255,21 @@ export function QueryBuilder({ form, onChange }: Props) {
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div>
-            <FieldLabel hint="start_date · UTC">Posted after</FieldLabel>
+            <FieldLabel
+              hint="start_date · UTC"
+              help="Times are UTC, not your local clock. A post written at 23:00 in Madrid counts as 21:00 or 22:00 here depending on the season."
+            >
+              Not before
+            </FieldLabel>
             <DateTimeField value={form.startDate} onChange={(startDate) => set({ startDate })} />
           </div>
           <div>
-            <FieldLabel hint="end_date · UTC">Posted before</FieldLabel>
+            <FieldLabel
+              hint="end_date · UTC"
+              help="Leave this at “now” for a rolling window. Exorde indexes posts within minutes, so the last hour may still be filling in."
+            >
+              Not after
+            </FieldLabel>
             <DateTimeField value={form.endDate} onChange={(endDate) => set({ endDate })} />
           </div>
         </div>
@@ -244,7 +290,12 @@ export function QueryBuilder({ form, onChange }: Props) {
         )}
 
         <div className="mt-4 border-t border-border pt-3">
-          <FieldLabel hint="collected_at_* · optional">When Exorde collected the post</FieldLabel>
+          <FieldLabel
+            hint="collected_at_* · optional"
+            help="Two different clocks: above is when the author posted, this is when Exorde saw it. They differ when older posts get backfilled — most people can ignore this."
+          >
+            When did Exorde collect it?
+          </FieldLabel>
           <div className="grid gap-3 sm:grid-cols-2">
             <DateTimeField
               value={form.collectedAtStartDate}
@@ -276,7 +327,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       </Section>
 
       <Section
-        title="Sources"
+        title="Where should posts come from?"
         helpHref="/reference?tab=filters&section=Sources"
         summary={summarizeSources(form).summary}
         count={summarizeSources(form).count}
@@ -286,8 +337,9 @@ export function QueryBuilder({ form, onChange }: Props) {
       >
         <div className="grid gap-5 lg:grid-cols-2">
           <ChipMultiSelect
-            label="Platforms"
+            label="Which platforms?"
             hint="domains · exact match"
+            help="Matches the post's domain exactly, so “reddit.com” covers every subreddit. To narrow to one subreddit or channel, use the URL field below instead."
             options={PLATFORM_OPTIONS}
             max={LIMITS.maxDomains}
             emptyLabel="All platforms (no domain filter)"
@@ -297,8 +349,9 @@ export function QueryBuilder({ form, onChange }: Props) {
             {...listProps(form.domainsText, (domainsText) => set({ domainsText }))}
           />
           <ChipMultiSelect
-            label="Languages"
+            label="Which languages?"
             hint="ISO 639 codes"
+            help="Detected per post, not per author. Detection on very short posts is unreliable, so a strict language filter can drop real matches."
             options={LANGUAGE_OPTIONS}
             max={LIMITS.maxLanguages}
             emptyLabel="All languages"
@@ -310,8 +363,11 @@ export function QueryBuilder({ form, onChange }: Props) {
         </div>
 
         <div className="mt-5 border-t border-border pt-4">
-          <FieldLabel hint={`locations · max ${LIMITS.maxLocations} · substring match`}>
-            Author location contains
+          <FieldLabel
+            hint={`locations · max ${LIMITS.maxLocations}`}
+            help="This is the free-text location people type on their profile, not a verified GPS location. “Paris” also matches “Paris, Texas” and “Parisian at heart”."
+          >
+            Where is the author from?
           </FieldLabel>
           <TextArea
             rows={2}
@@ -327,7 +383,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       </Section>
 
       <Section
-        title="People & IDs"
+        title="Which authors or specific posts?"
         helpHref="/reference?tab=filters&section=People+%26+IDs"
         summary={summarizePeople(form).summary}
         count={summarizePeople(form).count}
@@ -344,7 +400,12 @@ export function QueryBuilder({ form, onChange }: Props) {
       >
         <div className="grid gap-4 lg:grid-cols-2">
           <div>
-            <FieldLabel hint={`usernames · max ${LIMITS.maxUsernames}`}>Authors</FieldLabel>
+            <FieldLabel
+              hint={`usernames · max ${LIMITS.maxUsernames}`}
+              help="Handles without the @, comma-separated. Setting this alone is enough to run a query — you don't also need keywords."
+            >
+              Who wrote the post?
+            </FieldLabel>
             <TextArea
               rows={3}
               placeholder="elonmusk, BillGates"
@@ -364,7 +425,12 @@ export function QueryBuilder({ form, onChange }: Props) {
             </div>
           </div>
           <div>
-            <FieldLabel hint={`url_patterns · max ${LIMITS.maxUrlPatterns}`}>URL contains</FieldLabel>
+            <FieldLabel
+              hint={`url_patterns · max ${LIMITS.maxUrlPatterns}`}
+              help="A plain substring of the post's link — no wildcards needed. This is how you target one subreddit or one YouTube channel, which the platform filter can't do."
+            >
+              What should the link contain?
+            </FieldLabel>
             <TextArea
               rows={3}
               placeholder="reddit.com/r/france"
@@ -398,7 +464,12 @@ export function QueryBuilder({ form, onChange }: Props) {
             </div>
           </div>
           <div>
-            <FieldLabel hint={`external_ids · max ${LIMITS.maxExternalIds}`}>Specific post IDs</FieldLabel>
+            <FieldLabel
+              hint={`external_ids · max ${LIMITS.maxExternalIds}`}
+              help="The platform's own ID for a post — the number at the end of an X link, or a t1_… code on Reddit. Use it to re-fetch posts you already know about."
+            >
+              Any exact posts to fetch?
+            </FieldLabel>
             <TextArea
               rows={3}
               placeholder="1234567890, t1_abcdef"
@@ -408,8 +479,11 @@ export function QueryBuilder({ form, onChange }: Props) {
             <p className="mt-1 text-xs text-text-muted">Re-fetch exact posts by their platform ID.</p>
           </div>
           <div>
-            <FieldLabel hint={`external_parent_ids · max ${LIMITS.maxExternalParentIds}`}>
-              Replies to post IDs
+            <FieldLabel
+              hint={`external_parent_ids · max ${LIMITS.maxExternalParentIds}`}
+              help="Give a post's ID and you get the replies underneath it instead of the post itself — useful for pulling a whole discussion thread."
+            >
+              Replies under which posts?
             </FieldLabel>
             <TextArea
               rows={3}
@@ -423,7 +497,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       </Section>
 
       <Section
-        title="Advanced"
+        title="What should be filtered out?"
         helpHref="/reference?tab=filters&section=Advanced"
         summary={summarizeAdvanced(form).summary}
         count={summarizeAdvanced(form).count}
@@ -431,8 +505,11 @@ export function QueryBuilder({ form, onChange }: Props) {
       >
         <div className="space-y-6">
           <div>
-            <FieldLabel hint={`exclude_keyword_groups · max ${LIMITS.maxExcludeKeywordGroups}`}>
-              Exclude posts containing
+            <FieldLabel
+              hint={`exclude_keyword_groups · max ${LIMITS.maxExcludeKeywordGroups}`}
+              help="Drops any post containing these words. The usual use is spam: “giveaway, airdrop, follow me”. Exclusions always win over keyword matches."
+            >
+              Which words disqualify a post?
             </FieldLabel>
             <div className="space-y-3">
               {form.excludeKeywordGroups.map((group, index) => (
@@ -484,8 +561,11 @@ export function QueryBuilder({ form, onChange }: Props) {
           </div>
 
           <div className="border-t border-border pt-5">
-            <FieldLabel hint={`proximity_groups · max ${LIMITS.maxProximityGroups} · requires keywords`}>
-              Terms near each other
+            <FieldLabel
+              hint={`proximity_groups · max ${LIMITS.maxProximityGroups}`}
+              help="Requires two words to sit close together, which usually means they're actually related. “bitcoin” within 5 words of “ban” finds real discussion; the same two words 200 words apart usually don't."
+            >
+              Which terms must sit close together?
             </FieldLabel>
             <div className="space-y-3">
               {form.proximityGroups.map((group, index) => (
@@ -558,9 +638,10 @@ export function QueryBuilder({ form, onChange }: Props) {
 
           <div className="border-t border-border pt-5">
             <FieldLabel
-              hint={`profile_filters · x.com only · max ${LIMITS.maxProfileFilterFields} fields`}
+              hint={`profile_filters · x.com only · max ${LIMITS.maxProfileFilterFields}`}
+              help="Filters on the author's X profile — bio text, follower count, verified status. Posts from every other platform are dropped when you use this, because only X carries the metadata."
             >
-              Author profile must match
+              What must be true of the author?
             </FieldLabel>
             <div className="space-y-3">
               {form.profileFilters.map((row, index) => {
@@ -635,15 +716,21 @@ export function QueryBuilder({ form, onChange }: Props) {
       </Section>
 
       <Section
-        title="Output"
+        title="What goes in the file?"
         helpHref="/reference?tab=filters&section=Output"
+        defaultOpen
         summary={summarizeOutput(form).summary}
         count={summarizeOutput(form).count}
         help="Format and row caps apply to exports only — previews ignore them and always return ~100 sample rows."
       >
         <div className="grid gap-5 lg:grid-cols-2">
           <div>
-            <FieldLabel hint="output_format">File format</FieldLabel>
+            <FieldLabel
+              hint="output_format"
+              help="Pick CSV if you're opening this in Excel or Sheets. Pick JSONL if you're loading it with pandas, a script, or anything that reads line by line."
+            >
+              Which file format?
+            </FieldLabel>
             <SegmentedControl
               value={form.outputFormat}
               options={[
@@ -660,8 +747,11 @@ export function QueryBuilder({ form, onChange }: Props) {
           </div>
           <div className="space-y-4">
             <div>
-              <FieldLabel hint={`result_limit · max ${LIMITS.resultLimitMax.toLocaleString()}`}>
-                Total row cap
+              <FieldLabel
+                hint={`result_limit · max ${LIMITS.resultLimitMax.toLocaleString()}`}
+                help="A hard stop on total rows. Leave it empty to get every match. Rows count against your plan quota, so a cap is a cheap safety net on a broad query."
+              >
+                How many rows at most?
               </FieldLabel>
               <NumberChoice
                 value={form.resultLimit}
@@ -673,8 +763,11 @@ export function QueryBuilder({ form, onChange }: Props) {
               />
             </div>
             <div>
-              <FieldLabel hint={`per_day_limit · max ${LIMITS.perDayLimitMax.toLocaleString()}`}>
-                Per-day row cap
+              <FieldLabel
+                hint={`per_day_limit · max ${LIMITS.perDayLimitMax.toLocaleString()}`}
+                help="Takes an even sample from each UTC day instead of letting one busy day dominate. Setting it also raises the maximum date range from 30 to 90 days."
+              >
+                How many rows per day?
               </FieldLabel>
               <NumberChoice
                 value={form.perDayLimit}
@@ -693,30 +786,39 @@ export function QueryBuilder({ form, onChange }: Props) {
         </div>
 
         <div className="mt-5 border-t border-border pt-4">
-          <FieldLabel hint="exclude_fields">Fields in the output</FieldLabel>
-          <SegmentedControl
-            value={form.excludeFieldsMode}
-            options={[
-              { value: "default" as const, label: "Default", hint: "Excludes analysis_embedding" },
-              { value: "include_all" as const, label: "Include all", hint: "Sends exclude_fields: []" },
-              { value: "custom" as const, label: "Choose fields", hint: "Pick what to leave out" },
-            ]}
-            onChange={(excludeFieldsMode) => set({ excludeFieldsMode })}
+          <FieldLabel
+            hint="exclude_fields"
+            help={`Every row can carry up to ${SELECTABLE_FIELDS.length} columns, and most of them are AI-generated scores. Picking a preset here sets the API's exclude_fields list for you.`}
+          >
+            What should each row contain?
+          </FieldLabel>
+          <RadioCards
+            value={form.fieldPreset}
+            options={FIELD_PRESETS.map((p) => ({
+              value: p.id,
+              label: p.label,
+              description: p.description,
+              badge: `${keptFieldCount(p.id)} cols`,
+            }))}
+            onChange={(fieldPreset) => set({ fieldPreset })}
           />
-          <p className="mt-2 text-xs text-text-muted">
-            {form.excludeFieldsMode === "default"
-              ? `44 of ${FIELD_REFERENCE.length} fields are returned; the embedding vector is omitted.`
-              : form.excludeFieldsMode === "include_all"
-                ? "Every available field including analysis_embedding — much larger files."
-                : "Select the fields to omit from each row."}
+
+          <p className="mt-3 text-xs leading-relaxed text-text-muted">
+            Keeping{" "}
+            <span className="font-mono text-text">
+              {keptFieldNames.slice(0, 12).join(", ")}
+              {keptFieldNames.length > 12 && ` +${keptFieldNames.length - 12} more`}
+            </span>
           </p>
-          {form.excludeFieldsMode === "custom" && (
-            <div className="mt-3">
+
+          {form.fieldPreset === "custom" && (
+            <div className="mt-4">
               <ChipMultiSelect
-                label="Exclude these fields"
+                label="Which columns should be left out?"
+                help={`Anything you tick here is dropped from every row. Leave it empty to keep all ${SELECTABLE_FIELDS.length}.`}
                 options={FIELD_OPTIONS}
-                emptyLabel="Nothing excluded"
-                searchPlaceholder="Search fields…"
+                emptyLabel={`Nothing excluded — all ${SELECTABLE_FIELDS.length} columns`}
+                searchPlaceholder="Search columns…"
                 footnote="analysis_source_type, collection_module and collection_client_version are always excluded by the API."
                 {...listProps(form.excludeFieldsText, (excludeFieldsText) => set({ excludeFieldsText }))}
               />
@@ -726,7 +828,7 @@ export function QueryBuilder({ form, onChange }: Props) {
       </Section>
 
       <Section
-        title="Request payload"
+        title="What gets sent to the API?"
         summary="The exact JSON this dashboard will send"
         help="Use this to reproduce the query outside the dashboard."
       >

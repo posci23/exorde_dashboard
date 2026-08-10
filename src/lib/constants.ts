@@ -219,6 +219,70 @@ export const EMOTION_FIELDS = [
   "analysis_emotion_nervousness",
 ] as const;
 
+/**
+ * Named answers to "what should each row contain?", ordered by how often people
+ * want them. The whole point is that the common case — post text without the
+ * analysis columns — is one click and needs no knowledge of field names.
+ */
+export type FieldPreset = {
+  id: string;
+  label: string;
+  /** One line under the option, in plain language. */
+  description: string;
+  /** null means "let the API decide" (omit exclude_fields entirely). */
+  exclude: readonly string[] | null;
+};
+
+const CORE_ANALYSIS_FIELDS = [
+  "analysis_classification_label",
+  "analysis_classification_score",
+  "analysis_language_score",
+  "analysis_sentiment",
+  "analysis_top_keywords",
+] as const;
+
+export const FIELD_PRESETS: readonly FieldPreset[] = [
+  {
+    id: "raw",
+    label: "Just the posts",
+    description: "Text, author, link, time, language. No AI scores.",
+    exclude: ["analysis_embedding", ...CORE_ANALYSIS_FIELDS, ...EMOTION_FIELDS],
+  },
+  {
+    id: "sentiment",
+    label: "Posts + sentiment",
+    description: "Adds one sentiment score per post, no emotion breakdown.",
+    exclude: [
+      "analysis_embedding",
+      "analysis_classification_label",
+      "analysis_classification_score",
+      "analysis_language_score",
+      "analysis_top_keywords",
+      ...EMOTION_FIELDS,
+    ],
+  },
+  {
+    id: "default",
+    label: "Everything but embeddings",
+    description: "The API default: all analysis columns except the 1024-number vector.",
+    exclude: null,
+  },
+  {
+    id: "full",
+    label: "Everything",
+    description: "Includes analysis_embedding — files get roughly 10× larger.",
+    exclude: [],
+  },
+  {
+    id: "custom",
+    label: "Pick fields myself",
+    description: "Choose exactly which columns to leave out.",
+    exclude: null,
+  },
+] as const;
+
+export const DEFAULT_FIELD_PRESET = "raw";
+
 export type FieldCategory =
   | "Post Metadata"
   | "Author Information"

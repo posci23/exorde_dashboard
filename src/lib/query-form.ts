@@ -1,4 +1,9 @@
-import { DATE_RANGE_PRESETS, PLATFORMS } from "./constants";
+import {
+  DATE_RANGE_PRESETS,
+  DEFAULT_FIELD_PRESET,
+  FIELD_PRESETS,
+  PLATFORMS,
+} from "./constants";
 import type { QueryBody } from "./types";
 
 export type QueryFormState = {
@@ -13,7 +18,8 @@ export type QueryFormState = {
   usernamesText: string;
   caseSensitiveUsernames: boolean;
   fullStringScan: boolean;
-  excludeFieldsMode: "default" | "include_all" | "custom";
+  /** An id from FIELD_PRESETS. "custom" defers to `excludeFieldsText`. */
+  fieldPreset: string;
   excludeFieldsText: string;
   externalIdsText: string;
   externalParentIdsText: string;
@@ -94,7 +100,7 @@ export function createEmptyQueryForm(): QueryFormState {
     usernamesText: "",
     caseSensitiveUsernames: false,
     fullStringScan: false,
-    excludeFieldsMode: "default",
+    fieldPreset: DEFAULT_FIELD_PRESET,
     excludeFieldsText: "",
     externalIdsText: "",
     externalParentIdsText: "",
@@ -120,6 +126,20 @@ export function splitList(text: string): string[] {
 
 export function parseDomainList(text: string): string[] {
   return [...new Set(splitList(text))];
+}
+
+/**
+ * The `exclude_fields` value for the selected preset, or null to omit the key
+ * and let the API apply its own default.
+ */
+export function resolveExcludedFields(form: QueryFormState): string[] | null {
+  // Custom always sends the list, empty included: ticking nothing means "keep
+  // every column", which is not the same as letting the API drop embeddings.
+  if (form.fieldPreset === "custom") return splitList(form.excludeFieldsText);
+  const preset = FIELD_PRESETS.find((p) => p.id === form.fieldPreset);
+  // An unknown id (stale localStorage) falls back to the API default.
+  if (!preset || preset.exclude === null) return null;
+  return [...preset.exclude];
 }
 
 function parseKeywordGroups(groups: QueryFormState["keywordGroups"]) {
@@ -160,11 +180,8 @@ export function buildQueryBody(form: QueryFormState, mode: "preview" | "export")
   if (form.caseSensitiveUsernames) body.case_sensitive_usernames = true;
   if (form.fullStringScan) body.full_string_scan = true;
 
-  if (form.excludeFieldsMode === "include_all") {
-    body.exclude_fields = [];
-  } else if (form.excludeFieldsMode === "custom") {
-    body.exclude_fields = splitList(form.excludeFieldsText);
-  }
+  const excluded = resolveExcludedFields(form);
+  if (excluded !== null) body.exclude_fields = excluded;
 
   const externalIds = splitList(form.externalIdsText);
   if (externalIds.length) body.external_ids = externalIds;
@@ -300,12 +317,11 @@ export function summarizeAdvanced(form: QueryFormState): SectionSummary {
 }
 
 export function summarizeOutput(form: QueryFormState): SectionSummary {
+  const excluded = splitList(form.excludeFieldsText).length;
   const fieldMode =
-    form.excludeFieldsMode === "include_all"
-      ? "all fields"
-      : form.excludeFieldsMode === "custom"
-        ? `${splitList(form.excludeFieldsText).length} field(s) excluded`
-        : "default fields";
+    form.fieldPreset === "custom"
+      ? `${excluded} field${excluded === 1 ? "" : "s"} excluded`
+      : (FIELD_PRESETS.find((p) => p.id === form.fieldPreset)?.label ?? "default fields");
   const caps = [
     form.resultLimit.trim() && `max ${Number(form.resultLimit).toLocaleString()} rows`,
     form.perDayLimit.trim() && `${Number(form.perDayLimit).toLocaleString()}/day`,
@@ -324,27 +340,73 @@ export type QueryPreset = {
   apply: (form: QueryFormState) => QueryFormState;
 };
 
+/**
+ * Starting points, named for what you get rather than which API feature they
+ * demonstrate. Loading one overwrites only the fields it names.
+ */
 export const QUERY_PRESETS: QueryPreset[] = [
   {
-    id: "simple-or",
-    label: "Simple OR (crypto)",
-    category: "Keyword syntax",
-    description: "One OR group — matches any of the listed terms.",
+    id: "clean-posts",
+    label: "A clean set of posts on a topic",
+    category: "Start here",
+    description:
+      "One topic, English, spam words removed, no AI scores in the file. The usual starting point.",
     apply: (form) => ({
       ...form,
-      keywordGroups: [{ termsText: "bitcoin, ethereum, crypto", operator: "OR" }],
+      keywordGroups: [{ termsText: "climate change, global warming", operator: "OR" }],
       groupOperator: "AND",
-      excludeKeywordGroups: [],
+      languagesText: "en",
+      excludeKeywordGroups: [{ termsText: "giveaway, airdrop, follow me", operator: "OR" }],
+      fieldPreset: "raw",
       proximityGroups: [],
       profileFilters: [],
       urlPatternsText: "",
     }),
   },
   {
-    id: "multi-and",
-    label: "Multi-topic AND",
-    category: "Keyword syntax",
-    description: "Two OR groups combined with AND — posts must hit both topics.",
+    id: "one-community",
+    label: "Everything from one community",
+    category: "Start here",
+    description: "No keywords at all — pulls whole subreddits by their URL.",
+    apply: (form) => ({
+      ...form,
+      keywordGroups: [],
+      urlPatternsText: "reddit.com/r/france, reddit.com/r/paris",
+      fieldPreset: "raw",
+    }),
+  },
+  {
+    id: "one-author",
+    label: "Everything one account posted",
+    category: "Start here",
+    description: "Filters by handle instead of by words.",
+    apply: (form) => ({
+      ...form,
+      keywordGroups: [],
+      usernamesText: "elonmusk",
+      fieldPreset: "raw",
+    }),
+  },
+  {
+    id: "sentiment-study",
+    label: "Sentiment over time",
+    category: "Start here",
+    description: "Keeps the sentiment score and samples evenly per day across a long window.",
+    apply: (form) => ({
+      ...form,
+      keywordGroups: [{ termsText: "inflation, cost of living", operator: "OR" }],
+      languagesText: "en",
+      fieldPreset: "sentiment",
+      perDayLimit: "5000",
+      ...relativeDateRange(60),
+    }),
+  },
+
+  {
+    id: "two-topics",
+    label: "Posts that mention two topics at once",
+    category: "Narrow the results",
+    description: "Two groups joined by AND — a post must hit both to qualify.",
     apply: (form) => ({
       ...form,
       keywordGroups: [
@@ -355,72 +417,36 @@ export const QUERY_PRESETS: QueryPreset[] = [
     }),
   },
   {
-    id: "phrase",
-    label: "Exact phrase",
-    category: "Keyword syntax",
-    description: "Quoted terms match the exact ordered phrase.",
-    apply: (form) => ({
-      ...form,
-      keywordGroups: [{ termsText: '"climate change", "machine learning"', operator: "OR" }],
-    }),
-  },
-  {
-    id: "wildcard",
-    label: "Wildcard prefix",
-    category: "Keyword syntax",
-    description: "Trailing * matches any prefix, e.g. regulat* → regulation, regulatory.",
-    apply: (form) => ({
-      ...form,
-      keywordGroups: [{ termsText: "regulat*, legislat*", operator: "OR" }],
-    }),
-  },
-  {
-    id: "or-groups",
-    label: "OR between groups",
-    category: "Keyword syntax",
-    description: "group_operator: OR — posts matching either group qualify.",
-    apply: (form) => ({
-      ...form,
-      keywordGroups: [
-        { termsText: "bitcoin, ethereum", operator: "OR" },
-        { termsText: "gold, silver", operator: "OR" },
-      ],
-      groupOperator: "OR",
-    }),
-  },
-  {
-    id: "url-only",
-    label: "URL patterns only",
-    category: "Selective filters",
-    description: "No keywords at all — filters purely by URL substring.",
-    apply: (form) => ({
-      ...form,
-      keywordGroups: [],
-      urlPatternsText: "reddit.com/r/france, reddit.com/r/paris",
-    }),
-  },
-  {
-    id: "proximity-profile",
-    label: "Proximity + verified x.com",
-    category: "Advanced",
-    description: "Terms within 5 words of each other, from verified x.com accounts.",
+    id: "related-terms",
+    label: "Terms that actually relate to each other",
+    category: "Narrow the results",
+    description: "Proximity: the two words have to sit within 5 words, not just both appear.",
     apply: (form) => ({
       ...form,
       keywordGroups: [{ termsText: "trump, tariff", operator: "OR" }],
       proximityGroups: [{ term_a: "trump", term_b: "tariff", distance: 5 }],
-      profileFilters: [{ field: "user_verified", valuesText: "true" }],
-      domainsText: "x.com",
     }),
   },
   {
-    id: "exclusions",
-    label: "With exclusions",
-    category: "Advanced",
-    description: "Inclusion terms minus two exclusion groups, scoped by domain and language.",
+    id: "verified-only",
+    label: "Only verified X accounts",
+    category: "Narrow the results",
+    description: "Profile filter on x.com — drops every other platform.",
+    apply: (form) => ({
+      ...form,
+      keywordGroups: [{ termsText: "election", operator: "OR" }],
+      domainsText: "x.com",
+      profileFilters: [{ field: "user_verified", valuesText: "true" }],
+    }),
+  },
+  {
+    id: "minus-noise",
+    label: "A topic minus the noise around it",
+    category: "Narrow the results",
+    description: "Inclusion terms with two exclusion groups layered on top.",
     apply: (form) => ({
       ...form,
       keywordGroups: [{ termsText: "electric vehicle, EV", operator: "OR" }],
-      domainsText: "social.com, smth.com",
       languagesText: "en",
       excludeKeywordGroups: [
         { termsText: "crypto, bitcoin", operator: "OR" },
@@ -428,11 +454,32 @@ export const QUERY_PRESETS: QueryPreset[] = [
       ],
     }),
   },
+
+  {
+    id: "phrase",
+    label: "An exact phrase, in order",
+    category: "How matching works",
+    description: 'Quotes make "climate change" match the phrase, not the two words separately.',
+    apply: (form) => ({
+      ...form,
+      keywordGroups: [{ termsText: '"climate change", "machine learning"', operator: "OR" }],
+    }),
+  },
+  {
+    id: "wildcard",
+    label: "Every word starting with a stem",
+    category: "How matching works",
+    description: "A trailing * expands: regulat* covers regulation, regulatory, regulators.",
+    apply: (form) => ({
+      ...form,
+      keywordGroups: [{ termsText: "regulat*, legislat*", operator: "OR" }],
+    }),
+  },
   {
     id: "safe-mode",
-    label: "Safe mode (partial words)",
-    category: "Advanced",
-    description: "full_string_scan for short codes that token search would miss.",
+    label: "Short codes like BTC or $TSLA",
+    category: "How matching works",
+    description: "Safe mode scans raw text so tickers inside hashtags still match.",
     apply: (form) => ({
       ...form,
       keywordGroups: [{ termsText: "BTC, ETH", operator: "OR" }],
@@ -440,15 +487,17 @@ export const QUERY_PRESETS: QueryPreset[] = [
     }),
   },
   {
-    id: "per-day",
-    label: "Per-day sampling export",
-    category: "Export options",
-    description: "Caps rows per UTC day, which unlocks a 90-day span. Outputs CSV.",
+    id: "either-topic",
+    label: "Either of two unrelated topics",
+    category: "How matching works",
+    description: "Groups joined by OR — a post matching either one qualifies.",
     apply: (form) => ({
       ...form,
-      keywordGroups: [{ termsText: "trump", operator: "OR" }],
-      perDayLimit: "5000",
-      outputFormat: "csv",
+      keywordGroups: [
+        { termsText: "bitcoin, ethereum", operator: "OR" },
+        { termsText: "gold, silver", operator: "OR" },
+      ],
+      groupOperator: "OR",
     }),
   },
 ];
