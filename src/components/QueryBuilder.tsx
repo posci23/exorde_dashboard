@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChipMultiSelect, type ChipOption } from "./ChipMultiSelect";
 import {
-  COMMON_LANGUAGES,
+  ALL_LANGUAGES,
   DATE_RANGE_PRESETS,
   FIELD_REFERENCE,
   LIMITS,
@@ -11,6 +11,7 @@ import {
   PLATFORMS,
   PROFILE_FILTER_FIELDS,
   RESULT_LIMIT_PRESETS,
+  URL_PATTERN_EXAMPLES,
 } from "@/lib/constants";
 import {
   buildCurl,
@@ -55,11 +56,13 @@ const PLATFORM_OPTIONS: ChipOption[] = PLATFORMS.map((p) => ({
   value: p.domain,
   label: p.label,
   note: p.note ?? undefined,
+  group: p.group,
 }));
 
-const LANGUAGE_OPTIONS: ChipOption[] = COMMON_LANGUAGES.map((l) => ({
+const LANGUAGE_OPTIONS: ChipOption[] = ALL_LANGUAGES.map((l) => ({
   value: l.code,
   label: l.label,
+  group: l.tier,
 }));
 
 const FIELD_OPTIONS: ChipOption[] = FIELD_REFERENCE.filter(
@@ -93,6 +96,7 @@ export function QueryBuilder({ form, onChange }: Props) {
     <div className="space-y-3">
       <Section
         title="Keywords"
+        helpHref="/reference?tab=filters&section=Keywords"
         summary={summarizeKeywords(form).summary}
         count={summarizeKeywords(form).count}
         defaultOpen
@@ -115,7 +119,7 @@ export function QueryBuilder({ form, onChange }: Props) {
 
         <div className="space-y-3">
           {form.keywordGroups.map((group, index) => (
-            <div key={index} className="rounded-lg border border-border bg-bg-elevated p-3">
+            <div key={index} className="rounded-md border border-border bg-surface-raised p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs text-text-muted">Group {index + 1} · match</span>
                 <div className="flex items-center gap-2">
@@ -147,7 +151,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                   set({ keywordGroups: next });
                 }}
               />
-              <p className="mt-1 text-[11px] text-text-muted">
+              <p className="mt-1 text-xs text-text-muted">
                 {splitList(group.termsText).length} / {LIMITS.maxTermsPerGroup} terms
               </p>
             </div>
@@ -169,7 +173,7 @@ export function QueryBuilder({ form, onChange }: Props) {
           >
             Add keyword group
           </Button>
-          <span className="text-[11px] text-text-muted">
+          <span className="text-xs text-text-muted">
             {form.keywordGroups.length} / {LIMITS.maxKeywordGroups}
           </span>
         </div>
@@ -184,7 +188,7 @@ export function QueryBuilder({ form, onChange }: Props) {
             ]}
             onChange={(v) => set({ fullStringScan: v === "safe" })}
           />
-          <p className="mt-2 text-[11px] text-text-muted">
+          <p className="mt-2 text-xs text-text-muted">
             {form.fullStringScan
               ? "Safe mode finds partial words and short codes like BTC, but runs 5–10× slower."
               : "Fast mode matches whole words. Switch to Safe if your terms are short codes or fragments."}
@@ -194,6 +198,7 @@ export function QueryBuilder({ form, onChange }: Props) {
 
       <Section
         title="Time range"
+        helpHref="/reference?tab=filters&section=Time+range"
         summary={summarizeTimeRange(form).summary}
         count={summarizeTimeRange(form).count}
         defaultOpen
@@ -252,7 +257,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               onChange={(collectedAtEndDate) => set({ collectedAtEndDate })}
             />
           </div>
-          <p className="mt-1.5 text-[11px] text-text-muted">
+          <p className="mt-1.5 text-xs text-text-muted">
             {hasDates
               ? "Narrows to posts ingested in this window — useful for catching backfilled data. Requires both dates above."
               : "Set both dates above to enable collection-time filtering."}
@@ -272,6 +277,7 @@ export function QueryBuilder({ form, onChange }: Props) {
 
       <Section
         title="Sources"
+        helpHref="/reference?tab=filters&section=Sources"
         summary={summarizeSources(form).summary}
         count={summarizeSources(form).count}
         defaultOpen
@@ -313,7 +319,7 @@ export function QueryBuilder({ form, onChange }: Props) {
             value={form.locationsText}
             onChange={(e) => set({ locationsText: e.target.value })}
           />
-          <p className="mt-1 text-[11px] text-text-muted">
+          <p className="mt-1 text-xs text-text-muted">
             {splitList(form.locationsText).length} / {LIMITS.maxLocations} · matches the user-declared
             location field, case-insensitively.
           </p>
@@ -322,6 +328,7 @@ export function QueryBuilder({ form, onChange }: Props) {
 
       <Section
         title="People & IDs"
+        helpHref="/reference?tab=filters&section=People+%26+IDs"
         summary={summarizePeople(form).summary}
         count={summarizePeople(form).count}
         help="These are selective filters — any one of them lets you run a query with no keywords at all."
@@ -345,7 +352,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               onChange={(e) => set({ usernamesText: e.target.value })}
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="text-[11px] text-text-muted">Name matching</span>
+              <span className="text-xs text-text-muted">Name matching</span>
               <SegmentedControl
                 value={form.caseSensitiveUsernames ? "exact" : "insensitive"}
                 options={[
@@ -364,9 +371,31 @@ export function QueryBuilder({ form, onChange }: Props) {
               value={form.urlPatternsText}
               onChange={(e) => set({ urlPatternsText: e.target.value })}
             />
-            <p className="mt-1 text-[11px] text-text-muted">
+            <p className="mt-1 text-xs text-text-muted">
               Case-insensitive substring of the post URL — the reliable way to target a subreddit or channel.
             </p>
+            <div className="mt-2">
+              <span className="label-caps">Insert an example</span>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {URL_PATTERN_EXAMPLES.map((example) => (
+                  <button
+                    key={example.value}
+                    type="button"
+                    title={example.note ?? example.label}
+                    onClick={() =>
+                      set({
+                        urlPatternsText: [...new Set([...splitList(form.urlPatternsText), example.value])].join(
+                          ", ",
+                        ),
+                      })
+                    }
+                    className="rounded-full bg-surface-hover px-2.5 py-1 font-mono text-xs text-text-muted transition-colors hover:bg-accent-soft hover:text-accent"
+                  >
+                    + {example.value}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
           <div>
             <FieldLabel hint={`external_ids · max ${LIMITS.maxExternalIds}`}>Specific post IDs</FieldLabel>
@@ -376,7 +405,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               value={form.externalIdsText}
               onChange={(e) => set({ externalIdsText: e.target.value })}
             />
-            <p className="mt-1 text-[11px] text-text-muted">Re-fetch exact posts by their platform ID.</p>
+            <p className="mt-1 text-xs text-text-muted">Re-fetch exact posts by their platform ID.</p>
           </div>
           <div>
             <FieldLabel hint={`external_parent_ids · max ${LIMITS.maxExternalParentIds}`}>
@@ -388,13 +417,14 @@ export function QueryBuilder({ form, onChange }: Props) {
               value={form.externalParentIdsText}
               onChange={(e) => set({ externalParentIdsText: e.target.value })}
             />
-            <p className="mt-1 text-[11px] text-text-muted">Pull the replies and thread under a given post.</p>
+            <p className="mt-1 text-xs text-text-muted">Pull the replies and thread under a given post.</p>
           </div>
         </div>
       </Section>
 
       <Section
         title="Advanced"
+        helpHref="/reference?tab=filters&section=Advanced"
         summary={summarizeAdvanced(form).summary}
         count={summarizeAdvanced(form).count}
         onClear={() => set({ excludeKeywordGroups: [], proximityGroups: [], profileFilters: [] })}
@@ -406,7 +436,7 @@ export function QueryBuilder({ form, onChange }: Props) {
             </FieldLabel>
             <div className="space-y-3">
               {form.excludeKeywordGroups.map((group, index) => (
-                <div key={index} className="rounded-lg border border-border bg-bg-elevated p-3">
+                <div key={index} className="rounded-md border border-border bg-surface-raised p-3">
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <SegmentedControl
                       value={group.operator}
@@ -461,7 +491,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               {form.proximityGroups.map((group, index) => (
                 <div
                   key={index}
-                  className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-bg-elevated p-3"
+                  className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-surface-raised p-3"
                 >
                   <TextInput
                     className="w-40"
@@ -543,7 +573,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                 return (
                   <div
                     key={index}
-                    className="grid gap-2 rounded-lg border border-border bg-bg-elevated p-3 sm:grid-cols-[1fr_2fr_auto]"
+                    className="grid gap-2 rounded-md border border-border bg-surface-raised p-3 sm:grid-cols-[1fr_2fr_auto]"
                   >
                     <Select
                       value={row.field}
@@ -596,7 +626,7 @@ export function QueryBuilder({ form, onChange }: Props) {
             >
               Add profile filter
             </Button>
-            <p className="mt-2 text-[11px] text-text-muted">
+            <p className="mt-2 text-xs text-text-muted">
               Fields combine with AND; up to {LIMITS.maxProfileFilterValues} values each (OR within a field).
               Only x.com posts carry this metadata.
             </p>
@@ -606,6 +636,7 @@ export function QueryBuilder({ form, onChange }: Props) {
 
       <Section
         title="Output"
+        helpHref="/reference?tab=filters&section=Output"
         summary={summarizeOutput(form).summary}
         count={summarizeOutput(form).count}
         help="Format and row caps apply to exports only — previews ignore them and always return ~100 sample rows."
@@ -621,7 +652,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               ]}
               onChange={(outputFormat) => set({ outputFormat })}
             />
-            <p className="mt-2 text-[11px] text-text-muted">
+            <p className="mt-2 text-xs text-text-muted">
               {form.outputFormat === "jsonl"
                 ? "One JSON object per line. Best for large sets and programmatic use."
                 : "RFC 4180 with a UTF-8 BOM so Excel opens it correctly."}
@@ -653,7 +684,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                 placeholder="rows per UTC day"
                 onChange={(perDayLimit) => set({ perDayLimit })}
               />
-              <p className="mt-1.5 text-[11px] text-text-muted">
+              <p className="mt-1.5 text-xs text-text-muted">
                 Samples evenly across days and raises the max span to {LIMITS.maxPerDaySpanDays} days. Requires
                 both dates.
               </p>
@@ -672,7 +703,7 @@ export function QueryBuilder({ form, onChange }: Props) {
             ]}
             onChange={(excludeFieldsMode) => set({ excludeFieldsMode })}
           />
-          <p className="mt-2 text-[11px] text-text-muted">
+          <p className="mt-2 text-xs text-text-muted">
             {form.excludeFieldsMode === "default"
               ? `44 of ${FIELD_REFERENCE.length} fields are returned; the embedding vector is omitted.`
               : form.excludeFieldsMode === "include_all"
@@ -707,12 +738,12 @@ export function QueryBuilder({ form, onChange }: Props) {
           ]}
           onChange={setPayloadMode}
         />
-        <pre className="mt-3 max-h-80 overflow-auto rounded-lg border border-border bg-bg p-3 font-mono text-[11px] leading-relaxed text-text">
+        <pre className="mt-3 max-h-80 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs leading-relaxed text-text">
           {JSON.stringify(body, null, 2)}
         </pre>
         <details className="mt-3">
           <summary className="cursor-pointer text-xs text-accent">Copy as curl</summary>
-          <pre className="mt-2 overflow-auto rounded-lg border border-border bg-bg p-3 font-mono text-[11px] text-text-muted">
+          <pre className="mt-2 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
             {buildCurl(body, payloadMode)}
           </pre>
         </details>

@@ -114,14 +114,14 @@ export function ChipMultiSelect({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-bg px-3 py-2 text-left text-sm outline-none hover:border-accent/50 focus:border-accent"
+        className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-bg px-3 py-2 text-left text-sm outline-none transition-colors hover:border-border-strong focus:border-accent"
       >
         <span className={`truncate ${selected.length ? "text-text" : "text-text-muted"}`}>{summary}</span>
-        <span className="shrink-0 font-mono text-xs text-text-muted">{open ? "▲" : "▼"}</span>
+        <span className="shrink-0 text-xs text-text-subtle" aria-hidden>{open ? "▲" : "▼"}</span>
       </button>
 
       {open && (
-        <div className="rounded-lg border border-border bg-bg-elevated p-2 shadow-lg" role="listbox" aria-multiselectable="true">
+        <div className="rounded-xl border border-border bg-surface-raised p-2 shadow-xl shadow-black/40" role="listbox" aria-multiselectable="true">
           <TextInput
             autoFocus
             placeholder={searchPlaceholder}
@@ -133,6 +133,7 @@ export function ChipMultiSelect({
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               disabled={max != null && filtered.length > max}
               onClick={() => {
                 const merged = [...new Set([...selected, ...filtered.map((o) => o.value)])];
@@ -141,10 +142,10 @@ export function ChipMultiSelect({
             >
               Select {search ? "matches" : "all"}
             </Button>
-            <Button type="button" variant="ghost" onClick={() => onChange(custom)}>
+            <Button type="button" variant="ghost" size="sm" onClick={() => onChange(custom)}>
               Clear listed
             </Button>
-            <Button type="button" variant="ghost" onClick={() => onChange([])}>
+            <Button type="button" variant="ghost" size="sm" onClick={() => onChange([])}>
               Clear all
             </Button>
           </div>
@@ -153,9 +154,7 @@ export function ChipMultiSelect({
             {grouped.map(([group, items]) => (
               <li key={group || "_"}>
                 {group && (
-                  <div className="px-2 pb-1 pt-2 text-[10px] uppercase tracking-wide text-text-muted">
-                    {group}
-                  </div>
+                  <div className="label-caps px-2 pb-1 pt-2">{group}</div>
                 )}
                 <ul className="space-y-0.5">
                   {items.map((option) => {
@@ -163,8 +162,8 @@ export function ChipMultiSelect({
                     return (
                       <li key={option.value}>
                         <label
-                          className={`flex cursor-pointer items-start gap-3 rounded-md px-2 py-1.5 text-sm hover:bg-bg-panel ${
-                            checked ? "bg-accent/10" : ""
+                          className={`flex cursor-pointer items-start gap-3 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-surface-hover ${
+                            checked ? "bg-accent-soft" : ""
                           } ${!checked && atMax ? "opacity-40" : ""}`}
                         >
                           <input
@@ -176,9 +175,9 @@ export function ChipMultiSelect({
                           />
                           <span className="min-w-0 flex-1">
                             <span className="block font-medium text-text">{option.label}</span>
-                            <span className="block font-mono text-[11px] text-accent">{option.value}</span>
+                            <span className="block font-mono text-xs text-text-subtle">{option.value}</span>
                             {option.note && (
-                              <span className="mt-0.5 block text-[11px] text-text-muted">{option.note}</span>
+                              <span className="mt-0.5 block text-xs text-text-muted">{option.note}</span>
                             )}
                           </span>
                         </label>
@@ -189,7 +188,7 @@ export function ChipMultiSelect({
               </li>
             ))}
             {!filtered.length && (
-              <li className="px-2 py-3 text-xs text-text-muted">No option matches “{search}”.</li>
+              <li className="px-2 py-3 text-xs text-text-muted">No option matches “{search}”. {customPlaceholder ? "Add it as a custom value below." : ""}</li>
             )}
           </ul>
 
@@ -207,7 +206,7 @@ export function ChipMultiSelect({
                     }
                   }}
                 />
-                <Button type="button" variant="secondary" disabled={!customDraft.trim()} onClick={addCustom}>
+                <Button type="button" variant="secondary" size="sm" disabled={!customDraft.trim()} onClick={addCustom}>
                   Add
                 </Button>
               </div>
@@ -226,10 +225,10 @@ export function ChipMultiSelect({
                 type="button"
                 title={`Remove ${value}`}
                 onClick={() => toggle(value, false)}
-                className={`rounded-md border px-2 py-1 text-[11px] ${
+                className={`rounded-full px-2.5 py-1 text-xs transition-colors ${
                   option
-                    ? "border-accent/30 bg-accent/10 text-accent hover:bg-accent/20"
-                    : "border-border bg-bg-elevated font-mono text-text-muted hover:border-danger/40 hover:text-danger"
+                    ? "bg-accent-soft text-accent hover:bg-accent/20"
+                    : "bg-surface-hover font-mono text-text-muted hover:text-danger"
                 }`}
               >
                 {option?.label ?? value} ×
@@ -239,8 +238,8 @@ export function ChipMultiSelect({
         </div>
       )}
 
-      {footnote && <p className="text-[11px] text-text-muted">{footnote}</p>}
-      {atMax && <p className="text-[11px] text-warning">Maximum of {max} reached.</p>}
+      {footnote && <p className="text-xs leading-relaxed text-text-subtle">{footnote}</p>}
+      {atMax && <p className="text-xs text-warning">Maximum of {max} reached.</p>}
     </div>
   );
 }

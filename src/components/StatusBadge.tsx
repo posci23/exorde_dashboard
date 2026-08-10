@@ -10,7 +10,7 @@ export function StatusBadge({ status }: { status: string }) {
           : "bg-warning/15 text-warning";
 
   return (
-    <span className={`inline-flex items-center rounded px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide ${tone}`}>
+    <span className={`inline-flex items-center rounded px-2 py-0.5 font-mono text-xs uppercase tracking-wide ${tone}`}>
       {status}
     </span>
   );

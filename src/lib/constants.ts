@@ -35,23 +35,51 @@ export const LIMITS = {
   inFlightPerCustomer: 50,
 } as const;
 
-/** Known platforms for the domains filter (exact match on `domain`). Exorde covers 200+ sources; add custom domains for others. */
+/**
+ * Known platforms for the `domains` filter (exact match on `domain`). Exorde
+ * covers 200+ sources — this is the discoverable shortlist, grouped by kind;
+ * anything else goes in as a custom domain.
+ */
 export const PLATFORMS = [
-  { domain: "x.com", label: "X (Twitter)", note: "Profile filters supported" },
-  { domain: "youtube.com", label: "YouTube", note: null },
-  { domain: "reddit.com", label: "Reddit", note: "Or use url_patterns for subreddits" },
-  { domain: "mastodon.social", label: "Mastodon (mastodon.social)", note: "Other instances via custom domain" },
-  { domain: "bluesky.social", label: "Bluesky", note: "If present in your corpus" },
-  { domain: "threads.net", label: "Threads", note: "If present in your corpus" },
-  { domain: "truthsocial.com", label: "Truth Social", note: "If present in your corpus" },
-  { domain: "tiktok.com", label: "TikTok", note: "If present in your corpus" },
-  { domain: "linkedin.com", label: "LinkedIn", note: "If present in your corpus" },
-  { domain: "facebook.com", label: "Facebook", note: "If present in your corpus" },
-  { domain: "instagram.com", label: "Instagram", note: "If present in your corpus" },
-  { domain: "news.ycombinator.com", label: "Hacker News", note: "If present in your corpus" },
-  { domain: "4chan.org", label: "4chan", note: "If present in your corpus" },
-  { domain: "social.com", label: "social.com (docs alias)", note: "X-style IDs in Exorde examples" },
-  { domain: "smth.com", label: "smth.com (docs alias)", note: "Reddit-style t1_* IDs in Exorde examples" },
+  { domain: "x.com", label: "X (Twitter)", group: "Social", note: "Profile filters only work here" },
+  { domain: "reddit.com", label: "Reddit", group: "Social", note: "Use a URL pattern to target a subreddit" },
+  { domain: "youtube.com", label: "YouTube", group: "Social", note: "Comments and video metadata" },
+  { domain: "tiktok.com", label: "TikTok", group: "Social", note: null },
+  { domain: "instagram.com", label: "Instagram", group: "Social", note: null },
+  { domain: "facebook.com", label: "Facebook", group: "Social", note: null },
+  { domain: "linkedin.com", label: "LinkedIn", group: "Social", note: null },
+  { domain: "threads.net", label: "Threads", group: "Social", note: null },
+  { domain: "bluesky.social", label: "Bluesky", group: "Decentralized", note: null },
+  { domain: "mastodon.social", label: "Mastodon", group: "Decentralized", note: "Other instances via custom domain" },
+  { domain: "lemmy.world", label: "Lemmy", group: "Decentralized", note: null },
+  { domain: "nostr.com", label: "Nostr", group: "Decentralized", note: null },
+  { domain: "truthsocial.com", label: "Truth Social", group: "Alt social", note: null },
+  { domain: "gab.com", label: "Gab", group: "Alt social", note: null },
+  { domain: "gettr.com", label: "Gettr", group: "Alt social", note: null },
+  { domain: "minds.com", label: "Minds", group: "Alt social", note: null },
+  { domain: "rumble.com", label: "Rumble", group: "Alt social", note: null },
+  { domain: "news.ycombinator.com", label: "Hacker News", group: "Forums & boards", note: null },
+  { domain: "4chan.org", label: "4chan", group: "Forums & boards", note: null },
+  { domain: "stackexchange.com", label: "Stack Exchange", group: "Forums & boards", note: null },
+  { domain: "quora.com", label: "Quora", group: "Forums & boards", note: null },
+  { domain: "medium.com", label: "Medium", group: "Blogs & news", note: null },
+  { domain: "substack.com", label: "Substack", group: "Blogs & news", note: null },
+  { domain: "wordpress.com", label: "WordPress", group: "Blogs & news", note: null },
+  { domain: "bitcointalk.org", label: "Bitcointalk", group: "Crypto", note: null },
+  { domain: "tradingview.com", label: "TradingView", group: "Crypto", note: null },
+  { domain: "social.com", label: "social.com", group: "Docs aliases", note: "X-style IDs in Exorde's own examples" },
+  { domain: "smth.com", label: "smth.com", group: "Docs aliases", note: "Reddit-style t1_* IDs in Exorde's examples" },
+] as const;
+
+/** Ready-made `url_patterns` so the syntax is discoverable rather than guessed. */
+export const URL_PATTERN_EXAMPLES = [
+  { value: "reddit.com/r/", label: "Any subreddit", note: "Append the name, e.g. reddit.com/r/france" },
+  { value: "reddit.com/r/cryptocurrency", label: "One subreddit", note: "r/cryptocurrency" },
+  { value: "youtube.com/watch", label: "YouTube videos", note: "Video watch pages" },
+  { value: "youtube.com/@", label: "A YouTube channel", note: "Append the handle" },
+  { value: "x.com/i/status", label: "X status pages", note: null },
+  { value: "news.ycombinator.com/item", label: "Hacker News threads", note: null },
+  { value: "medium.com/@", label: "A Medium author", note: "Append the handle" },
 ] as const;
 
 export const PLATFORM_DOMAINS: Set<string> = new Set(PLATFORMS.map((p) => p.domain));
@@ -75,40 +103,65 @@ export const PROFILE_FILTER_FIELDS: readonly ProfileFilterField[] = [
   { name: "user_blue_verified", label: "Blue verified", match: "exact", values: ["true", "false"] },
 ];
 
-export const COMMON_LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "fr", label: "French" },
-  { code: "es", label: "Spanish" },
-  { code: "de", label: "German" },
-  { code: "it", label: "Italian" },
-  { code: "pt", label: "Portuguese" },
-  { code: "ru", label: "Russian" },
-  { code: "ja", label: "Japanese" },
-  { code: "zh", label: "Chinese" },
-  { code: "ar", label: "Arabic" },
-  { code: "hi", label: "Hindi" },
-  { code: "ko", label: "Korean" },
-  { code: "nl", label: "Dutch" },
-  { code: "pl", label: "Polish" },
-  { code: "tr", label: "Turkish" },
-  { code: "sv", label: "Swedish" },
-  { code: "no", label: "Norwegian" },
-  { code: "da", label: "Danish" },
-  { code: "fi", label: "Finnish" },
-  { code: "cs", label: "Czech" },
-  { code: "uk", label: "Ukrainian" },
-  { code: "el", label: "Greek" },
-  { code: "he", label: "Hebrew" },
-  { code: "id", label: "Indonesian" },
-  { code: "th", label: "Thai" },
-  { code: "vi", label: "Vietnamese" },
-  { code: "ro", label: "Romanian" },
-  { code: "hu", label: "Hungarian" },
-  { code: "fa", label: "Persian" },
-  { code: "bn", label: "Bengali" },
-] as const;
+export type LanguageOption = { code: string; label: string; tier: "Most used" | "All languages" };
 
-export const LANGUAGE_CODES: Set<string> = new Set(COMMON_LANGUAGES.map((l) => l.code));
+/**
+ * ISO 639-1 in full. The API accepts 176+ codes, so listing only a handful hid
+ * most of what you can ask for; the common ones are pinned to the top.
+ */
+const TOP_LANGUAGES = [
+  ["en", "English"], ["es", "Spanish"], ["fr", "French"], ["de", "German"],
+  ["pt", "Portuguese"], ["it", "Italian"], ["ru", "Russian"], ["ja", "Japanese"],
+  ["zh", "Chinese"], ["ar", "Arabic"], ["hi", "Hindi"], ["ko", "Korean"],
+  ["nl", "Dutch"], ["tr", "Turkish"], ["pl", "Polish"], ["id", "Indonesian"],
+  ["uk", "Ukrainian"], ["vi", "Vietnamese"], ["th", "Thai"], ["sv", "Swedish"],
+] as ReadonlyArray<readonly [string, string]>;
+
+const OTHER_LANGUAGES = [
+  ["ab", "Abkhazian"], ["aa", "Afar"], ["af", "Afrikaans"], ["ak", "Akan"], ["sq", "Albanian"],
+  ["am", "Amharic"], ["an", "Aragonese"], ["hy", "Armenian"], ["as", "Assamese"], ["av", "Avaric"],
+  ["ae", "Avestan"], ["ay", "Aymara"], ["az", "Azerbaijani"], ["bm", "Bambara"], ["ba", "Bashkir"],
+  ["eu", "Basque"], ["be", "Belarusian"], ["bn", "Bengali"], ["bi", "Bislama"], ["bs", "Bosnian"],
+  ["br", "Breton"], ["bg", "Bulgarian"], ["my", "Burmese"], ["ca", "Catalan"], ["ch", "Chamorro"],
+  ["ce", "Chechen"], ["ny", "Chichewa"], ["cv", "Chuvash"], ["kw", "Cornish"], ["co", "Corsican"],
+  ["cr", "Cree"], ["hr", "Croatian"], ["cs", "Czech"], ["da", "Danish"], ["dv", "Divehi"],
+  ["dz", "Dzongkha"], ["eo", "Esperanto"], ["et", "Estonian"], ["ee", "Ewe"], ["fo", "Faroese"],
+  ["fj", "Fijian"], ["fi", "Finnish"], ["ff", "Fulah"], ["gl", "Galician"], ["ka", "Georgian"],
+  ["el", "Greek"], ["gn", "Guarani"], ["gu", "Gujarati"], ["ht", "Haitian Creole"], ["ha", "Hausa"],
+  ["he", "Hebrew"], ["hz", "Herero"], ["ho", "Hiri Motu"], ["hu", "Hungarian"], ["ia", "Interlingua"],
+  ["ie", "Interlingue"], ["ga", "Irish"], ["ig", "Igbo"], ["ik", "Inupiaq"], ["io", "Ido"],
+  ["is", "Icelandic"], ["iu", "Inuktitut"], ["jv", "Javanese"], ["kl", "Kalaallisut"], ["kn", "Kannada"],
+  ["kr", "Kanuri"], ["ks", "Kashmiri"], ["kk", "Kazakh"], ["km", "Khmer"], ["ki", "Kikuyu"],
+  ["rw", "Kinyarwanda"], ["ky", "Kyrgyz"], ["kv", "Komi"], ["kg", "Kongo"], ["kj", "Kuanyama"],
+  ["la", "Latin"], ["lb", "Luxembourgish"], ["lg", "Ganda"], ["li", "Limburgish"], ["ln", "Lingala"],
+  ["lo", "Lao"], ["lt", "Lithuanian"], ["lu", "Luba-Katanga"], ["lv", "Latvian"], ["gv", "Manx"],
+  ["mk", "Macedonian"], ["mg", "Malagasy"], ["ms", "Malay"], ["ml", "Malayalam"], ["mt", "Maltese"],
+  ["mi", "Maori"], ["mr", "Marathi"], ["mh", "Marshallese"], ["mn", "Mongolian"], ["na", "Nauru"],
+  ["nv", "Navajo"], ["nb", "Norwegian Bokmål"], ["nd", "North Ndebele"], ["ne", "Nepali"], ["ng", "Ndonga"],
+  ["nn", "Norwegian Nynorsk"], ["no", "Norwegian"], ["ii", "Sichuan Yi"], ["nr", "South Ndebele"], ["oc", "Occitan"],
+  ["oj", "Ojibwe"], ["cu", "Church Slavonic"], ["om", "Oromo"], ["or", "Odia"], ["os", "Ossetian"],
+  ["pa", "Punjabi"], ["pi", "Pali"], ["fa", "Persian"], ["ps", "Pashto"], ["qu", "Quechua"],
+  ["rm", "Romansh"], ["rn", "Rundi"], ["ro", "Romanian"], ["sa", "Sanskrit"], ["sc", "Sardinian"],
+  ["sd", "Sindhi"], ["se", "Northern Sami"], ["sm", "Samoan"], ["sg", "Sango"], ["sr", "Serbian"],
+  ["gd", "Scottish Gaelic"], ["sn", "Shona"], ["si", "Sinhala"], ["sk", "Slovak"], ["sl", "Slovenian"],
+  ["so", "Somali"], ["st", "Southern Sotho"], ["su", "Sundanese"], ["sw", "Swahili"], ["ss", "Swati"],
+  ["ta", "Tamil"], ["te", "Telugu"], ["tg", "Tajik"], ["ti", "Tigrinya"], ["bo", "Tibetan"],
+  ["tk", "Turkmen"], ["tl", "Tagalog"], ["tn", "Tswana"], ["to", "Tongan"], ["ts", "Tsonga"],
+  ["tt", "Tatar"], ["tw", "Twi"], ["ty", "Tahitian"], ["ug", "Uyghur"], ["ur", "Urdu"],
+  ["uz", "Uzbek"], ["ve", "Venda"], ["vo", "Volapük"], ["wa", "Walloon"], ["cy", "Welsh"],
+  ["wo", "Wolof"], ["fy", "Western Frisian"], ["xh", "Xhosa"], ["yi", "Yiddish"], ["yo", "Yoruba"],
+  ["za", "Zhuang"], ["zu", "Zulu"],
+] as ReadonlyArray<readonly [string, string]>;
+
+export const ALL_LANGUAGES: LanguageOption[] = [
+  ...TOP_LANGUAGES.map(([code, label]) => ({ code, label, tier: "Most used" as const })),
+  ...OTHER_LANGUAGES.filter(([code]) => !TOP_LANGUAGES.some(([t]) => t === code))
+    .map(([code, label]) => ({ code, label, tier: "All languages" as const }))
+    .sort((a, b) => a.label.localeCompare(b.label)),
+];
+
+/** Kept for the Reference page's quick cheat-sheet. */
+export const COMMON_LANGUAGES = ALL_LANGUAGES.filter((l) => l.tier === "Most used");
 
 /** Relative windows offered as one-click buttons on the time-range section. */
 export const DATE_RANGE_PRESETS = [

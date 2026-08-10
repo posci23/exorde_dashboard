@@ -116,7 +116,7 @@ export function SampleCharts({ samples }: { samples: SamplePost[] }) {
           {keywords.map((k) => (
             <span
               key={k.name}
-              className="rounded-md border border-border bg-bg-elevated px-2 py-1 font-mono text-xs text-text"
+              className="rounded-md border border-border bg-surface-raised px-2 py-1 font-mono text-xs text-text"
             >
               {k.name} <span className="text-text-muted">×{k.value}</span>
             </span>

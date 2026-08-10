@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { QueryStoreProvider } from "@/components/QueryStore";
 import { Sidebar } from "@/components/Sidebar";
 import "./globals.css";
 
-const sans = IBM_Plex_Sans({
+const sans = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   variable: "--font-sans-loaded",
 });
 
-const mono = IBM_Plex_Mono({
+const mono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-mono-loaded",
@@ -23,13 +22,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${sans.variable} ${mono.variable} antialiased`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body className="antialiased">
         <QueryStoreProvider>
           <div className="flex min-h-screen">
             <Sidebar />
-            <main className="min-w-0 flex-1 overflow-auto">
-              <div className="mx-auto max-w-7xl px-6 py-6">{children}</div>
+            <main className="min-w-0 flex-1">
+              <div className="mx-auto max-w-6xl px-8 py-10">{children}</div>
             </main>
           </div>
         </QueryStoreProvider>

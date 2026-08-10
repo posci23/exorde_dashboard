@@ -22,8 +22,7 @@ You can also paste a key in **Settings** (stored as an httpOnly cookie). Env win
 | Overview | `GET /health`, `GET /api/v1/queue/capacity`, `GET /api/v1/user/quota` |
 | Query | `POST /api/v1/preview` and `POST /api/v1/export` from one filter builder, with 409/429/503 handling |
 | Jobs | `GET /api/v1/export/{id}`, `GET /api/v1/user/exports`, `POST /api/v1/sync/export-job` |
-| Fields | All 47 fields |
-| Limits & errors | `GET /api/v1/user/info` plus documented caps, rate limits, idempotency, HTTP codes |
+| Reference | In-app manual: all 22 request fields, 182 language codes, 28 platforms, 52 output fields, search syntax, and every HTTP status — plus `GET /api/v1/user/info` for your real caps |
 
 ### Filters in the query builder
 
@@ -36,6 +35,13 @@ Filters live in collapsible sections whose headers summarize what's set inside, 
 option set is a picker rather than free text — multi-selects for platforms, languages, and fields;
 segmented buttons for enums and booleans; date pickers with relative presets; preset dropdowns with
 a custom fallback for row caps.
+
+## Design
+
+Refined dark, built on semantic tokens in `src/app/globals.css`. Three rules keep it consistent:
+neutrals carry the UI and the single accent marks only actions and active state; exactly three radii
+(6px controls, 12px cards, full pills); and 12px is the smallest type size, with no ad-hoc pixel
+values anywhere.
 
 ## Architecture
 

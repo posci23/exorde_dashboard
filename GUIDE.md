@@ -108,29 +108,24 @@ Monitor, download, and browse history in one place.
 | This browser | Jobs started or tracked from this browser (localStorage) |
 | Server history | `GET /api/v1/user/exports?limit=` (10 / 20 / 50 / 100) |
 
-### 4. Field Reference (`/fields`)
+### 4. Reference (`/reference`)
 
-| Function | Description |
-|----------|-------------|
-| Search fields | Filter the catalog by name/description |
-| Browse categories | Post metadata, author, source, analysis core, 27 emotions, always-excluded |
+The in-app manual — everything the API accepts, in one searchable page with five tabs.
 
-**47 fields total** — 44 exported by default. Embeddings excluded unless `exclude_fields: []`. Always excluded: `analysis_source_type`, `collection_module`, `collection_client_version`.
+| Tab | Contents |
+|-----|----------|
+| How it works | The two-phase model end to end, the 7 export phases, output formats, and every built-in example query |
+| Filters | All 22 request fields with API name, type, limit, description, and a JSON example · the 28 listed platforms · URL-pattern examples · all 182 language codes |
+| Search syntax | Phrases, wildcards, operators, special characters, and fast vs safe mode |
+| Output fields | All 52 output columns grouped by category |
+| Limits & errors | Request caps, plan history and rate limits, concurrency, idempotency, and every HTTP status with remediation |
 
-### 6. Limits & Errors (`/limits`)
+A free-text search filters all tabs at once, and each Query section's **?** button deep-links here.
 
-In-app reference for:
+The old `/fields` and `/limits` pages redirect here; 44 of the 52 columns are exported by default,
+and `analysis_source_type`, `collection_module`, and `collection_client_version` are always excluded.
 
-- Request caps (groups, terms, domains, languages, IDs, proximity, locations, URL patterns, profile filters, result/per-day limits)
-- Plan history gates (Free 90d / Pro 365d / Enterprise unlimited)
-- Rate limits (burst + sustained by plan; weight = `ceil(span_days / 7)`)
-- Idempotency (5-minute duplicate window → 409)
-- Concurrency (global 8 / per-customer 4 running / 50 in-flight)
-- HTTP codes 200–503 with remediation tips
-- Search modes (fast vs safe, `*`, `"phrases"`)
-- Common language codes
-
-### 7. Settings (`/settings`)
+### 5. Settings (`/settings`)
 
 | Function | Description |
 |----------|-------------|

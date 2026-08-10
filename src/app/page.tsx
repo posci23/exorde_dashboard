@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Alert, Button, Panel, Stat } from "@/components/ui";
+import { Alert, Button, PageHeader, Panel, Stat } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { LIMITS } from "@/lib/constants";
 import type { HealthResponse, QueueCapacityResponse, UserQuotaResponse } from "@/lib/types";
@@ -70,17 +70,15 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Is the API up, is there room in the queue, and how much of your quota is left.
-          </p>
-        </div>
-        <Button type="button" variant="secondary" onClick={() => void refresh()} disabled={loading}>
-          {loading ? "Refreshing…" : "Refresh"}
-        </Button>
-      </header>
+      <PageHeader
+        title="Overview"
+        description="Whether the API is up, whether the queue has room, and how much of your quota is left."
+        actions={
+          <Button type="button" variant="secondary" onClick={() => void refresh()} disabled={loading}>
+            {loading ? "Refreshing…" : "Refresh"}
+          </Button>
+        }
+      />
 
       {errors.length > 0 && (
         <Alert tone="warning">
@@ -137,12 +135,12 @@ export default function OverviewPage() {
                 return (
                   <div
                     key={`${row.period}.${row.metric}`}
-                    className="rounded-lg border border-border bg-bg-elevated px-3 py-3"
+                    className="rounded-xl border border-border bg-bg px-4 py-3.5"
                   >
-                    <div className="text-[11px] uppercase tracking-wide text-text-muted">{row.label}</div>
-                    <div className="mt-1 font-mono text-xl text-text">
+                    <div className="label-caps">{row.label}</div>
+                    <div className="tnum mt-1.5 text-xl font-medium text-text">
                       {used?.toLocaleString() ?? "—"}
-                      <span className="text-sm text-text-muted"> / {formatCount(cap)}</span>
+                      <span className="text-sm font-normal text-text-subtle"> / {formatCount(cap)}</span>
                     </div>
                     {pct != null && (
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg">
@@ -153,9 +151,7 @@ export default function OverviewPage() {
                       </div>
                     )}
                     {remaining != null && (
-                      <div className="mt-1.5 text-[11px] text-text-muted">
-                        {remaining.toLocaleString()} left
-                      </div>
+                      <div className="tnum mt-1.5 text-xs text-text-muted">{remaining.toLocaleString()} left</div>
                     )}
                   </div>
                 );
@@ -167,7 +163,7 @@ export default function OverviewPage() {
                 {extraLimits.map(([key, value]) => (
                   <div key={key} className="flex justify-between gap-3 border-b border-border/40 py-1">
                     <dt className="text-text-muted">{humanize(key)}</dt>
-                    <dd className="font-mono text-text">{formatCount(value)}</dd>
+                    <dd className="tnum font-mono text-xs text-text">{formatCount(value)}</dd>
                   </div>
                 ))}
               </dl>
@@ -225,7 +221,7 @@ export default function OverviewPage() {
             <Link
               key={item.step}
               href={item.href}
-              className="rounded-lg border border-border bg-bg-elevated p-3 transition hover:border-accent/40"
+              className="rounded-md border border-border bg-surface-raised p-3 transition hover:border-accent/40"
             >
               <div className="font-mono text-xs text-accent">{item.step}</div>
               <div className="mt-1 text-sm text-text-muted">{item.text}</div>

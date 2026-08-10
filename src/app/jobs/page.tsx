@@ -5,7 +5,17 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryStore } from "@/components/QueryStore";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Alert, Button, Panel, SegmentedControl, Select, Stat, TextInput } from "@/components/ui";
+import {
+  Alert,
+  Button,
+  EmptyState,
+  PageHeader,
+  Panel,
+  SegmentedControl,
+  Select,
+  Stat,
+  TextInput,
+} from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { EXPORT_PHASES, LIMITS } from "@/lib/constants";
 import type { ExportJobResponse, UserExportsResponse } from "@/lib/types";
@@ -140,20 +150,17 @@ function JobsView() {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Monitor a running export, then download it. Links expire {LIMITS.downloadsExpiryHours}h after
-            completion — use Sync to mint a fresh one.
-          </p>
-        </div>
-        <Link href="/query">
-          <Button type="button" variant="secondary">
-            New query
-          </Button>
-        </Link>
-      </header>
+      <PageHeader
+        title="Jobs"
+        description={`Monitor a running export, then download it. Links expire ${LIMITS.downloadsExpiryHours}h after completion — Sync mints a fresh one.`}
+        actions={
+          <Link href="/query">
+            <Button type="button" variant="secondary">
+              New query
+            </Button>
+          </Link>
+        }
+      />
 
       {notice && <Alert tone="success">{notice}</Alert>}
       {error && <Alert tone="danger">{error}</Alert>}
@@ -220,7 +227,7 @@ function JobsView() {
             {job.error_message && <Alert tone="danger">{job.error_message}</Alert>}
 
             {job.download_url ? (
-              <div className="rounded-lg border border-success/30 bg-success/10 p-3">
+              <div className="rounded-md border border-success/30 bg-success/10 p-3">
                 <div className="text-sm font-medium text-success">Download ready</div>
                 <div className="mt-1 text-xs text-text-muted">
                   Expires {job.download_expires_at ?? `${LIMITS.downloadsExpiryHours}h after completion`} · no
@@ -230,7 +237,7 @@ function JobsView() {
                   href={job.download_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-flex rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-bg"
+                  className="mt-3 inline-flex h-9 items-center rounded-md bg-accent-solid px-3.5 text-sm font-medium text-accent-fg transition-colors hover:bg-accent-hover"
                 >
                   Download file
                 </a>
@@ -251,8 +258,8 @@ function JobsView() {
                   return (
                     <span
                       key={phase}
-                      className={`rounded-md border px-2 py-1 text-[11px] ${
-                        done ? "border-accent/40 bg-accent/10 text-accent" : "border-border text-text-muted"
+                      className={`rounded-md border px-2 py-1 text-xs ${
+                        done ? "border-accent/40 bg-accent-soft text-accent" : "border-border text-text-muted"
                       }`}
                     >
                       {i + 1}. {phase}
@@ -263,13 +270,13 @@ function JobsView() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-text-muted">
+          <EmptyState>
             Nothing being watched.{" "}
             <Link href="/query" className="text-accent underline">
               Build a query
             </Link>{" "}
             and start an export, or track a job ID above.
-          </p>
+          </EmptyState>
         )}
       </Panel>
 
@@ -321,20 +328,20 @@ function JobsView() {
         }
       >
         {rows.length === 0 ? (
-          <p className="text-sm text-text-muted">
+          <EmptyState>
             {tab === "session"
               ? "No jobs tracked in this browser yet."
               : historyLoading
                 ? "Loading…"
                 : "No exports found. An API key is required to read history."}
-          </p>
+          </EmptyState>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left text-xs">
-              <thead className="text-text-muted">
+              <thead>
                 <tr className="border-b border-border">
                   {["Job ID", "Status", "Created", "Completed", "Rows", "MB", "Secs", ""].map((h) => (
-                    <th key={h || "actions"} className="px-2 py-2 font-medium">
+                    <th key={h || "actions"} className="label-caps px-2 pb-2 font-medium">
                       {h}
                     </th>
                   ))}
@@ -364,6 +371,7 @@ function JobsView() {
                         <Button
                           type="button"
                           variant="ghost"
+                          size="sm"
                           onClick={() => {
                             setActiveJobId(row.job_id);
                             setManualId(row.job_id);
@@ -371,7 +379,7 @@ function JobsView() {
                         >
                           Monitor
                         </Button>
-                        <Button type="button" variant="ghost" onClick={() => void syncJob(row.job_id)}>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => void syncJob(row.job_id)}>
                           Sync
                         </Button>
                       </div>

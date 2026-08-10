@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { QueryBuilder } from "@/components/QueryBuilder";
 import { useQueryStore } from "@/components/QueryStore";
 import { SampleCharts } from "@/components/SampleCharts";
-import { Alert, Button, Panel, Select, Stat, Toolbar } from "@/components/ui";
+import { Alert, Button, PageHeader, Panel, Select, Stat, Toolbar } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { describeIssues, submitExport, validateQuery } from "@/lib/export-actions";
 import { DATE_RANGE_PRESETS } from "@/lib/constants";
@@ -70,7 +70,11 @@ export default function QueryPage() {
     }
 
     if (result.kind === "created") {
-      upsertJob({ job_id: result.jobId, status: "pending", job_type: "export" });
+      upsertJob({
+        job_id: result.jobId,
+        status: "pending",
+        job_type: "export",
+      });
     }
     router.push(`/jobs?job=${encodeURIComponent(result.jobId)}`);
   }
@@ -83,77 +87,81 @@ export default function QueryPage() {
   return (
     <div className="space-y-5">
       <Toolbar>
-        <div className="flex flex-1 flex-wrap items-center gap-2">
-          <Select
-            className="w-56"
-            value=""
-            onChange={(e) => {
-              const preset = QUERY_PRESETS.find((p) => p.id === e.target.value);
-              if (preset) {
-                setForm(preset.apply(form));
-                setNotice(`Loaded preset “${preset.label}” — ${preset.description}`);
-              }
-            }}
-          >
-            <option value="">Load an example query…</option>
-            {presetsByCategory.map((category) => (
-              <optgroup key={category} label={category}>
-                {QUERY_PRESETS.filter((p) => p.category === category).map((preset) => (
-                  <option key={preset.id} value={preset.id}>
-                    {preset.label}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </Select>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <div className="w-60">
+            <Select
+              value=""
+              onChange={(e) => {
+                const preset = QUERY_PRESETS.find((p) => p.id === e.target.value);
+                if (preset) {
+                  setForm(preset.apply(form));
+                  setNotice(`Loaded preset “${preset.label}” — ${preset.description}`);
+                }
+              }}
+            >
+              <option value="">Example queries…</option>
+              {presetsByCategory.map((category) => (
+                <optgroup key={category} label={category}>
+                  {QUERY_PRESETS.filter((p) => p.category === category).map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </Select>
+          </div>
 
-          <Select
-            className="w-40"
-            value={activeDatePreset ?? "custom"}
-            onChange={(e) => {
-              const preset = DATE_RANGE_PRESETS.find((p) => p.id === e.target.value);
-              if (preset) setForm({ ...form, ...relativeDateRange(preset.days) });
-            }}
-          >
-            {DATE_RANGE_PRESETS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-            <option value="custom">Custom range…</option>
-          </Select>
+          <div className="w-36">
+            <Select
+              value={activeDatePreset ?? "custom"}
+              onChange={(e) => {
+                const preset = DATE_RANGE_PRESETS.find((p) => p.id === e.target.value);
+                if (preset) setForm({ ...form, ...relativeDateRange(preset.days) });
+              }}
+            >
+              {DATE_RANGE_PRESETS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+              <option value="custom">Custom range…</option>
+            </Select>
+          </div>
+        </div>
 
+        <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setShowIssues((v) => !v)}
             disabled={!issues.length}
-            className={`rounded-md border px-2.5 py-1.5 text-xs font-medium ${
+            title={issues.length ? "Show what needs fixing" : "This query is ready to run"}
+            className={`h-9 rounded-md px-3 text-xs font-medium transition-colors ${
               issues.length
-                ? "border-warning/40 bg-warning/10 text-warning"
-                : "border-success/30 bg-success/10 text-success"
+                ? "bg-warning/10 text-warning hover:bg-warning/15"
+                : "bg-success/10 text-success"
             }`}
           >
-            {issues.length ? `${issues.length} issue${issues.length > 1 ? "s" : ""}` : "✓ Query valid"}
+            {issues.length ? `${issues.length} issue${issues.length > 1 ? "s" : ""}` : "✓ Valid"}
           </button>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
           <Button type="button" onClick={() => void runPreview()} disabled={blocked}>
-            {previewLoading ? "Running preview…" : "Run preview (free)"}
+            {previewLoading ? "Previewing…" : "Preview (free)"}
           </Button>
-          <Button type="button" variant="secondary" onClick={() => void startExport()} disabled={blocked}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => void startExport()}
+            disabled={blocked}
+          >
             {exportLoading ? "Submitting…" : "Start export"}
           </Button>
         </div>
       </Toolbar>
 
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Query</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Build one query, then either preview it for free or run it as a full export. Both actions use the
-          filters below.
-        </p>
-      </header>
+      <PageHeader
+        title="Query"
+        description="Build one query, then preview it for free or run it as a full export — both use the filters below. Every section header shows what it currently contains."
+      />
 
       {showIssues && issues.length > 0 && (
         <Alert tone="warning">
@@ -168,20 +176,27 @@ export default function QueryPage() {
       {error && <Alert tone="danger">{error}</Alert>}
 
       {lastPreview && (
-        <div className="space-y-4 rounded-xl border border-accent/25 bg-accent/[0.03] p-4">
+        <div className="space-y-4 rounded-xl border border-accent/20 bg-accent-soft p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-text">Preview result</h2>
-            <Button type="button" variant="ghost" onClick={() => setLastPreview(null)}>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setLastPreview(null)}>
               Dismiss
             </Button>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Stat label="Matching posts" value={lastPreview.count.toLocaleString()} hint="Full export row count" />
+            <Stat
+              label="Matching posts"
+              value={lastPreview.count.toLocaleString()}
+              hint="Full export row count"
+            />
             <Stat label="Query time" value={`${lastPreview.query_time_seconds}s`} />
             <Stat label="Est. export size" value={`${lastPreview.estimated_export_size_mb} MB`} />
           </div>
           <SampleCharts samples={lastPreview.sample ?? []} />
-          <Panel title={`Sample rows (${lastPreview.sample?.length ?? 0})`} description="Free sample — the export returns all matching rows">
+          <Panel
+            title={`Sample rows (${lastPreview.sample?.length ?? 0})`}
+            description="Free sample — the export returns all matching rows"
+          >
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] border-collapse text-left text-xs">
                 <thead className="text-text-muted">
@@ -199,7 +214,9 @@ export default function QueryPage() {
                     return (
                       <Fragment key={id}>
                         <tr className="border-b border-border/60 align-top">
-                          <td className="whitespace-nowrap px-2 py-2 font-mono">{row.created_at ?? "—"}</td>
+                          <td className="whitespace-nowrap px-2 py-2 font-mono">
+                            {row.created_at ?? "—"}
+                          </td>
                           <td className="px-2 py-2">{row.domain ?? "—"}</td>
                           <td className="px-2 py-2">{row.language ?? "—"}</td>
                           <td className="px-2 py-2 font-mono">
@@ -215,6 +232,7 @@ export default function QueryPage() {
                             <Button
                               type="button"
                               variant="ghost"
+                              size="sm"
                               onClick={() => setExpanded(expanded === id ? null : id)}
                             >
                               {expanded === id ? "Hide" : "JSON"}
@@ -224,7 +242,7 @@ export default function QueryPage() {
                         {expanded === id && (
                           <tr>
                             <td colSpan={6} className="bg-bg px-2 py-2">
-                              <pre className="overflow-auto font-mono text-[11px] text-text-muted">
+                              <pre className="overflow-auto font-mono text-xs text-text-muted">
                                 {JSON.stringify(row, null, 2)}
                               </pre>
                             </td>
@@ -238,8 +256,10 @@ export default function QueryPage() {
             </div>
           </Panel>
           <details>
-            <summary className="cursor-pointer text-xs text-accent">Filters the API applied</summary>
-            <pre className="mt-2 max-h-64 overflow-auto rounded-lg border border-border bg-bg p-3 font-mono text-[11px] text-text-muted">
+            <summary className="cursor-pointer text-xs text-accent">
+              Filters the API applied
+            </summary>
+            <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
               {JSON.stringify(lastPreview.filters_applied, null, 2)}
             </pre>
           </details>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Alert, Button, Panel, TextInput } from "@/components/ui";
+import { Alert, Button, PageHeader, Panel, TextInput } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 
 type SettingsInfo = {
@@ -51,13 +51,10 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Configure your Exorde Data Export API key. The key is never sent to the browser for Exorde calls —
-          Next.js API routes attach it server-side.
-        </p>
-      </header>
+      <PageHeader
+        title="Settings"
+        description="Your Exorde API key. It is never exposed to the browser — the Next.js API routes attach it server-side."
+      />
 
       {message && <Alert tone="success">{message}</Alert>}
       {error && <Alert tone="danger">{error}</Alert>}
@@ -65,20 +62,20 @@ export default function SettingsPage() {
       <Panel title="Connection">
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-text-muted">Base URL</dt>
-            <dd className="mt-1 font-mono text-text">{info?.baseUrl ?? "…"}</dd>
+            <dt className="label-caps">Base URL</dt>
+            <dd className="mt-1 font-mono text-xs text-text">{info?.baseUrl ?? "…"}</dd>
           </div>
           <div>
-            <dt className="text-text-muted">EXORDE_API_KEY in env</dt>
-            <dd className="mt-1 font-mono text-text">{info?.envConfigured ? "configured" : "missing"}</dd>
+            <dt className="label-caps">EXORDE_API_KEY in env</dt>
+            <dd className="mt-1 font-mono text-xs text-text">{info?.envConfigured ? "configured" : "missing"}</dd>
           </div>
           <div>
-            <dt className="text-text-muted">Cookie key</dt>
-            <dd className="mt-1 font-mono text-text">{info?.cookieConfigured ? "set" : "not set"}</dd>
+            <dt className="label-caps">Cookie key</dt>
+            <dd className="mt-1 font-mono text-xs text-text">{info?.cookieConfigured ? "set" : "not set"}</dd>
           </div>
           <div>
-            <dt className="text-text-muted">Ready to call API</dt>
-            <dd className="mt-1 font-mono text-text">{info?.keyAvailable ? "yes" : "no"}</dd>
+            <dt className="label-caps">Ready to call API</dt>
+            <dd className="mt-1 font-mono text-xs text-text">{info?.keyAvailable ? "yes" : "no"}</dd>
           </div>
         </dl>
       </Panel>
@@ -87,7 +84,7 @@ export default function SettingsPage() {
         title="Recommended: .env.local"
         description="Create this file in the project root, then restart npm run dev"
       >
-        <pre className="overflow-auto rounded-lg border border-border bg-bg p-3 font-mono text-xs text-text-muted">
+        <pre className="overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
 {`EXORDE_API_KEY=exo_your_key_here
 EXORDE_API_BASE_URL=https://export-api.exorde.io`}
         </pre>
