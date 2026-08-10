@@ -220,9 +220,20 @@ export type UserInfoResponse = {
   updated_at?: string | null;
 };
 
-/** GET /api/v1/user/quota — same, plus live usage counters. */
+export type UsagePeriod = {
+  exports?: number | null;
+  rows?: number | null;
+  remaining_exports?: number | null;
+  remaining_rows?: number | null;
+  quota_used_pct?: number | null;
+};
+
+/**
+ * GET /api/v1/user/quota — limits plus live usage, keyed by period
+ * (`today`, `this_month`). Indexed loosely so an added period still renders.
+ */
 export type UserQuotaResponse = UserInfoResponse & {
-  usage: Record<string, Record<string, number | null>>;
+  usage: Record<string, UsagePeriod | undefined>;
   reset_at: string;
 };
 

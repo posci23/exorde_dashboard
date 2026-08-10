@@ -18,26 +18,16 @@ function formatCount(value: number | null | undefined) {
   return value == null ? "unlimited" : value.toLocaleString();
 }
 
-/** Pair each usage counter with the limit whose name it echoes, e.g. exports_today ↔ max_exports_per_day. */
+/**
+ * Usage is reported per period (`usage.today.exports`) while the matching cap
+ * lives flat under limits (`limits.daily_exports`), so each tile names both.
+ */
 const USAGE_ROWS = [
-  { usageKey: "exports_today", limitKey: "max_exports_per_day", label: "Exports today" },
-  { usageKey: "exports_this_month", limitKey: "max_exports_per_month", label: "Exports this month" },
-  { usageKey: "rows_exported_today", limitKey: "max_rows_per_day", label: "Rows today" },
-  { usageKey: "rows_exported_this_month", limitKey: "max_rows_per_month", label: "Rows this month" },
+  { period: "today", metric: "exports", limitKey: "daily_exports", label: "Exports today" },
+  { period: "today", metric: "rows", limitKey: "daily_rows", label: "Rows today" },
+  { period: "this_month", metric: "exports", limitKey: "monthly_exports", label: "Exports this month" },
+  { period: "this_month", metric: "rows", limitKey: "monthly_rows", label: "Rows this month" },
 ] as const;
-
-/** Usage arrives as a nested object whose grouping varies; flatten it to one lookup. */
-function flattenUsage(usage: UserQuotaResponse["usage"] | undefined): Record<string, number> {
-  const flat: Record<string, number> = {};
-  for (const group of Object.values(usage ?? {})) {
-    if (group && typeof group === "object") {
-      for (const [key, value] of Object.entries(group)) {
-        if (typeof value === "number") flat[key] = value;
-      }
-    }
-  }
-  return flat;
-}
 
 export default function OverviewPage() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
@@ -73,7 +63,6 @@ export default function OverviewPage() {
     void refresh();
   }, [refresh]);
 
-  const usage = flattenUsage(quota?.usage);
   const limits = quota?.limits ?? {};
   const extraLimits = Object.entries(limits).filter(
     ([key]) => !USAGE_ROWS.some((r) => r.limitKey === key),
@@ -140,11 +129,16 @@ export default function OverviewPage() {
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {USAGE_ROWS.map((row) => {
-                const used = usage[row.usageKey];
+                const period = quota.usage?.[row.period];
+                const used = period?.[row.metric];
+                const remaining = period?.[row.metric === "exports" ? "remaining_exports" : "remaining_rows"];
                 const cap = limits[row.limitKey];
                 const pct = cap != null && cap > 0 && used != null ? (used / cap) * 100 : null;
                 return (
-                  <div key={row.usageKey} className="rounded-lg border border-border bg-bg-elevated px-3 py-3">
+                  <div
+                    key={`${row.period}.${row.metric}`}
+                    className="rounded-lg border border-border bg-bg-elevated px-3 py-3"
+                  >
                     <div className="text-[11px] uppercase tracking-wide text-text-muted">{row.label}</div>
                     <div className="mt-1 font-mono text-xl text-text">
                       {used?.toLocaleString() ?? "—"}
@@ -156,6 +150,11 @@ export default function OverviewPage() {
                           className={`h-full rounded-full ${pct > 90 ? "bg-danger" : pct > 70 ? "bg-warning" : "bg-accent"}`}
                           style={{ width: `${Math.min(pct, 100)}%` }}
                         />
+                      </div>
+                    )}
+                    {remaining != null && (
+                      <div className="mt-1.5 text-[11px] text-text-muted">
+                        {remaining.toLocaleString()} left
                       </div>
                     )}
                   </div>
