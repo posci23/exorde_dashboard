@@ -4,13 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV = [
-  { href: "/", label: "Overview" },
-  { href: "/preview", label: "Query / Preview" },
-  { href: "/export", label: "Export Jobs" },
-  { href: "/history", label: "History" },
-  { href: "/fields", label: "Field Reference" },
-  { href: "/limits", label: "Limits & Errors" },
-  { href: "/settings", label: "Settings" },
+  { href: "/", label: "Overview", hint: "Health, queue, your quota" },
+  { href: "/query", label: "Query", hint: "Build · preview · export" },
+  { href: "/jobs", label: "Jobs", hint: "Monitor · download · history" },
+  { href: "/fields", label: "Fields", hint: "What each column means" },
+  { href: "/limits", label: "Limits & errors", hint: "Caps and what to do on failure" },
+  { href: "/settings", label: "Settings", hint: "API key" },
 ] as const;
 
 export function Sidebar() {
@@ -30,13 +29,14 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`rounded-md px-3 py-2 text-sm transition ${
+              className={`rounded-md px-3 py-2 transition ${
                 active
                   ? "bg-accent/15 text-accent"
                   : "text-text-muted hover:bg-bg-panel hover:text-text"
               }`}
             >
-              {item.label}
+              <span className="block text-sm font-medium">{item.label}</span>
+              <span className="mt-0.5 block text-[11px] text-text-muted">{item.hint}</span>
             </Link>
           );
         })}

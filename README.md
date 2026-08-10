@@ -17,18 +17,25 @@ You can also paste a key in **Settings** (stored as an httpOnly cookie). Env win
 
 ## What it covers
 
-| Surface | API |
-|---------|-----|
-| Overview | `GET /health`, `GET /api/v1/queue/capacity` |
-| Query / Preview | `POST /api/v1/preview` + full filter builder |
-| Export Jobs | `POST /api/v1/export`, `GET /api/v1/export/{id}` with 409/429/503 handling |
-| History | `GET /api/v1/user/exports`, `POST /api/v1/sync/export-job` |
-| Field Reference | All 47 fields |
-| Limits & Errors | Caps, rate limits, idempotency, HTTP codes |
+| Page | API |
+|------|-----|
+| Overview | `GET /health`, `GET /api/v1/queue/capacity`, `GET /api/v1/user/quota` |
+| Query | `POST /api/v1/preview` and `POST /api/v1/export` from one filter builder, with 409/429/503 handling |
+| Jobs | `GET /api/v1/export/{id}`, `GET /api/v1/user/exports`, `POST /api/v1/sync/export-job` |
+| Fields | All 47 fields |
+| Limits & errors | `GET /api/v1/user/info` plus documented caps, rate limits, idempotency, HTTP codes |
 
 ### Filters in the query builder
 
-Keyword groups (AND/OR, phrases, wildcards), exclusions, domains, languages, usernames, locations, external IDs / parent IDs, URL patterns, proximity, profile filters (x.com), search mode, field exclusion, plus export-only `output_format`, `result_limit`, and `per_day_limit`.
+Keyword groups (AND/OR, phrases, wildcards), exclusions, domains, languages, usernames, locations,
+external IDs / parent IDs, URL patterns, proximity, profile filters (x.com), search mode, post and
+collection date ranges, field exclusion, plus export-only `output_format`, `result_limit`, and
+`per_day_limit`.
+
+Filters live in collapsible sections whose headers summarize what's set inside, and every fixed
+option set is a picker rather than free text — multi-selects for platforms, languages, and fields;
+segmented buttons for enums and booleans; date pickers with relative presets; preset dropdowns with
+a custom fallback for row caps.
 
 ## Architecture
 

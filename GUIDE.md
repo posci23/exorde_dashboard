@@ -19,9 +19,11 @@ Exorde’s Data Export API uses a two-phase model. This dashboard walks you thro
 1. **Preview** (free, sync) — count + ~100 sample rows, no quota used  
 2. **Refine** — adjust keywords, dates, domains, languages, etc.  
 3. **Export** (async, consumes quota) — create a job, data streams to S3 in ~100MB chunks  
-4. **Poll** — watch `pending → running → completed` (or `failed` / `rejected`)  
+4. **Poll** — watch `pending → validated → running → completed` (or `failed` / `rejected`)  
 5. **Download** — open the presigned S3 URL (valid 48 hours, no auth)  
 6. **History / Sync** — list past jobs and re-fetch download URLs
+
+Steps 1–3 all happen on **Query**; steps 4–6 on **Jobs**.
 
 Data sources under the hood: `exorde.posts` ∪ `exorde.back_posts` (ClickHouse), quotas/jobs in PostgreSQL, files on Scaleway S3.
 
@@ -68,59 +70,45 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### 1. Overview (`/`)
 
-System status and workflow entry point.
+System status, your quota, and the workflow entry point.
 
 | Function | Description |
 |----------|-------------|
 | Health check | Calls `GET /health` — status, version, ClickHouse / Postgres / S3 connectivity |
+| Your plan | Calls `GET /api/v1/user/quota` — plan tier, status, exports and rows used today/month against your real caps, next reset |
 | Queue capacity | Calls `GET /api/v1/queue/capacity` — current jobs, max capacity (8), utilization %, `accepting_new_jobs` |
-| Refresh | Re-fetch health + queue |
-| Workflow links | Jump to Preview → Export → History |
-| Limits at a glance | Date range, row caps, concurrency, table names |
+| Refresh | Re-fetch all three; each failure is reported separately |
+| Workflow links | Build & preview → Export → Monitor → Download |
 
-### 2. Query / Preview (`/preview`)
+### 2. Query (`/query`)
 
-Build any documented filter set and run a **free** preview.
-
-| Function | Description |
-|----------|-------------|
-| Full query builder | All filters (see [Query builder](#query-builder--all-filters)) |
-| Run preview | `POST /api/v1/preview` — count, query time, estimated MB, 100 samples |
-| Sample analytics | Sentiment bars, domain pie, language bars, top keywords (from sample only) |
-| Filters applied | Echo of what the API interpreted |
-| Sample table | Rows with expandable raw JSON |
-| Continue to export | Same filters carry over to Export |
-| Presets | One-click doc patterns (crypto OR, multi-topic AND, phrases, wildcards, URL-only, proximity+profile, etc.) |
-| Payload + curl | Live JSON body and copy-as-curl |
-
-### 3. Export Jobs (`/export`)
-
-Submit async exports and monitor them.
+**One** page builds the query; preview and export are two actions on the same filters.
 
 | Function | Description |
 |----------|-------------|
-| Start export | `POST /api/v1/export` with export-only options (`output_format`, `result_limit`, `per_day_limit`) |
-| Pre-check queue | Reads capacity; warns if not accepting jobs |
-| Handle **409** | Duplicate within 5 min → poll `existing_job_id` instead of resubmitting |
-| Handle **429** | Show rate-limit / `Retry-After` |
-| Handle **503** | Queue saturated — backoff guidance |
-| Auto-poll | `GET /api/v1/export/{job_id}` every ~10s, backoff toward 30s |
-| Track by ID | Paste any `job_id` to monitor |
+| Sticky toolbar | Example-query dropdown, time-range dropdown, live validity pill, **Run preview** + **Start export** |
+| Validation | `queryBodySchema` runs on every keystroke; both buttons disable and the pill lists the issues |
+| Run preview | `POST /api/v1/preview` — count, query time, estimated MB, 100 samples. Free, no quota |
+| Preview results | Rendered *above* the builder: stat tiles, sentiment/domain/language/keyword charts, sample table with expandable JSON, and the API's echoed `filters_applied` |
+| Start export | `POST /api/v1/export` after a queue pre-check; handles 409 / 429 / 503, then hands off to `/jobs?job=…` |
+| Collapsible sections | Keywords · Time range · Sources · People & IDs · Advanced · Output · Request payload. Each header summarizes what's set inside and offers **Clear** |
+| Payload + curl | Toggle between the preview body and the export body; copy either as curl |
+
+### 3. Jobs (`/jobs`)
+
+Monitor, download, and browse history in one place.
+
+| Function | Description |
+|----------|-------------|
+| Monitor | Auto-polls `GET /api/v1/export/{job_id}` every ~10s, easing toward 30s until terminal |
+| Track by ID | Paste any `job_id`, or arrive via `/jobs?job=…` from an export submit |
+| Phase checklist | The 7 processing phases (Validation → Complete), lit by status |
 | Download | When `completed`, open `download_url` (48h expiry shown) |
-| Phase checklist | UI for the 7 processing phases (Validation → Complete) |
-| Session job list | Jobs tracked this browser session (localStorage) |
-| Same query builder | Shared filters with Preview |
+| Sync | `POST /api/v1/sync/export-job` — refresh status and mint a fresh download URL for a job you own |
+| This browser | Jobs started or tracked from this browser (localStorage) |
+| Server history | `GET /api/v1/user/exports?limit=` (10 / 20 / 50 / 100) |
 
-### 4. History (`/history`)
-
-| Function | Description |
-|----------|-------------|
-| List exports | `GET /api/v1/user/exports?limit=` (10 / 20 / 50 / 100) |
-| Refresh | Reload history |
-| Sync | `POST /api/v1/sync/export-job` — refresh status + download URL for a job you own |
-| Open | Hand off `job_id` to Export Jobs monitor |
-
-### 5. Field Reference (`/fields`)
+### 4. Field Reference (`/fields`)
 
 | Function | Description |
 |----------|-------------|
@@ -155,7 +143,24 @@ In-app reference for:
 
 ## Query builder — all filters
 
-Shared by Preview and Export. Client-side validation mirrors API limits (Zod).
+One builder on `/query`, used by both preview and export. Client-side validation mirrors API limits
+(Zod). Filters are grouped into collapsible sections whose headers summarize what's set inside, so
+nothing is hidden even when collapsed.
+
+| Section | Covers |
+|---------|--------|
+| **Keywords** | Keyword groups, group operator, search mode |
+| **Time range** | Post dates, collection dates, span warnings |
+| **Sources** | Platforms, languages, locations |
+| **People & IDs** | Usernames, post IDs, parent IDs, URL patterns (the selective filters) |
+| **Advanced** | Exclusion groups, proximity, profile filters |
+| **Output** | Format, row caps, field exclusion |
+| **Request payload** | Live JSON + curl, toggleable between preview and export bodies |
+
+Every fixed option set is a picker rather than free text: platforms, languages, and excludable
+fields use a searchable multi-select with chips (`ChipMultiSelect`); enums like `AND`/`OR`,
+`jsonl`/`csv`, and boolean profile fields use segmented buttons; dates use pickers with relative
+presets; row caps use preset dropdowns with a custom numeric fallback.
 
 ### Keyword search
 
@@ -174,7 +179,8 @@ Shared by Preview and Export. Client-side validation mirrors API limits (Zod).
 
 | Control | API field | Notes |
 |---------|-----------|-------|
-| Start / end | `start_date`, `end_date` | Max **30 days** normally; **90 days** with `per_day_limit` |
+| Posted after / before | `start_date`, `end_date` | Max **30 days** normally; **90 days** with `per_day_limit`. Relative presets (24h / 7d / 30d / 90d) plus pickers; live span readout warns past the cap |
+| Collection window | `collected_at_start_date`, `collected_at_end_date` | Optional — narrows to when Exorde ingested the post. Requires both post dates |
 | Domains | `domains` | Max 50, exact match, OR |
 | Languages | `languages` | Max 10 ISO codes (176+ supported) |
 | Usernames | `usernames` | Max 50 |
@@ -244,6 +250,8 @@ All under `/api/exorde/*`. They attach `X-API-Key` and forward to Exorde.
 | `/api/exorde/export` | POST | `/api/v1/export` | Yes |
 | `/api/exorde/export/[jobId]` | GET | `/api/v1/export/{job_id}` | Yes |
 | `/api/exorde/exports` | GET | `/api/v1/user/exports` | Yes |
+| `/api/exorde/user-info` | GET | `/api/v1/user/info` | Yes |
+| `/api/exorde/user-quota` | GET | `/api/v1/user/quota` | Yes |
 | `/api/exorde/sync` | POST | `/api/v1/sync/export-job` | Yes |
 | `/api/exorde/settings` | GET/POST | (local only) | Cookie / env status |
 
@@ -265,6 +273,8 @@ Envelope shape: `{ ok, data }` on success; `{ ok: false, status, error, retry_af
 | `getExportJob(jobId, apiKey?)` | Poll job status |
 | `syncExportJob(jobId, apiKey?)` | Dashboard sync for owned job |
 | `listUserExports(limit, apiKey?)` | Export history |
+| `getUserInfo(apiKey?)` | Identity + configured caps |
+| `getUserQuota(apiKey?)` | Caps plus live usage counters |
 
 ### `src/lib/api-helpers.ts`
 
@@ -280,7 +290,20 @@ Envelope shape: `{ ok, data }` on success; `{ ok: false, status, error, retry_af
 | `createEmptyQueryForm()` | Default form (last 24h UTC + sample keywords) |
 | `buildQueryBody(form, mode)` | Form → API JSON (`preview` strips export-only; `export` includes them) |
 | `buildCurl(body, endpoint)` | Generate curl example |
-| `QUERY_PRESETS` | Preset loaders |
+| `QUERY_PRESETS` | Preset loaders, grouped by category |
+| `formatApiDate` / `apiDateToInput` / `inputDateToApi` | Convert between the API's `YYYY-MM-DD HH:MM:SS` UTC strings and the datetime picker |
+| `parseApiDate(value)` | Parse an API date as UTC (bare dates included) |
+| `getSpanDays(start, end)` | Day span, for the range warning |
+| `relativeDateRange(days)` / `matchDatePreset(form)` | Apply and detect the relative range presets |
+| `summarize*(form)` | Per-section count + plain-English summary for the collapsed headers |
+
+### `src/lib/export-actions.ts`
+
+| Function | Purpose |
+|----------|---------|
+| `validateQuery(body)` | Zod parse shared by preview and export |
+| `describeIssues(result)` | Issue messages for the toolbar validity pill |
+| `submitExport(body)` | Queue pre-check + submit, returning `created` / `duplicate` (409) / `error` (429, 503, …) |
 
 ### `src/lib/browser-api.ts`
 
@@ -345,13 +368,14 @@ pending → running → completed
 
 ## Typical operator workflow
 
-1. Open **Settings** (or set `.env.local`) and confirm “Ready to call API”.  
-2. **Overview** → confirm health is `healthy` and queue is accepting jobs.  
-3. **Query / Preview** → load a preset or build filters → **Run preview**.  
-4. Inspect count, estimated size, and sample quality.  
-5. **Export Jobs** → set `jsonl`/`csv`, optional limits → **Start export**.  
-6. Wait for **completed** → **Download file**.  
-7. Later: **History** → **Sync** if you need the URL again (within 48h of completion).
+1. Open **Settings** (or set `EXORDE_API_KEY`) and confirm “Ready to call API”.  
+2. **Overview** → health is `healthy`, queue is accepting jobs, and you have quota left.  
+3. **Query** → pick an example query or build filters. The toolbar pill must read **✓ Query valid**.  
+4. **Run preview** (free) → check the count, estimated size, and sample quality above the builder.  
+5. Refine, then open **Output** to set `jsonl`/`csv` and any row caps.  
+6. **Start export** → you land on **Jobs** already polling the new job.  
+7. Wait for **completed** → **Download file**.  
+8. Later: **Jobs → Server history → Sync** to mint a fresh URL (within 48h of completion).
 
 ---
 

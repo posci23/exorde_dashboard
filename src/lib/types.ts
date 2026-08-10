@@ -26,6 +26,8 @@ export const queryBodySchema = z
     keyword_groups: z.array(keywordGroupSchema).min(1).max(LIMITS.maxKeywordGroups).optional(),
     start_date: z.string().optional(),
     end_date: z.string().optional(),
+    collected_at_start_date: z.string().optional(),
+    collected_at_end_date: z.string().optional(),
     domains: z.array(z.string().min(1)).max(LIMITS.maxDomains).optional(),
     languages: z.array(z.string().min(1)).max(LIMITS.maxLanguages).optional(),
     usernames: z.array(z.string().min(1)).max(LIMITS.maxUsernames).optional(),
@@ -108,6 +110,17 @@ export const queryBodySchema = z
       });
     }
 
+    if (
+      (data.collected_at_start_date || data.collected_at_end_date) &&
+      (!data.start_date || !data.end_date)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Collection-time filters require both start_date and end_date",
+        path: ["collected_at_start_date"],
+      });
+    }
+
     if (data.profile_filters) {
       const fieldCount = Object.keys(data.profile_filters).length;
       if (fieldCount > LIMITS.maxProfileFilterFields) {
@@ -153,7 +166,14 @@ export type ExportCreateResponse = {
   estimated_time_minutes: number | null;
 };
 
-export type JobStatus = "pending" | "running" | "completed" | "failed" | "rejected" | string;
+export type JobStatus =
+  | "pending"
+  | "validated"
+  | "running"
+  | "completed"
+  | "failed"
+  | "rejected"
+  | string;
 
 export type ExportJobResponse = {
   job_id: string;
@@ -186,6 +206,24 @@ export type QueueCapacityResponse = {
   max_capacity: number;
   utilization_pct: number;
   accepting_new_jobs: boolean;
+};
+
+/** GET /api/v1/user/info — identity + configured caps. */
+export type UserInfoResponse = {
+  user_id: string;
+  email?: string | null;
+  organization?: string | null;
+  plan?: string | null;
+  limits: Record<string, number | null>;
+  status: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+/** GET /api/v1/user/quota — same, plus live usage counters. */
+export type UserQuotaResponse = UserInfoResponse & {
+  usage: Record<string, Record<string, number | null>>;
+  reset_at: string;
 };
 
 export type UserExportsResponse = {

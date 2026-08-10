@@ -1,7 +1,28 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { COMMON_LANGUAGES, HTTP_ERRORS, LIMITS } from "@/lib/constants";
-import { Panel } from "@/components/ui";
+import { Alert, Panel } from "@/components/ui";
+import { apiFetch } from "@/lib/browser-api";
+import type { UserInfoResponse } from "@/lib/types";
+
+function humanize(key: string) {
+  const text = key.replace(/_/g, " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 export default function LimitsPage() {
+  const [info, setInfo] = useState<UserInfoResponse | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      const res = await apiFetch<UserInfoResponse>("/api/exorde/user-info");
+      if (res.ok && res.data) setInfo(res.data);
+    })();
+  }, []);
+
+  const accountLimits = Object.entries(info?.limits ?? {});
+
   return (
     <div className="space-y-6">
       <header>
@@ -10,6 +31,31 @@ export default function LimitsPage() {
           Request caps, rate limits, idempotency, history gates, and HTTP error remediation.
         </p>
       </header>
+
+      <Panel
+        title="Your account limits"
+        description={
+          info
+            ? `Live from GET /api/v1/user/info · plan ${info.plan ?? "unknown"} · ${info.status}`
+            : "Live values — requires an API key"
+        }
+      >
+        {accountLimits.length > 0 ? (
+          <dl className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            {accountLimits.map(([key, value]) => (
+              <div key={key} className="flex justify-between gap-3 border-b border-border/40 py-1.5">
+                <dt className="text-text-muted">{humanize(key)}</dt>
+                <dd className="font-mono text-text">{value == null ? "unlimited" : value.toLocaleString()}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <Alert tone="info">
+            Configure an API key in Settings to see your real caps here. Everything below is the documented
+            default for the API.
+          </Alert>
+        )}
+      </Panel>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Request limits">

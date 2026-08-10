@@ -3,7 +3,7 @@ export function StatusBadge({ status }: { status: string }) {
   const tone =
     normalized === "completed" || normalized === "healthy" || normalized === "connected"
       ? "bg-success/15 text-success"
-      : normalized === "running" || normalized === "pending"
+      : normalized === "running" || normalized === "pending" || normalized === "validated"
         ? "bg-info/15 text-info"
         : normalized === "failed" || normalized === "rejected" || normalized === "degraded"
           ? "bg-danger/15 text-danger"

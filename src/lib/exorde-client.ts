@@ -8,6 +8,8 @@ import {
   type QueryBody,
   type QueueCapacityResponse,
   type UserExportsResponse,
+  type UserInfoResponse,
+  type UserQuotaResponse,
 } from "./types";
 
 function getBaseUrl() {
@@ -90,6 +92,14 @@ export function getHealth() {
 
 export function getQueueCapacity(apiKey?: string) {
   return exordeFetch<QueueCapacityResponse>("/api/v1/queue/capacity", { apiKey });
+}
+
+export function getUserInfo(apiKey?: string) {
+  return exordeFetch<UserInfoResponse>("/api/v1/user/info", { apiKey });
+}
+
+export function getUserQuota(apiKey?: string) {
+  return exordeFetch<UserQuotaResponse>("/api/v1/user/quota", { apiKey });
 }
 
 export function previewQuery(body: QueryBody, apiKey?: string) {

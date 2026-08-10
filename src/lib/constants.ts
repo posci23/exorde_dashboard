@@ -56,15 +56,24 @@ export const PLATFORMS = [
 
 export const PLATFORM_DOMAINS: Set<string> = new Set(PLATFORMS.map((p) => p.domain));
 
-export const PROFILE_FILTER_FIELDS = [
-  { name: "user_description", match: "substring" as const },
-  { name: "profile_image_url", match: "substring" as const },
-  { name: "user_followers_count", match: "exact" as const },
-  { name: "user_following_count", match: "exact" as const },
-  { name: "user_created_at", match: "exact" as const },
-  { name: "user_verified", match: "exact" as const },
-  { name: "user_blue_verified", match: "exact" as const },
-] as const;
+export type ProfileFilterField = {
+  name: string;
+  label: string;
+  match: "substring" | "exact";
+  /** Fixed option set — renders as a picker instead of free text. */
+  values?: readonly string[];
+  placeholder?: string;
+};
+
+export const PROFILE_FILTER_FIELDS: readonly ProfileFilterField[] = [
+  { name: "user_description", label: "Bio contains", match: "substring", placeholder: "journalist, founder" },
+  { name: "profile_image_url", label: "Avatar URL contains", match: "substring", placeholder: "pbs.twimg.com" },
+  { name: "user_followers_count", label: "Follower count", match: "exact", placeholder: "10000" },
+  { name: "user_following_count", label: "Following count", match: "exact", placeholder: "500" },
+  { name: "user_created_at", label: "Account created", match: "exact", placeholder: "2011-03-14" },
+  { name: "user_verified", label: "Verified", match: "exact", values: ["true", "false"] },
+  { name: "user_blue_verified", label: "Blue verified", match: "exact", values: ["true", "false"] },
+];
 
 export const COMMON_LANGUAGES = [
   { code: "en", label: "English" },
@@ -87,6 +96,42 @@ export const COMMON_LANGUAGES = [
   { code: "da", label: "Danish" },
   { code: "fi", label: "Finnish" },
   { code: "cs", label: "Czech" },
+  { code: "uk", label: "Ukrainian" },
+  { code: "el", label: "Greek" },
+  { code: "he", label: "Hebrew" },
+  { code: "id", label: "Indonesian" },
+  { code: "th", label: "Thai" },
+  { code: "vi", label: "Vietnamese" },
+  { code: "ro", label: "Romanian" },
+  { code: "hu", label: "Hungarian" },
+  { code: "fa", label: "Persian" },
+  { code: "bn", label: "Bengali" },
+] as const;
+
+export const LANGUAGE_CODES: Set<string> = new Set(COMMON_LANGUAGES.map((l) => l.code));
+
+/** Relative windows offered as one-click buttons on the time-range section. */
+export const DATE_RANGE_PRESETS = [
+  { id: "24h", label: "Last 24h", days: 1 },
+  { id: "7d", label: "Last 7 days", days: 7 },
+  { id: "30d", label: "Last 30 days", days: 30 },
+  { id: "90d", label: "Last 90 days", days: 90, needsPerDayLimit: true },
+] as const;
+
+export const RESULT_LIMIT_PRESETS = [
+  { value: "", label: "All matching rows (no cap)" },
+  { value: "1000", label: "1,000 rows" },
+  { value: "10000", label: "10,000 rows" },
+  { value: "100000", label: "100,000 rows" },
+  { value: "1000000", label: "1,000,000 rows" },
+] as const;
+
+export const PER_DAY_LIMIT_PRESETS = [
+  { value: "", label: "No per-day cap" },
+  { value: "100", label: "100 / day" },
+  { value: "1000", label: "1,000 / day" },
+  { value: "5000", label: "5,000 / day" },
+  { value: "100000", label: "100,000 / day (max)" },
 ] as const;
 
 export const ALWAYS_EXCLUDED_FIELDS = [
