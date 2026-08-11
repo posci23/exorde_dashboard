@@ -122,8 +122,8 @@ export function QueryBuilder({ form, onChange }: Props) {
         title={t.builder.keywordsTitle}
         helpHref="/reference?tab=filters&section=Keywords"
         helpLabel={t.builder.keywordsLabel}
-        summary={summarizeKeywords(form).summary}
-        count={summarizeKeywords(form).count}
+        summary={summarizeKeywords(form, t).summary}
+        count={summarizeKeywords(form, t).count}
         defaultOpen
         help={t.builder.keywordsHelp(LIMITS.maxKeywordGroups, LIMITS.maxTermsPerGroup)}
         onClear={() => set({ keywordGroups: [], fullStringScan: false })}
@@ -234,8 +234,8 @@ export function QueryBuilder({ form, onChange }: Props) {
         title={t.builder.timeTitle}
         helpHref="/reference?tab=filters&section=Time+range"
         helpLabel={t.builder.timeLabel}
-        summary={summarizeTimeRange(form).summary}
-        count={summarizeTimeRange(form).count}
+        summary={summarizeTimeRange(form, t).summary}
+        count={summarizeTimeRange(form, t).count}
         defaultOpen
         help={t.builder.timeHelp(LIMITS.maxDateRangeDays, LIMITS.maxPerDaySpanDays)}
       >
@@ -247,7 +247,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               variant={activePreset === preset.id ? "primary" : "secondary"}
               onClick={() => set(relativeDateRange(preset.days))}
             >
-              {preset.label}
+              {t.datePresets[preset.id as keyof typeof t.datePresets]}
             </Button>
           ))}
         </div>
@@ -328,8 +328,8 @@ export function QueryBuilder({ form, onChange }: Props) {
         title={t.builder.sourcesTitle}
         helpHref="/reference?tab=filters&section=Sources"
         helpLabel={t.builder.sourcesLabel}
-        summary={summarizeSources(form).summary}
-        count={summarizeSources(form).count}
+        summary={summarizeSources(form, t).summary}
+        count={summarizeSources(form, t).count}
         defaultOpen
         help={t.builder.sourcesHelp}
         onClear={() => set({ domainsText: "", languagesText: "", locationsText: "" })}
@@ -384,8 +384,8 @@ export function QueryBuilder({ form, onChange }: Props) {
         title={t.builder.peopleTitle}
         helpHref="/reference?tab=filters&section=People+%26+IDs"
         helpLabel={t.builder.peopleLabel}
-        summary={summarizePeople(form).summary}
-        count={summarizePeople(form).count}
+        summary={summarizePeople(form, t).summary}
+        count={summarizePeople(form, t).count}
         help={t.builder.peopleHelp}
         onClear={() =>
           set({
@@ -499,8 +499,8 @@ export function QueryBuilder({ form, onChange }: Props) {
         title={t.builder.advancedTitle}
         helpHref="/reference?tab=filters&section=Advanced"
         helpLabel={t.builder.advancedLabel}
-        summary={summarizeAdvanced(form).summary}
-        count={summarizeAdvanced(form).count}
+        summary={summarizeAdvanced(form, t).summary}
+        count={summarizeAdvanced(form, t).count}
         onClear={() => set({ excludeKeywordGroups: [], proximityGroups: [], profileFilters: [] })}
       >
         <div className="space-y-6">
@@ -719,8 +719,8 @@ export function QueryBuilder({ form, onChange }: Props) {
         helpHref="/reference?tab=filters&section=Output"
         helpLabel={t.builder.outputLabel}
         defaultOpen
-        summary={summarizeOutput(form).summary}
-        count={summarizeOutput(form).count}
+        summary={summarizeOutput(form, t).summary}
+        count={summarizeOutput(form, t).count}
         help={t.builder.outputHelp}
       >
         <div className="grid gap-5 lg:grid-cols-2">
@@ -796,8 +796,8 @@ export function QueryBuilder({ form, onChange }: Props) {
             value={form.fieldPreset}
             options={FIELD_PRESETS.map((p) => ({
               value: p.id,
-              label: p.label,
-              description: p.description,
+              label: t.fieldPresets[p.id as keyof typeof t.fieldPresets].label,
+              description: t.fieldPresets[p.id as keyof typeof t.fieldPresets].description,
               badge: t.builder.cols(keptFields(form, p.id).length),
             }))}
             onChange={(fieldPreset) => set({ fieldPreset })}

@@ -319,6 +319,122 @@ export const es: Dict = {
     resetAll: "Restablecer todos los filtros",
   },
 
+  jobs: {
+    title: "Trabajos",
+    description: (hours: number) =>
+      `Sigue una exportaci\u00f3n en curso y desc\u00e1rgala. Los enlaces caducan ${hours} h despu\u00e9s de completarse; Sincronizar genera uno nuevo.`,
+    monitor: "Seguimiento",
+    polling: "Consultando cada 10 s, pasando a 30 s hasta que el trabajo termine",
+    pasteId: "Pega un ID de trabajo o elige uno de las tablas de abajo",
+    jobIdPlaceholder: "ID del trabajo",
+    trackJob: "Seguir trabajo",
+    refreshNow: "Actualizar ahora",
+    stopWatching: "Dejar de seguir",
+    jobId: "ID del trabajo",
+    status: "Estado",
+    rows: "Filas",
+    size: "Tama\u00f1o",
+    execution: "Ejecuci\u00f3n",
+    downloadReady: "Descarga lista",
+    expires: (when: string) =>
+      `Caduca ${when} \u00b7 no requiere autenticaci\u00f3n, trata el enlace como informaci\u00f3n sensible`,
+    expiresDefault: (hours: number) => `${hours} h despu\u00e9s de completarse`,
+    downloadFile: "Descargar archivo",
+    syncForLink: "Sincronizar para obtener un enlace nuevo",
+    processingPhases: "Fases del procesamiento",
+    nothingWatched: "No hay nada en seguimiento.",
+    buildAQuery: "Construye una consulta",
+    andStartExport: " e inicia una exportaci\u00f3n, o sigue un ID de trabajo arriba.",
+    syncedRefreshed: (id: string, until: string) =>
+      `${id} sincronizado \u2014 enlace de descarga renovado (v\u00e1lido hasta ${until}).`,
+    syncedStatus: (id: string, status: string) => `${id} sincronizado \u2014 su estado es ${status}.`,
+    expiryFallback: "su caducidad",
+    fetchedFrom: "Obtenido de GET /api/v1/user/exports",
+    newQuery: "Nueva consulta",
+    clearList: "Vaciar lista",
+    monitorRow: "Seguir",
+    yourExports: "Tus exportaciones",
+    thisBrowser: (n: number) => `Este navegador (${n})`,
+    serverHistory: "Historial del servidor",
+    sessionNote: "Trabajos iniciados o seguidos desde este navegador, guardados en localStorage",
+    historyNote: (user: string, total: number) =>
+      `Usuario ${user} \u00b7 ${total} trabajo(s) devuelto(s)`,
+    noneTracked: "A\u00fan no hay trabajos seguidos en este navegador.",
+    noExports:
+      "No se han encontrado exportaciones. Se necesita una clave de API para leer el historial.",
+    colCreated: "Creado",
+    colCompleted: "Completado",
+    colRows: "Filas",
+    colMb: "MB",
+    colSecs: "Seg",
+    watch: "Seguir",
+    sync: "Sincronizar",
+    download: "Descargar",
+  },
+
+  summary: {
+    noKeywords: "Sin palabras clave \u2014 necesita un filtro selectivo",
+    groups: (g: number, terms: number, joiner: string, safe: string) =>
+      `${g} grupo${g > 1 ? "s" : ""} \u00b7 ${terms} t\u00e9rmino${terms > 1 ? "s" : ""}${joiner}${safe}`,
+    joiner: (op: string) => ` ${op} entre grupos`,
+    safeMode: " \u00b7 modo seguro",
+    noDates: "Sin intervalo de fechas",
+    range: (start: string, end: string, days: string) => `${start} \u2192 ${end} (${days} d)`,
+    collectedSet: " \u00b7 ventana de recopilaci\u00f3n definida",
+    platforms: (n: number) => `${n} plataforma${n > 1 ? "s" : ""}`,
+    languages: (n: number) => `${n} idioma${n > 1 ? "s" : ""}`,
+    locations: (n: number) => `${n} ubicaci\u00f3${n > 1 ? "nes" : "n"}`,
+    platformsList: (list: string) => `Plataformas: ${list}`,
+    languagesList: (list: string) => `Idiomas: ${list}`,
+    usernames: (n: number) => `${n} nombre${n > 1 ? "s" : ""} de usuario`,
+    noSources: "Todas las plataformas, todos los idiomas, cualquier lugar",
+    noSourceFilter: "Todas las plataformas e idiomas",
+    authors: (n: number) => `${n} autor${n > 1 ? "es" : ""}`,
+    postIds: (n: number) => `${n} ID${n > 1 ? "s" : ""} de publicaci\u00f3n`,
+    parentIds: (n: number) => `${n} ID${n > 1 ? "s" : ""} de publicaci\u00f3n padre`,
+    urlPatterns: (n: number) => `${n} patr\u00f3${n > 1 ? "nes" : "n"} de URL`,
+    noPeople: "Sin filtro por autor ni por URL",
+    exclusions: (n: number) => `${n} grupo${n > 1 ? "s" : ""} de exclusi\u00f3n`,
+    proximity: (n: number) => `${n} regla${n > 1 ? "s" : ""} de proximidad`,
+    profiles: (n: number) => `${n} filtro${n > 1 ? "s" : ""} de perfil`,
+    noAdvanced: "Sin exclusiones, proximidad ni filtros de perfil",
+    maxRows: (n: string) => `m\u00e1x. ${n} filas`,
+    perDay: (n: string) => `${n}/d\u00eda`,
+    fieldsExcluded: (n: number) => `${n} campo${n === 1 ? "" : "s"} excluido${n === 1 ? "" : "s"}`,
+  },
+
+  fieldPresets: {
+    raw: {
+      label: "Solo las publicaciones",
+      description: "Texto, autor, enlace, hora e idioma. Sin puntuaciones de IA.",
+    },
+    sentiment: {
+      label: "Publicaciones + sentimiento",
+      description: "A\u00f1ade una puntuaci\u00f3n de sentimiento por publicaci\u00f3n, sin desglose de emociones.",
+    },
+    default: {
+      label: "Todo menos los embeddings",
+      description:
+        "El valor por defecto de la API: todas las columnas de an\u00e1lisis salvo el vector de 1024 n\u00fameros.",
+    },
+    full: {
+      label: "Todo",
+      description: "Incluye analysis_embedding: los archivos pasan a ser unas 10\u00d7 m\u00e1s grandes.",
+    },
+    custom: {
+      label: "Elegir los campos yo",
+      description: "Elige exactamente qu\u00e9 columnas dejar fuera.",
+    },
+  },
+
+  datePresets: {
+    last24h: "\u00daltimas 24 h",
+    last7d: "\u00daltimos 7 d\u00edas",
+    last30d: "\u00daltimos 30 d\u00edas",
+    last90d: "\u00daltimos 90 d\u00edas",
+    custom: "Intervalo personalizado\u2026",
+  },
+
   settings: {
     title: "Ajustes",
     description:

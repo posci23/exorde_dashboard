@@ -5,6 +5,7 @@ import {
   PLATFORMS,
 } from "./constants";
 import type { QueryBody } from "./types";
+import type { Dict } from "./i18n/en";
 
 export type QueryFormState = {
   keywordGroups: Array<{ termsText: string; operator: "OR" | "AND" }>;
@@ -257,31 +258,31 @@ function summarize(parts: Array<[number, string]>, empty: string): SectionSummar
   return { count, summary: active.length ? active.map(([, text]) => text).join(" · ") : empty };
 }
 
-export function summarizeKeywords(form: QueryFormState): SectionSummary {
+export function summarizeKeywords(form: QueryFormState, t: Dict): SectionSummary {
   const groups = form.keywordGroups.filter((g) => splitList(g.termsText).length > 0);
   const terms = groups.reduce((sum, g) => sum + splitList(g.termsText).length, 0);
-  if (!groups.length) return { count: 0, summary: "No keywords — needs a selective filter" };
-  const joiner = groups.length > 1 ? ` ${form.groupOperator} between groups` : "";
+  if (!groups.length) return { count: 0, summary: t.summary.noKeywords };
+  const joiner = groups.length > 1 ? t.summary.joiner(form.groupOperator) : "";
   return {
     count: groups.length,
-    summary: `${groups.length} group${groups.length > 1 ? "s" : ""} · ${terms} term${terms > 1 ? "s" : ""}${joiner}${form.fullStringScan ? " · safe mode" : ""}`,
+    summary: t.summary.groups(groups.length, terms, joiner, form.fullStringScan ? t.summary.safeMode : ""),
   };
 }
 
-export function summarizeTimeRange(form: QueryFormState): SectionSummary {
+export function summarizeTimeRange(form: QueryFormState, t: Dict): SectionSummary {
   const span = getSpanDays(form.startDate, form.endDate);
   const presetId = matchDatePreset(form);
   const preset = DATE_RANGE_PRESETS.find((p) => p.id === presetId);
   const base = preset
     ? preset.label
     : span != null
-      ? `${form.startDate} → ${form.endDate} (${span.toFixed(1)}d)`
-      : "No date range set";
-  const collected = form.collectedAtStartDate || form.collectedAtEndDate ? " · collected-at set" : "";
+      ? t.summary.range(form.startDate, form.endDate, span.toFixed(1))
+      : t.summary.noDates;
+  const collected = form.collectedAtStartDate || form.collectedAtEndDate ? t.summary.collectedSet : "";
   return { count: form.startDate || form.endDate ? 1 : 0, summary: `${base}${collected}` };
 }
 
-export function summarizeSources(form: QueryFormState): SectionSummary {
+export function summarizeSources(form: QueryFormState, t: Dict): SectionSummary {
   const domains = parseDomainList(form.domainsText);
   const languages = splitList(form.languagesText);
   const locations = splitList(form.locationsText);
@@ -290,53 +291,54 @@ export function summarizeSources(form: QueryFormState): SectionSummary {
     .join(", ");
   return summarize(
     [
-      [domains.length, `Platforms: ${domainLabel}`],
-      [languages.length, `Languages: ${languages.join(", ")}`],
-      [locations.length, `${locations.length} location${locations.length > 1 ? "s" : ""}`],
+      [domains.length, t.summary.platformsList(domainLabel)],
+      [languages.length, t.summary.languagesList(languages.join(", "))],
+      [locations.length, t.summary.locations(locations.length)],
     ],
-    "All platforms, all languages, anywhere",
+    t.summary.noSources,
   );
 }
 
-export function summarizePeople(form: QueryFormState): SectionSummary {
+export function summarizePeople(form: QueryFormState, t: Dict): SectionSummary {
   const usernames = splitList(form.usernamesText);
   const ids = splitList(form.externalIdsText);
   const parentIds = splitList(form.externalParentIdsText);
   const urls = splitList(form.urlPatternsText);
   return summarize(
     [
-      [usernames.length, `${usernames.length} username${usernames.length > 1 ? "s" : ""}`],
-      [ids.length, `${ids.length} post ID${ids.length > 1 ? "s" : ""}`],
-      [parentIds.length, `${parentIds.length} parent ID${parentIds.length > 1 ? "s" : ""}`],
-      [urls.length, `${urls.length} URL pattern${urls.length > 1 ? "s" : ""}`],
+      [usernames.length, t.summary.usernames(usernames.length)],
+      [ids.length, t.summary.postIds(ids.length)],
+      [parentIds.length, t.summary.parentIds(parentIds.length)],
+      [urls.length, t.summary.urlPatterns(urls.length)],
     ],
-    "Not filtered by author or URL",
+    t.summary.noPeople,
   );
 }
 
-export function summarizeAdvanced(form: QueryFormState): SectionSummary {
+export function summarizeAdvanced(form: QueryFormState, t: Dict): SectionSummary {
   const excludes = form.excludeKeywordGroups.filter((g) => splitList(g.termsText).length > 0);
   const proximity = form.proximityGroups.filter((g) => g.term_a.trim() && g.term_b.trim());
   const profiles = form.profileFilters.filter((f) => splitList(f.valuesText).length > 0);
   return summarize(
     [
-      [excludes.length, `${excludes.length} exclusion group${excludes.length > 1 ? "s" : ""}`],
-      [proximity.length, `${proximity.length} proximity rule${proximity.length > 1 ? "s" : ""}`],
-      [profiles.length, `${profiles.length} profile filter${profiles.length > 1 ? "s" : ""}`],
+      [excludes.length, t.summary.exclusions(excludes.length)],
+      [proximity.length, t.summary.proximity(proximity.length)],
+      [profiles.length, t.summary.profiles(profiles.length)],
     ],
-    "No exclusions, proximity, or profile filters",
+    t.summary.noAdvanced,
   );
 }
 
-export function summarizeOutput(form: QueryFormState): SectionSummary {
+export function summarizeOutput(form: QueryFormState, t: Dict): SectionSummary {
   const excluded = splitList(form.excludeFieldsText).length;
   const fieldMode =
     form.fieldPreset === "custom"
-      ? `${excluded} field${excluded === 1 ? "" : "s"} excluded`
-      : (FIELD_PRESETS.find((p) => p.id === form.fieldPreset)?.label ?? "default fields");
+      ? t.summary.fieldsExcluded(excluded)
+      : (t.fieldPresets[form.fieldPreset as keyof typeof t.fieldPresets]?.label ??
+        t.fieldPresets.default.label);
   const caps = [
-    form.resultLimit.trim() && `max ${Number(form.resultLimit).toLocaleString()} rows`,
-    form.perDayLimit.trim() && `${Number(form.perDayLimit).toLocaleString()}/day`,
+    form.resultLimit.trim() && t.summary.maxRows(Number(form.resultLimit).toLocaleString()),
+    form.perDayLimit.trim() && t.summary.perDay(Number(form.perDayLimit).toLocaleString()),
   ].filter(Boolean);
   return {
     count: caps.length,

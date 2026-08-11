@@ -19,6 +19,7 @@ import {
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { EXPORT_PHASES, LIMITS } from "@/lib/constants";
 import { formatDuration, formatTimestamp } from "@/lib/format";
+import { useT } from "@/lib/i18n/locale";
 import type { ExportJobResponse, UserExportsResponse } from "@/lib/types";
 
 const TERMINAL = ["completed", "failed", "rejected"];
@@ -46,6 +47,7 @@ export default function JobsPage() {
 }
 
 function JobsView() {
+  const t = useT();
   const searchParams = useSearchParams();
   const { trackedJobs, upsertJob, clearJobs, ready } = useQueryStore();
 
@@ -140,8 +142,8 @@ function JobsView() {
     setActiveJobId(jobId);
     setNotice(
       res.data.download_url
-        ? `Synced ${jobId} — download link refreshed (valid until ${res.data.download_expires_at ?? "expiry"}).`
-        : `Synced ${jobId} — status is ${res.data.status}.`,
+        ? t.jobs.syncedRefreshed(jobId, res.data.download_expires_at ?? t.jobs.expiryFallback)
+        : t.jobs.syncedStatus(jobId, res.data.status),
     );
   }
 
@@ -152,12 +154,12 @@ function JobsView() {
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Jobs"
-        description={`Monitor a running export, then download it. Links expire ${LIMITS.downloadsExpiryHours}h after completion — Sync mints a fresh one.`}
+        title={t.jobs.title}
+        description={t.jobs.description(LIMITS.downloadsExpiryHours)}
         actions={
           <Link href="/query">
             <Button type="button" variant="secondary">
-              New query
+              {t.jobs.newQuery}
             </Button>
           </Link>
         }
@@ -167,17 +169,17 @@ function JobsView() {
       {error && <Alert tone="danger">{error}</Alert>}
 
       <Panel
-        title="Monitor"
+        title={t.jobs.monitor}
         description={
           activeJobId && job && !isTerminal(job.status)
-            ? "Polling every 10s, easing to 30s until the job finishes"
-            : "Paste a job ID, or pick one from the tables below"
+            ? t.jobs.polling
+            : t.jobs.pasteId
         }
       >
         <div className="mb-4 flex flex-wrap gap-2">
           <TextInput
             className="min-w-[280px] flex-1 font-mono text-xs"
-            placeholder="Job ID"
+            placeholder={t.jobs.jobIdPlaceholder}
             value={manualId}
             onChange={(e) => setManualId(e.target.value)}
           />
@@ -187,12 +189,12 @@ function JobsView() {
             disabled={!manualId.trim()}
             onClick={() => setActiveJobId(manualId.trim())}
           >
-            Track job
+            {t.jobs.trackJob}
           </Button>
           {activeJobId && (
             <>
               <Button type="button" variant="ghost" onClick={() => void pollOnce(activeJobId)}>
-                Refresh now
+                {t.jobs.refreshNow}
               </Button>
               <Button
                 type="button"
@@ -202,7 +204,7 @@ function JobsView() {
                   setJob(null);
                 }}
               >
-                Stop watching
+                {t.jobs.stopWatching}
               </Button>
             </>
           )}
@@ -211,16 +213,16 @@ function JobsView() {
         {job ? (
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Stat label="Job ID" value={<span className="break-all text-sm">{job.job_id}</span>} />
-              <Stat label="Status" value={<StatusBadge status={job.status} />} />
-              <Stat label="Rows" value={job.rows_returned?.toLocaleString() ?? "—"} />
-              <Stat label="Size" value={job.file_size_mb != null ? `${job.file_size_mb} MB` : "—"} />
+              <Stat label={t.jobs.jobId} value={<span className="break-all text-sm">{job.job_id}</span>} />
+              <Stat label={t.jobs.status} value={<StatusBadge status={job.status} />} />
+              <Stat label={t.jobs.rows} value={job.rows_returned?.toLocaleString() ?? "—"} />
+              <Stat label={t.jobs.size} value={job.file_size_mb != null ? `${job.file_size_mb} MB` : "—"} />
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
               <Stat label="Created" value={<span className="text-sm">{formatTimestamp(job.created_at)}</span>} />
               <Stat label="Completed" value={<span className="text-sm">{formatTimestamp(job.completed_at)}</span>} />
               <Stat
-                label="Execution"
+                label={t.jobs.execution}
                 value={formatDuration(job.execution_time_seconds)}
               />
             </div>
@@ -229,10 +231,13 @@ function JobsView() {
 
             {job.download_url ? (
               <div className="rounded-md border border-success/30 bg-success/10 p-3">
-                <div className="text-sm font-medium text-success">Download ready</div>
+                <div className="text-sm font-medium text-success">{t.jobs.downloadReady}</div>
                 <div className="mt-1 text-xs text-text-muted">
-                  Expires {job.download_expires_at ? formatTimestamp(job.download_expires_at) : `${LIMITS.downloadsExpiryHours}h after completion`} · no
-                  auth needed, treat the link as sensitive
+                  {t.jobs.expires(
+                    job.download_expires_at
+                      ? formatTimestamp(job.download_expires_at)
+                      : t.jobs.expiresDefault(LIMITS.downloadsExpiryHours),
+                  )}
                 </div>
                 <a
                   href={job.download_url}
@@ -240,19 +245,19 @@ function JobsView() {
                   rel="noopener noreferrer"
                   className="mt-3 inline-flex h-9 items-center rounded-md bg-accent-solid px-3.5 text-sm font-medium text-accent-fg transition-colors hover:bg-accent-hover"
                 >
-                  Download file
+                  {t.jobs.downloadFile}
                 </a>
               </div>
             ) : (
               isTerminal(job.status) && (
                 <Button type="button" variant="secondary" onClick={() => void syncJob(job.job_id)}>
-                  Sync for a fresh download link
+                  {t.jobs.syncForLink}
                 </Button>
               )
             )}
 
             <div>
-              <div className="mb-2 text-xs uppercase tracking-wide text-text-muted">Processing phases</div>
+              <div className="mb-2 text-xs uppercase tracking-wide text-text-muted">{t.jobs.processingPhases}</div>
               <div className="flex flex-wrap gap-2">
                 {EXPORT_PHASES.map((phase, i) => {
                   const done = i < phasesDone(job.status);
@@ -272,24 +277,24 @@ function JobsView() {
           </div>
         ) : (
           <EmptyState>
-            Nothing being watched.{" "}
+            {t.jobs.nothingWatched}{" "}
             <Link href="/query" className="text-accent underline">
-              Build a query
-            </Link>{" "}
-            and start an export, or track a job ID above.
+              {t.jobs.buildAQuery}
+            </Link>
+            {t.jobs.andStartExport}
           </EmptyState>
         )}
       </Panel>
 
       <Panel
-        title="Your exports"
+        title={t.jobs.yourExports}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <SegmentedControl
               value={tab}
               options={[
-                { value: "session" as const, label: `This browser (${trackedJobs.length})` },
-                { value: "history" as const, label: "Server history" },
+                { value: "session" as const, label: t.jobs.thisBrowser(trackedJobs.length) },
+                { value: "history" as const, label: t.jobs.serverHistory },
               ]}
               onChange={setTab}
             />
@@ -308,13 +313,13 @@ function JobsView() {
                   onClick={() => void loadHistory()}
                   disabled={historyLoading}
                 >
-                  {historyLoading ? "Loading…" : "Refresh"}
+                  {historyLoading ? t.common.loading : t.common.refresh}
                 </Button>
               </>
             ) : (
               trackedJobs.length > 0 && (
                 <Button type="button" variant="ghost" onClick={clearJobs}>
-                  Clear list
+                  {t.jobs.clearList}
                 </Button>
               )
             )}
@@ -322,26 +327,26 @@ function JobsView() {
         }
         description={
           tab === "session"
-            ? "Jobs started or tracked from this browser, kept in localStorage"
+            ? t.jobs.sessionNote
             : history
-              ? `User ${history.user_id} · ${history.total} job(s) returned`
-              : "Fetched from GET /api/v1/user/exports"
+              ? t.jobs.historyNote(String(history.user_id), history.total)
+              : t.jobs.fetchedFrom
         }
       >
         {rows.length === 0 ? (
           <EmptyState>
             {tab === "session"
-              ? "No jobs tracked in this browser yet."
+              ? t.jobs.noneTracked
               : historyLoading
-                ? "Loading…"
-                : "No exports found. An API key is required to read history."}
+                ? t.common.loading
+                : t.jobs.noExports}
           </EmptyState>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left text-xs">
               <thead>
                 <tr className="border-b border-border">
-                  {["Job ID", "Status", "Created", "Completed", "Rows", "MB", "Secs", ""].map((h) => (
+                  {[t.jobs.jobId, t.jobs.status, t.jobs.colCreated, t.jobs.colCompleted, t.jobs.colRows, t.jobs.colMb, t.jobs.colSecs, ""].map((h) => (
                     <th scope="col" key={h || "actions"} className="label-caps px-2 pb-2 font-medium">
                       {h}
                     </th>
@@ -378,10 +383,10 @@ function JobsView() {
                             setManualId(row.job_id);
                           }}
                         >
-                          Monitor
+                          {t.jobs.monitorRow}
                         </Button>
                         <Button type="button" variant="ghost" size="sm" onClick={() => void syncJob(row.job_id)}>
-                          Sync
+                          {t.jobs.sync}
                         </Button>
                       </div>
                     </td>
