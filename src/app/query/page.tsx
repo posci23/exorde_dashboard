@@ -99,16 +99,21 @@ export default function QueryPage() {
                 const preset = QUERY_PRESETS.find((p) => p.id === e.target.value);
                 if (preset) {
                   setForm(preset.apply(form));
-                  setNotice(t.query.loadedPreset(preset.label, preset.description));
+                  setNotice(
+                    t.query.loadedPreset(
+                      t.catalog.presetLabel[preset.id] ?? preset.label,
+                      t.catalog.presetDesc[preset.id] ?? preset.description,
+                    ),
+                  );
                 }
               }}
             >
               <option value="">{t.query.examples}</option>
               {presetsByCategory.map((category) => (
-                <optgroup key={category} label={category}>
+                <optgroup key={category} label={t.catalog.presetCategory[category] ?? category}>
                   {QUERY_PRESETS.filter((p) => p.category === category).map((preset) => (
                     <option key={preset.id} value={preset.id}>
-                      {preset.label}
+                      {t.catalog.presetLabel[preset.id] ?? preset.label}
                     </option>
                   ))}
                 </optgroup>

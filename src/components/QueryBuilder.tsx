@@ -53,28 +53,14 @@ type Props = {
 
 
 
-const PLATFORM_OPTIONS: ChipOption[] = PLATFORMS.map((p) => ({
-  value: p.domain,
-  label: p.label,
-  note: p.note ?? undefined,
-  group: p.group,
-}));
 
-const LANGUAGE_OPTIONS: ChipOption[] = ALL_LANGUAGES.map((l) => ({
-  value: l.code,
-  label: l.label,
-  group: l.tier,
-}));
+
+
 
 /** Columns you can actually choose — the API always strips the other three. */
 const SELECTABLE_FIELDS = FIELD_REFERENCE.filter((f) => f.category !== "Always Excluded");
 
-const FIELD_OPTIONS: ChipOption[] = SELECTABLE_FIELDS.map((f) => ({
-  value: f.name,
-  label: f.name,
-  note: f.description,
-  group: f.category,
-}));
+
 
 /**
  * Columns a preset leaves in the file. Derived from the same resolver that
@@ -115,6 +101,26 @@ export function QueryBuilder({ form, onChange }: Props) {
   const perDaySet = Boolean(form.perDayLimit.trim());
 
   const keptFieldNames = keptFields(form, form.fieldPreset);
+
+  // Catalog text lives in constants.ts; the dictionary only carries overrides,
+  // so English never gets duplicated and a missing translation degrades to it.
+  const PLATFORM_OPTIONS: ChipOption[] = PLATFORMS.map((p) => ({
+    value: p.domain,
+    label: p.label,
+    note: t.catalog.platformNote[p.domain] ?? p.note ?? undefined,
+    group: t.catalog.platformGroup[p.group] ?? p.group,
+  }));
+  const LANGUAGE_OPTIONS: ChipOption[] = ALL_LANGUAGES.map((l) => ({
+    value: l.code,
+    label: l.label,
+    group: t.catalog.languageTier[l.tier] ?? l.tier,
+  }));
+  const FIELD_OPTIONS: ChipOption[] = SELECTABLE_FIELDS.map((f) => ({
+    value: f.name,
+    label: f.name,
+    note: t.catalog.fieldDesc[f.name] ?? f.description,
+    group: t.catalog.fieldCategory[f.category] ?? f.category,
+  }));
 
   return (
     <div className="space-y-3">
@@ -446,7 +452,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                   <button
                     key={example.value}
                     type="button"
-                    title={example.note ?? example.label}
+                    title={t.catalog.urlExample[example.value] ?? example.note ?? example.label}
                     onClick={() =>
                       set({
                         urlPatternsText: [...new Set([...splitList(form.urlPatternsText), example.value])].join(
@@ -668,7 +674,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                     >
                       {PROFILE_FILTER_FIELDS.map((f) => (
                         <option key={f.name} value={f.name}>
-                          {f.label} ({f.match})
+                          {t.catalog.profileLabel[f.name] ?? f.label} ({f.match})
                         </option>
                       ))}
                     </Select>
@@ -755,7 +761,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               </FieldLabel>
               <NumberChoice
                 value={form.resultLimit}
-                presets={RESULT_LIMIT_PRESETS}
+                presets={RESULT_LIMIT_PRESETS.map((p) => ({ ...p, label: t.catalog.limitLabel[p.label] ?? p.label }))}
                 min={LIMITS.resultLimitMin}
                 max={LIMITS.resultLimitMax}
                 placeholder={t.builder.rows}
@@ -771,7 +777,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               </FieldLabel>
               <NumberChoice
                 value={form.perDayLimit}
-                presets={PER_DAY_LIMIT_PRESETS}
+                presets={PER_DAY_LIMIT_PRESETS.map((p) => ({ ...p, label: t.catalog.limitLabel[p.label] ?? p.label }))}
                 min={LIMITS.perDayLimitMin}
                 max={LIMITS.perDayLimitMax}
                 placeholder={t.builder.rowsPerDay}

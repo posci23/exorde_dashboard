@@ -268,7 +268,7 @@ function JobsView() {
                         done ? "border-accent/40 bg-accent-soft text-accent" : "border-border text-text-muted"
                       }`}
                     >
-                      {i + 1}. {phase}
+                      {i + 1}. {t.catalog.phase[phase] ?? phase}
                     </span>
                   );
                 })}

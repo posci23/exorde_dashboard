@@ -22,13 +22,14 @@ import {
 } from "@/lib/reference";
 import { QUERY_PRESETS } from "@/lib/query-form";
 import { Badge, EmptyState, PageHeader, Panel, TextInput } from "@/components/ui";
+import { useT } from "@/lib/i18n/locale";
 
 const TABS = [
-  { id: "workflow", label: "How it works" },
-  { id: "filters", label: "Filters" },
-  { id: "syntax", label: "Search syntax" },
-  { id: "fields", label: "Output fields" },
-  { id: "limits", label: "Limits & errors" },
+  { id: "workflow", key: "tabWorkflow" },
+  { id: "filters", key: "tabFilters" },
+  { id: "syntax", key: "tabSyntax" },
+  { id: "fields", key: "tabFields" },
+  { id: "limits", key: "tabLimits" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -58,6 +59,7 @@ export default function ReferencePage() {
 }
 
 function ReferenceView() {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<TabId>("workflow");
@@ -97,8 +99,8 @@ function ReferenceView() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Reference"
-        description="Every filter, option, output field, and limit the Data Export API exposes — and how the pieces fit together."
+        title={t.reference.title}
+        description={t.reference.description}
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -107,22 +109,22 @@ function ReferenceView() {
           aria-label="Reference sections"
           className="flex flex-wrap gap-1 rounded-md border border-border bg-bg p-1"
         >
-          {TABS.map((t) => (
+          {TABS.map((item) => (
             <button
-              key={t.id}
+              key={item.id}
               type="button"
               role="tab"
-              id={`tab-${t.id}`}
-              aria-selected={tab === t.id}
+              id={`tab-${item.id}`}
+              aria-selected={tab === item.id}
               aria-controls="reference-panel"
-              onClick={() => selectTab(t.id)}
+              onClick={() => selectTab(item.id)}
               className={`rounded-[4px] px-3 py-1.5 text-xs font-medium transition-colors ${
-                tab === t.id
+                tab === item.id
                   ? "bg-accent-solid text-accent-fg"
                   : "text-text-muted hover:bg-surface-hover hover:text-text"
               }`}
             >
-              {t.label}
+              {t.reference[item.key]}
             </button>
           ))}
         </div>
@@ -130,7 +132,7 @@ function ReferenceView() {
           <TextInput
             type="search"
             aria-label="Search the reference"
-            placeholder="Search the reference…"
+            placeholder={t.reference.search}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -146,8 +148,8 @@ function ReferenceView() {
         {tab === "workflow" && (
           <div className="space-y-4">
             <Panel
-              title="The two-phase model"
-              description="Preview is free and instant; export is metered and async"
+              title={t.reference.twoPhase}
+              description={t.reference.twoPhaseDesc}
             >
               <ol className="space-y-3">
                 {WORKFLOW_STEPS.map((step, i) => (
@@ -169,20 +171,20 @@ function ReferenceView() {
 
             <div className="grid gap-4 lg:grid-cols-2">
               <Panel
-                title="Export processing phases"
-                description="What the job monitor is stepping through"
+                title={t.reference.phasesTitle}
+                description={t.reference.phasesDesc}
               >
                 <ol className="space-y-2">
                   {EXPORT_PHASES.map((phase, i) => (
-                    <li key={phase} className="flex items-center gap-3 text-sm text-text-muted">
+                    <li key={t.catalog.phase[phase] ?? phase} className="flex items-center gap-3 text-sm text-text-muted">
                       <span className="tnum label-caps w-4 shrink-0">{i + 1}</span>
-                      <span className="text-text">{phase}</span>
+                      <span className="text-text">{t.catalog.phase[phase] ?? phase}</span>
                     </li>
                   ))}
                 </ol>
               </Panel>
 
-              <Panel title="Output formats">
+              <Panel title={t.reference.formats}>
                 <div className="space-y-4">
                   {OUTPUT_FORMATS.map((f) => (
                     <div key={f.value}>
@@ -199,8 +201,8 @@ function ReferenceView() {
             </div>
 
             <Panel
-              title="Example queries"
-              description="Loadable from the dropdown at the top of the Query page"
+              title={t.reference.examplesTitle}
+              description={t.reference.examplesDesc}
             >
               <div className="space-y-2">
                 {QUERY_PRESETS.map((preset) => (
@@ -222,10 +224,10 @@ function ReferenceView() {
           <div className="space-y-4">
             <Panel
               title={`Every request field (${filters.length})`}
-              description="Each one maps to a control on the Query page, grouped by the same section names"
+              description={t.reference.filtersDesc}
             >
               {filters.length === 0 ? (
-                <EmptyState>Nothing matches “{query}”.</EmptyState>
+                <EmptyState>{t.reference.noMatch(query)}</EmptyState>
               ) : (
                 <div className="space-y-3">
                   {filters.map((f) => (
@@ -240,7 +242,7 @@ function ReferenceView() {
                         <span className="text-xs text-text-subtle">{f.limit}</span>
                       </div>
                       <p className="mt-1.5 text-sm leading-relaxed text-text-muted">
-                        {f.description}
+                        {t.catalog.filterDesc[f.apiField] ?? f.description}
                       </p>
                       <p className="mt-1 font-mono text-xs text-text-subtle">{f.type}</p>
                       {f.example && (
@@ -255,8 +257,8 @@ function ReferenceView() {
             </Panel>
 
             <Panel
-              title="Keywords are optional — sometimes"
-              description="The one validation rule worth memorizing"
+              title={t.reference.keywordsOptional}
+              description={t.reference.keywordsOptionalDesc}
             >
               <p className="text-sm leading-relaxed text-text-muted">
                 You must supply <strong className="text-text">either</strong> keyword groups{" "}
@@ -272,7 +274,7 @@ function ReferenceView() {
             <div className="grid gap-4 lg:grid-cols-2">
               <Panel
                 title={`Platforms in the picker (${PLATFORMS.length})`}
-                description="Exorde indexes 200+ sources — add any other domain directly"
+                description={t.reference.platformsDesc}
               >
                 <div className="space-y-1.5">
                   {[...new Set(PLATFORMS.map((p) => p.group))].map((group) => (
@@ -295,8 +297,8 @@ function ReferenceView() {
               </Panel>
 
               <Panel
-                title="URL pattern examples"
-                description="Substring matched against the post URL"
+                title={t.reference.urlExamplesTitle}
+                description={t.reference.urlExamplesDesc}
               >
                 <div className="space-y-2">
                   {URL_PATTERN_EXAMPLES.map((p) => (
@@ -333,9 +335,9 @@ function ReferenceView() {
 
         {tab === "syntax" && (
           <div className="space-y-4">
-            <Panel title="Writing keyword terms">
+            <Panel title={t.reference.writingTerms}>
               {syntax.length === 0 ? (
-                <EmptyState>Nothing matches “{query}”.</EmptyState>
+                <EmptyState>{t.reference.noMatch(query)}</EmptyState>
               ) : (
                 <div className="space-y-3">
                   {syntax.map((s) => (
@@ -356,7 +358,7 @@ function ReferenceView() {
               )}
             </Panel>
 
-            <Panel title="Fast vs safe mode" description="The single biggest lever on query cost">
+            <Panel title={t.reference.fastVsSafe} description={t.reference.fastVsSafeDesc}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-md border border-border bg-bg p-4">
                   <div className="text-sm font-medium text-text">Fast (default)</div>
@@ -380,8 +382,8 @@ function ReferenceView() {
         {tab === "fields" && (
           <div className="space-y-4">
             <Panel
-              title={`Output fields (${fields.length} of ${FIELD_REFERENCE.length})`}
-              description="You don't pick these one by one — Query → “What goes in the file?” offers named presets that set exclude_fields for you. This table is what each preset is choosing between."
+              title={t.reference.fieldsTitle(fields.length, FIELD_REFERENCE.length)}
+              description={t.reference.fieldsDesc}
             >
               <div className="grid gap-2 sm:grid-cols-2">
                 {FIELD_PRESETS.filter((p) => p.id !== "custom").map((preset) => (
@@ -392,15 +394,15 @@ function ReferenceView() {
                     </p>
                     <p className="mt-1.5 font-mono text-xs text-text-subtle">
                       {preset.exclude === null
-                        ? "exclude_fields omitted"
-                        : `${preset.exclude.length} excluded`}
+                        ? t.reference.excludeFieldsOmitted
+                        : t.reference.nExcluded(preset.exclude.length)}
                     </p>
                   </div>
                 ))}
               </div>
               {fields.length === 0 && (
                 <div className="mt-4">
-                  <EmptyState>Nothing matches “{query}”.</EmptyState>
+                  <EmptyState>{t.reference.noMatch(query)}</EmptyState>
                 </div>
               )}
             </Panel>
@@ -408,7 +410,7 @@ function ReferenceView() {
               const rows = fields.filter((f) => f.category === category);
               if (!rows.length) return null;
               return (
-                <Panel key={category} title={`${category} (${rows.length})`}>
+                <Panel key={category} title={`${t.catalog.fieldCategory[category] ?? category} (${rows.length})`}>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
@@ -429,7 +431,7 @@ function ReferenceView() {
                           <tr key={f.name} className="border-b border-border/40 last:border-0">
                             <td className="py-2 pr-4 font-mono text-accent">{f.name}</td>
                             <td className="py-2 pr-4 font-mono text-text-subtle">{f.type}</td>
-                            <td className="py-2 text-text-muted">{f.description}</td>
+                            <td className="py-2 text-text-muted">{t.catalog.fieldDesc[f.name] ?? f.description}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -444,7 +446,7 @@ function ReferenceView() {
         {tab === "limits" && (
           <div className="space-y-4">
             <div className="grid gap-4 lg:grid-cols-2">
-              <Panel title="Request caps" description="Enforced client-side before you can submit">
+              <Panel title={t.reference.requestCaps} description={t.reference.requestCapsDesc}>
                 <dl className="space-y-1.5 text-sm">
                   {[
                     [
@@ -482,7 +484,7 @@ function ReferenceView() {
               </Panel>
 
               <div className="space-y-4">
-                <Panel title="Plans" description="History depth and rate limits by tier">
+                <Panel title={t.reference.plans} description={t.reference.plansDesc}>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
@@ -520,7 +522,7 @@ function ReferenceView() {
                   </p>
                 </Panel>
 
-                <Panel title="Concurrency & idempotency">
+                <Panel title={t.reference.concurrency}>
                   <ul className="space-y-1.5 text-sm text-text-muted">
                     <li>Global running cap: {LIMITS.concurrentGlobal}</li>
                     <li>Per-customer running: {LIMITS.concurrentPerCustomer}</li>
@@ -535,8 +537,8 @@ function ReferenceView() {
             </div>
 
             <Panel
-              title="HTTP responses"
-              description="What each status means and what to do about it"
+              title={t.reference.httpTitle}
+              description={t.reference.httpDesc}
             >
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
