@@ -46,8 +46,6 @@ export const PLATFORMS = [
   { domain: "youtube.com", label: "YouTube", group: "Social", note: "Comments and video metadata" },
   { domain: "tiktok.com", label: "TikTok", group: "Social", note: null },
   { domain: "instagram.com", label: "Instagram", group: "Social", note: null },
-  { domain: "facebook.com", label: "Facebook", group: "Social", note: null },
-  { domain: "linkedin.com", label: "LinkedIn", group: "Social", note: null },
   { domain: "threads.net", label: "Threads", group: "Social", note: null },
   { domain: "bluesky.social", label: "Bluesky", group: "Decentralized", note: null },
   { domain: "mastodon.social", label: "Mastodon", group: "Decentralized", note: "Other instances via custom domain" },
