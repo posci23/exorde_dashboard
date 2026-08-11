@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, PageHeader, Panel, TextInput } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
+import { useT } from "@/lib/i18n/locale";
 
 type SettingsInfo = {
   envConfigured: boolean;
@@ -12,6 +13,7 @@ type SettingsInfo = {
 };
 
 export default function SettingsPage() {
+  const t = useT();
   const [info, setInfo] = useState<SettingsInfo | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export default function SettingsPage() {
       return;
     }
     setApiKey("");
-    setMessage("API key saved in an httpOnly cookie for this browser (30 days). Prefer .env.local for permanence.");
+    setMessage(t.settings.saved);
     const refreshed = await apiFetch<SettingsInfo>("/api/exorde/settings");
     if (refreshed.ok && refreshed.data) setInfo(refreshed.data);
   }
@@ -46,43 +48,43 @@ export default function SettingsPage() {
       method: "POST",
       body: JSON.stringify({ clear: true }),
     });
-    setMessage("Browser cookie key cleared. Env key (if any) still applies.");
+    setMessage(t.settings.cleared);
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Settings"
-        description="Your Exorde API key. It is never exposed to the browser — the Next.js API routes attach it server-side."
+        title={t.settings.title}
+        description={t.settings.description}
       />
 
       {message && <Alert tone="success">{message}</Alert>}
       {error && <Alert tone="danger">{error}</Alert>}
 
-      <Panel title="Connection">
+      <Panel title={t.settings.connection}>
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
           <div>
-            <dt className="label-caps">Base URL</dt>
+            <dt className="label-caps">{t.settings.baseUrl}</dt>
             <dd className="mt-1 font-mono text-xs text-text">{info?.baseUrl ?? "…"}</dd>
           </div>
           <div>
-            <dt className="label-caps">EXORDE_API_KEY in env</dt>
-            <dd className="mt-1 font-mono text-xs text-text">{info?.envConfigured ? "configured" : "missing"}</dd>
+            <dt className="label-caps">{t.settings.envKey}</dt>
+            <dd className="mt-1 font-mono text-xs text-text">{info?.envConfigured ? t.settings.configured : t.settings.missing}</dd>
           </div>
           <div>
-            <dt className="label-caps">Cookie key</dt>
-            <dd className="mt-1 font-mono text-xs text-text">{info?.cookieConfigured ? "set" : "not set"}</dd>
+            <dt className="label-caps">{t.settings.cookieKey}</dt>
+            <dd className="mt-1 font-mono text-xs text-text">{info?.cookieConfigured ? t.settings.set : t.settings.notSet}</dd>
           </div>
           <div>
-            <dt className="label-caps">Ready to call API</dt>
-            <dd className="mt-1 font-mono text-xs text-text">{info?.keyAvailable ? "yes" : "no"}</dd>
+            <dt className="label-caps">{t.settings.readyToCall}</dt>
+            <dd className="mt-1 font-mono text-xs text-text">{info?.keyAvailable ? t.common.yes : t.common.no}</dd>
           </div>
         </dl>
       </Panel>
 
       <Panel
-        title="Recommended: .env.local"
-        description="Create this file in the project root, then restart npm run dev"
+        title={t.settings.recommendedTitle}
+        description={t.settings.recommendedDescription}
       >
         <pre className="overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
 {`EXORDE_API_KEY=exo_your_key_here
@@ -90,7 +92,7 @@ EXORDE_API_BASE_URL=https://export-api.exorde.io`}
         </pre>
       </Panel>
 
-      <Panel title="Or paste key for this browser session" description="Stored as httpOnly cookie · not shown again">
+      <Panel title={t.settings.pasteTitle} description={t.settings.pasteDescription}>
         <TextInput
           type="password"
           autoComplete="off"
@@ -100,19 +102,19 @@ EXORDE_API_BASE_URL=https://export-api.exorde.io`}
         />
         <div className="mt-3 flex gap-2">
           <Button type="button" onClick={() => void saveKey()} disabled={!apiKey.trim()}>
-            Save key
+            {t.settings.saveKey}
           </Button>
           <Button type="button" variant="secondary" onClick={() => void clearKey()}>
-            Clear cookie key
+            {t.settings.clearCookieKey}
           </Button>
         </div>
       </Panel>
 
-      <Panel title="Auth header (reference)">
+      <Panel title={t.settings.authHeader}>
         <pre className="font-mono text-xs text-text-muted">X-API-Key: YOUR_API_KEY_HERE</pre>
         <p className="mt-2 text-xs text-text-muted">
-          Keys look like <span className="font-mono text-text">exo_AbCd1234…</span> and cannot be retrieved after
-          creation from Exorde.
+          {t.settings.keysLookLike} <span className="font-mono text-text">exo_AbCd1234…</span>{" "}
+          {t.settings.keysCannotRetrieve}
         </p>
       </Panel>
     </div>

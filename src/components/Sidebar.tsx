@@ -2,27 +2,35 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const NAV = [
-  { href: "/", label: "Overview", hint: "Health, queue, your quota" },
-  { href: "/query", label: "Query", hint: "Build · preview · export" },
-  { href: "/jobs", label: "Jobs", hint: "Monitor · download · history" },
-  { href: "/reference", label: "Reference", hint: "Every option, field, and limit" },
-  { href: "/settings", label: "Settings", hint: "API key" },
-] as const;
+import { LanguageToggle } from "./LanguageToggle";
+import { useT } from "@/lib/i18n/locale";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const t = useT();
+
+  const nav = [
+    { href: "/", ...t.nav.overview },
+    { href: "/query", ...t.nav.query },
+    { href: "/jobs", ...t.nav.jobs },
+    { href: "/reference", ...t.nav.reference },
+    { href: "/settings", ...t.nav.settings },
+  ];
 
   return (
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-border bg-surface">
-      <div className="px-6 py-6">
-        <div className="label-caps text-accent">Exorde</div>
-        <h1 className="mt-1.5 text-base font-semibold tracking-tight text-text">Data Export</h1>
+      <div className="flex items-start justify-between gap-3 px-6 py-6">
+        <div className="min-w-0">
+          <div className="label-caps text-accent">{t.nav.brand}</div>
+          <h1 className="mt-1.5 text-base font-semibold tracking-tight text-text">
+            {t.nav.product}
+          </h1>
+        </div>
+        <LanguageToggle />
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 px-3">
-        {NAV.map((item) => {
+        {nav.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (
             <Link
@@ -45,7 +53,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-6 py-5 text-xs leading-relaxed text-text-subtle">
-        Proxied to <span className="font-mono text-text-muted">export-api.exorde.io</span>
+        {t.nav.proxiedTo} <span className="font-mono text-text-muted">export-api.exorde.io</span>
       </div>
     </aside>
   );

@@ -9,10 +9,12 @@ import { Alert, Button, PageHeader, Panel, Select, Stat, Toolbar } from "@/compo
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { describeIssues, submitExport, validateQuery } from "@/lib/export-actions";
 import { QUERY_PRESETS, buildQueryBody } from "@/lib/query-form";
+import { useT } from "@/lib/i18n/locale";
 import type { PreviewResponse, SamplePost } from "@/lib/types";
 
 export default function QueryPage() {
   const router = useRouter();
+  const t = useT();
   const { form, setForm, lastPreview, setLastPreview, upsertJob, ready } = useQueryStore();
   const [previewLoading, setPreviewLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
@@ -32,7 +34,7 @@ export default function QueryPage() {
   async function runPreview() {
     const parsed = validateQuery(buildQueryBody(form, "preview"));
     if (!parsed.success) {
-      setError(`Can't preview this query: ${describeIssues(parsed).join("; ")}`);
+      setError(t.query.cantPreview(describeIssues(parsed).join("; ")));
       setShowIssues(true);
       return;
     }
@@ -56,7 +58,7 @@ export default function QueryPage() {
   async function startExport() {
     const parsed = validateQuery(buildQueryBody(form, "export"));
     if (!parsed.success) {
-      setError(`Can't export this query: ${describeIssues(parsed).join("; ")}`);
+      setError(t.query.cantExport(describeIssues(parsed).join("; ")));
       setShowIssues(true);
       return;
     }
@@ -82,7 +84,7 @@ export default function QueryPage() {
     router.push(`/jobs?job=${encodeURIComponent(result.jobId)}`);
   }
 
-  if (!ready) return <p className="text-sm text-text-muted">Loading saved query…</p>;
+  if (!ready) return <p className="text-sm text-text-muted">{t.common.loading}</p>;
 
   const presetsByCategory = [...new Set(QUERY_PRESETS.map((p) => p.category))];
 
@@ -97,11 +99,11 @@ export default function QueryPage() {
                 const preset = QUERY_PRESETS.find((p) => p.id === e.target.value);
                 if (preset) {
                   setForm(preset.apply(form));
-                  setNotice(`Loaded preset “${preset.label}” — ${preset.description}`);
+                  setNotice(t.query.loadedPreset(preset.label, preset.description));
                 }
               }}
             >
-              <option value="">Example queries…</option>
+              <option value="">{t.query.examples}</option>
               {presetsByCategory.map((category) => (
                 <optgroup key={category} label={category}>
                   {QUERY_PRESETS.filter((p) => p.category === category).map((preset) => (
@@ -120,38 +122,38 @@ export default function QueryPage() {
             type="button"
             onClick={() => setShowIssues((v) => !v)}
             disabled={!issues.length}
-            title={issues.length ? "Show what needs fixing" : "This query is ready to run"}
+            title={issues.length ? t.query.showIssues : t.query.queryReady}
             className={`h-9 rounded-md px-3 text-xs font-medium transition-colors ${
               issues.length
                 ? "bg-warning/10 text-warning hover:bg-warning/15"
                 : "bg-success/10 text-success"
             }`}
           >
-            {issues.length ? `${issues.length} issue${issues.length > 1 ? "s" : ""}` : "✓ Valid"}
+            {issues.length ? t.query.issues(issues.length) : t.query.valid}
           </button>
           <Button
             type="button"
             onClick={() => void runPreview()}
             disabled={busy || previewIssues.length > 0}
-            title={previewIssues.length ? previewIssues.join("; ") : "Sample this query for free"}
+            title={previewIssues.length ? previewIssues.join("; ") : t.query.previewHint}
           >
-            {previewLoading ? "Previewing…" : "Preview (free)"}
+            {previewLoading ? t.query.previewing : t.query.preview}
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={() => void startExport()}
             disabled={busy || exportIssues.length > 0}
-            title={exportIssues.length ? exportIssues.join("; ") : "Run the full export"}
+            title={exportIssues.length ? exportIssues.join("; ") : t.query.exportHint}
           >
-            {exportLoading ? "Submitting…" : "Start export"}
+            {exportLoading ? t.query.submitting : t.query.startExport}
           </Button>
         </div>
       </Toolbar>
 
       <PageHeader
-        title="Query"
-        description="Answer as many of the questions below as you need — every one is optional except a keyword or an author. Preview is free and instant; export runs the same query in full and lands in Jobs. Hover any ? for an explanation."
+        title={t.query.title}
+        description={t.query.description}
       />
 
       {showIssues && issues.length > 0 && (
@@ -160,9 +162,9 @@ export default function QueryPage() {
             {issues.map((issue) => {
               // An issue can block one action and not the other, so say which.
               const scope = !exportIssues.includes(issue)
-                ? "Preview only"
+                ? t.query.previewOnly
                 : !previewIssues.includes(issue)
-                  ? "Export only"
+                  ? t.query.exportOnly
                   : null;
               return (
                 <li key={issue}>
@@ -180,30 +182,30 @@ export default function QueryPage() {
       {lastPreview && (
         <div className="space-y-4 rounded-xl border border-accent/20 bg-accent-soft p-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-text">Preview result</h2>
+            <h2 className="text-sm font-semibold text-text">{t.query.previewResult}</h2>
             <Button type="button" variant="ghost" size="sm" onClick={() => setLastPreview(null)}>
-              Dismiss
+              {t.common.dismiss}
             </Button>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <Stat
-              label="Matching posts"
+              label={t.query.matchingPosts}
               value={lastPreview.count.toLocaleString()}
-              hint="Full export row count"
+              hint={t.query.matchingPostsHint}
             />
-            <Stat label="Query time" value={`${lastPreview.query_time_seconds}s`} />
-            <Stat label="Est. export size" value={`${lastPreview.estimated_export_size_mb} MB`} />
+            <Stat label={t.query.queryTime} value={`${lastPreview.query_time_seconds}s`} />
+            <Stat label={t.query.estSize} value={`${lastPreview.estimated_export_size_mb} MB`} />
           </div>
           <SampleCharts samples={lastPreview.sample ?? []} />
           <Panel
-            title={`Sample rows (${lastPreview.sample?.length ?? 0})`}
-            description="Free sample — the export returns all matching rows"
+            title={t.query.sampleRows(lastPreview.sample?.length ?? 0)}
+            description={t.query.sampleRowsHint}
           >
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] border-collapse text-left text-xs">
                 <thead className="text-text-muted">
                   <tr className="border-b border-border">
-                    {["Posted", "Platform", "Lang", "Sentiment", "Content", ""].map((h) => (
+                    {[t.query.colPosted, t.query.colPlatform, t.query.colLang, t.query.colSentiment, t.query.colContent, ""].map((h) => (
                       <th scope="col" key={h || "actions"} className="px-2 py-2 font-medium">
                         {h}
                       </th>
@@ -237,7 +239,7 @@ export default function QueryPage() {
                               size="sm"
                               onClick={() => setExpanded(expanded === id ? null : id)}
                             >
-                              {expanded === id ? "Hide" : "JSON"}
+                              {expanded === id ? t.query.hide : "JSON"}
                             </Button>
                           </td>
                         </tr>
@@ -259,7 +261,7 @@ export default function QueryPage() {
           </Panel>
           <details>
             <summary className="cursor-pointer text-xs text-accent">
-              Filters the API applied
+              {t.query.filtersApplied}
             </summary>
             <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
               {JSON.stringify(lastPreview.filters_applied, null, 2)}

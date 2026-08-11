@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import { apiDateToInput, inputDateToApi } from "@/lib/query-form";
+import { useT } from "@/lib/i18n/locale";
 
 /* Radii are fixed by the design system: controls 6px, cards 12px, pills full. */
 const CONTROL = "rounded-md";  // 6px
@@ -111,13 +112,14 @@ export function Button({
  */
 export function HelpIcon({ about, children }: { about?: string; children: ReactNode }) {
   const id = useId();
+  const t = useT();
   return (
     <span className="group relative inline-flex">
       <button
         type="button"
         // Every icon would otherwise announce the same thing; name it after the
         // field so a screen reader user knows which one they landed on.
-        aria-label={about ? `More about: ${about}` : "More about this field"}
+        aria-label={about ? t.ui.helpAria(about) : t.ui.helpAriaGeneric}
         aria-describedby={id}
         className="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-surface-hover text-xs leading-none font-semibold text-text-subtle transition-colors hover:bg-accent-soft hover:text-accent"
       >
@@ -317,7 +319,8 @@ export function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const panelId = useId();
-  const linkText = `Read about ${helpLabel ?? title.toLowerCase()} in the Reference`;
+  const t = useT();
+  const linkText = t.ui.readAbout(helpLabel ?? title.toLowerCase());
 
   return (
     <section className={`${CARD} border border-border bg-surface transition-colors`}>
@@ -346,7 +349,7 @@ export function Section({
         <div className="flex shrink-0 items-center gap-1">
           {onClear && count > 0 && (
             <Button type="button" variant="ghost" size="sm" onClick={onClear}>
-              Clear
+              {t.common.clear}
             </Button>
           )}
           {helpHref && (
@@ -426,6 +429,7 @@ export function NumberChoice({
   placeholder?: string;
 }) {
   const isPreset = presets.some((p) => p.value === value);
+  const t = useT();
 
   return (
     <div className="space-y-2">
@@ -440,7 +444,7 @@ export function NumberChoice({
             {p.label}
           </option>
         ))}
-        <option value="__custom">Custom value…</option>
+        <option value="__custom">{t.ui.customValue}</option>
       </Select>
       {!isPreset && (
         <TextInput
@@ -449,7 +453,7 @@ export function NumberChoice({
           max={max}
           value={value}
           placeholder={placeholder}
-          aria-label={placeholder ? `Custom value in ${placeholder}` : "Custom value"}
+          aria-label={placeholder ? t.ui.customValueAria(placeholder) : t.ui.customValueAriaPlain}
           onChange={(e) => onChange(e.target.value)}
         />
       )}

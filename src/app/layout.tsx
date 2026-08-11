@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { QueryStoreProvider } from "@/components/QueryStore";
 import { Sidebar } from "@/components/Sidebar";
+import { LocaleProvider } from "@/lib/i18n/locale";
 import "./globals.css";
 
 const sans = Inter({
@@ -24,14 +25,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body className="antialiased">
-        <QueryStoreProvider>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="min-w-0 flex-1">
-              <div className="mx-auto max-w-6xl px-8 py-10">{children}</div>
-            </main>
-          </div>
-        </QueryStoreProvider>
+        <LocaleProvider>
+          <QueryStoreProvider>
+            <div className="flex min-h-screen">
+              <Sidebar />
+              <main className="min-w-0 flex-1">
+                <div className="mx-auto max-w-6xl px-8 py-10">{children}</div>
+              </main>
+            </div>
+          </QueryStoreProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

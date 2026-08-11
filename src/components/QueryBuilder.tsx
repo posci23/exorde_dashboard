@@ -44,16 +44,14 @@ import {
   TextArea,
   TextInput,
 } from "./ui";
+import { useT } from "@/lib/i18n/locale";
 
 type Props = {
   form: QueryFormState;
   onChange: (next: QueryFormState) => void;
 };
 
-const OPERATOR_OPTIONS = [
-  { value: "OR" as const, label: "OR", hint: "Match any term in this group" },
-  { value: "AND" as const, label: "AND", hint: "Match every term in this group" },
-];
+
 
 const PLATFORM_OPTIONS: ChipOption[] = PLATFORMS.map((p) => ({
   value: p.domain,
@@ -100,6 +98,11 @@ function listProps(
 }
 
 export function QueryBuilder({ form, onChange }: Props) {
+  const t = useT();
+  const OPERATOR_OPTIONS = [
+    { value: "OR" as const, label: "OR", hint: t.builder.matchAny },
+    { value: "AND" as const, label: "AND", hint: t.builder.matchAll },
+  ];
   const [payloadMode, setPayloadMode] = useState<"preview" | "export">("preview");
   const empty = useMemo(createEmptyQueryForm, []);
   const set = (patch: Partial<QueryFormState>) => onChange({ ...form, ...patch });
@@ -116,28 +119,28 @@ export function QueryBuilder({ form, onChange }: Props) {
   return (
     <div className="space-y-3">
       <Section
-        title="What words must appear?"
+        title={t.builder.keywordsTitle}
         helpHref="/reference?tab=filters&section=Keywords"
-        helpLabel="keywords"
+        helpLabel={t.builder.keywordsLabel}
         summary={summarizeKeywords(form).summary}
         count={summarizeKeywords(form).count}
         defaultOpen
-        help={`Up to ${LIMITS.maxKeywordGroups} groups of ${LIMITS.maxTermsPerGroup} terms. Wrap in "double quotes" for an exact phrase; end with * to match a prefix.`}
+        help={t.builder.keywordsHelp(LIMITS.maxKeywordGroups, LIMITS.maxTermsPerGroup)}
         onClear={() => set({ keywordGroups: [], fullStringScan: false })}
       >
         {form.keywordGroups.length > 1 && (
           <div className="mb-3 flex flex-wrap items-center gap-3">
             <FieldLabel
               hint="group_operator"
-              help="AND is stricter: a post has to satisfy every group. Use it to cross two topics, e.g. group 1 = crypto terms, group 2 = regulation terms."
+              help={t.builder.groupOperatorHelp}
             >
-              Must a post match every group?
+              {t.builder.groupOperatorLabel}
             </FieldLabel>
             <SegmentedControl
               value={form.groupOperator}
               options={[
-                { value: "AND" as const, label: "AND", hint: "Post must match every group" },
-                { value: "OR" as const, label: "OR", hint: "Post may match any group" },
+                { value: "AND" as const, label: "AND", hint: t.builder.andHint },
+                { value: "OR" as const, label: "OR", hint: t.builder.orHint },
               ]}
               onChange={(groupOperator) => set({ groupOperator })}
             />
@@ -148,7 +151,7 @@ export function QueryBuilder({ form, onChange }: Props) {
           {form.keywordGroups.map((group, index) => (
             <div key={index} className="rounded-md border border-border bg-surface-raised p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs text-text-muted">Group {index + 1} · match</span>
+                <span className="text-xs text-text-muted">{t.builder.groupN(index + 1)}</span>
                 <div className="flex items-center gap-2">
                   <SegmentedControl
                     value={group.operator}
@@ -164,7 +167,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                     variant="ghost"
                     onClick={() => set({ keywordGroups: form.keywordGroups.filter((_, i) => i !== index) })}
                   >
-                    Remove
+                    {t.common.remove}
                   </Button>
                 </div>
               </div>
@@ -179,14 +182,13 @@ export function QueryBuilder({ form, onChange }: Props) {
                 }}
               />
               <p className="mt-1 text-xs text-text-muted">
-                {splitList(group.termsText).length} / {LIMITS.maxTermsPerGroup} terms
+                {t.builder.termsCount(splitList(group.termsText).length, LIMITS.maxTermsPerGroup)}
               </p>
             </div>
           ))}
           {!form.keywordGroups.length && (
             <p className="text-xs text-text-muted">
-              No keyword groups. That&apos;s allowed only when you set a selective filter under
-              “People &amp; IDs”.
+              {t.builder.noGroups}
             </p>
           )}
         </div>
@@ -198,7 +200,7 @@ export function QueryBuilder({ form, onChange }: Props) {
             disabled={form.keywordGroups.length >= LIMITS.maxKeywordGroups}
             onClick={() => set({ keywordGroups: [...form.keywordGroups, { termsText: "", operator: "OR" }] })}
           >
-            Add keyword group
+            {t.builder.addGroup}
           </Button>
           <span className="text-xs text-text-muted">
             {form.keywordGroups.length} / {LIMITS.maxKeywordGroups}
@@ -208,34 +210,34 @@ export function QueryBuilder({ form, onChange }: Props) {
         <div className="mt-4 border-t border-border pt-3">
           <FieldLabel
             hint="full_string_scan"
-            help="Fast matches whole words only, so “BTC” won’t be found inside “#BTCUSD”. Safe scans the raw text character by character and catches those, at 5–10× the cost."
+            help={t.builder.matchModeHelp}
           >
-            How closely should terms be matched?
+            {t.builder.matchModeLabel}
           </FieldLabel>
           <SegmentedControl
             value={form.fullStringScan ? "safe" : "fast"}
             options={[
-              { value: "fast", label: "Fast", hint: "Token/Bloom index match — 10–20× faster" },
-              { value: "safe", label: "Safe", hint: "Substring scan for partial words and short codes" },
+              { value: "fast", label: t.builder.fast, hint: t.builder.fastHint },
+              { value: "safe", label: t.builder.safe, hint: t.builder.safeHint },
             ]}
             onChange={(v) => set({ fullStringScan: v === "safe" })}
           />
           <p className="mt-2 text-xs text-text-muted">
             {form.fullStringScan
-              ? "Safe mode finds partial words and short codes like BTC, but runs 5–10× slower."
-              : "Fast mode matches whole words. Switch to Safe if your terms are short codes or fragments."}
+              ? t.builder.safeNote
+              : t.builder.fastNote}
           </p>
         </div>
       </Section>
 
       <Section
-        title="When were the posts written?"
+        title={t.builder.timeTitle}
         helpHref="/reference?tab=filters&section=Time+range"
-        helpLabel="the time range"
+        helpLabel={t.builder.timeLabel}
         summary={summarizeTimeRange(form).summary}
         count={summarizeTimeRange(form).count}
         defaultOpen
-        help={`Dates are UTC. Max span is ${LIMITS.maxDateRangeDays} days, or ${LIMITS.maxPerDaySpanDays} days when a per-day cap is set.`}
+        help={t.builder.timeHelp(LIMITS.maxDateRangeDays, LIMITS.maxPerDaySpanDays)}
       >
         <div className="flex flex-wrap gap-2">
           {DATE_RANGE_PRESETS.map((preset) => (
@@ -254,18 +256,18 @@ export function QueryBuilder({ form, onChange }: Props) {
           <div>
             <FieldLabel
               hint="start_date · UTC"
-              help="Times are UTC, not your local clock. A post written at 23:00 in Madrid counts as 21:00 or 22:00 here depending on the season."
+              help={t.builder.notBeforeHelp}
             >
-              Not before
+              {t.builder.notBefore}
             </FieldLabel>
             <DateTimeField value={form.startDate} onChange={(startDate) => set({ startDate })} />
           </div>
           <div>
             <FieldLabel
               hint="end_date · UTC"
-              help="Leave this at “now” for a rolling window. Exorde indexes posts within minutes, so the last hour may still be filling in."
+              help={t.builder.notAfterHelp}
             >
-              Not after
+              {t.builder.notAfter}
             </FieldLabel>
             <DateTimeField value={form.endDate} onChange={(endDate) => set({ endDate })} />
           </div>
@@ -273,25 +275,24 @@ export function QueryBuilder({ form, onChange }: Props) {
 
         {spanDays != null && (
           <p className="mt-2 text-xs text-text-muted">
-            Span: <span className="font-mono text-text">{spanDays.toFixed(1)} days</span>
+            {t.builder.span} <span className="font-mono text-text">{t.builder.spanDays(spanDays.toFixed(1))}</span>
           </p>
         )}
         {spanOverLimit && !perDaySet && (
           <Alert tone="warning">
-            {spanDays!.toFixed(1)}-day span exceeds the {LIMITS.maxDateRangeDays}-day limit. Set a per-day
-            row cap under “Output” to allow up to {LIMITS.maxPerDaySpanDays} days.
+            {t.builder.spanOverLimit(spanDays!.toFixed(1), LIMITS.maxDateRangeDays, LIMITS.maxPerDaySpanDays)}
           </Alert>
         )}
         {spanDays != null && spanDays < 0 && (
-          <Alert tone="danger">End date is before start date.</Alert>
+          <Alert tone="danger">{t.builder.endBeforeStart}</Alert>
         )}
 
         <div className="mt-4 border-t border-border pt-3">
           <FieldLabel
             hint="collected_at_* · optional"
-            help="Two different clocks: above is when the author posted, this is when Exorde saw it. They differ when older posts get backfilled — most people can ignore this."
+            help={t.builder.collectedHelp}
           >
-            When did Exorde collect it?
+            {t.builder.collectedLabel}
           </FieldLabel>
           <div className="grid gap-3 sm:grid-cols-2">
             <DateTimeField
@@ -307,8 +308,8 @@ export function QueryBuilder({ form, onChange }: Props) {
           </div>
           <p className="mt-1.5 text-xs text-text-muted">
             {hasDates
-              ? "Narrows to posts ingested in this window — useful for catching backfilled data. Requires both dates above."
-              : "Set both dates above to enable collection-time filtering."}
+              ? t.builder.collectedOn
+              : t.builder.collectedOff}
           </p>
           {(form.collectedAtStartDate || form.collectedAtEndDate) && (
             <Button
@@ -317,45 +318,45 @@ export function QueryBuilder({ form, onChange }: Props) {
               className="mt-2"
               onClick={() => set({ collectedAtStartDate: "", collectedAtEndDate: "" })}
             >
-              Clear collection window
+              {t.builder.clearCollected}
             </Button>
           )}
         </div>
       </Section>
 
       <Section
-        title="Where should posts come from?"
+        title={t.builder.sourcesTitle}
         helpHref="/reference?tab=filters&section=Sources"
-        helpLabel="platforms and languages"
+        helpLabel={t.builder.sourcesLabel}
         summary={summarizeSources(form).summary}
         count={summarizeSources(form).count}
         defaultOpen
-        help="Leave any of these empty to place no restriction on that dimension."
+        help={t.builder.sourcesHelp}
         onClear={() => set({ domainsText: "", languagesText: "", locationsText: "" })}
       >
         <div className="grid gap-5 lg:grid-cols-2">
           <ChipMultiSelect
-            label="Which platforms?"
+            label={t.builder.platforms}
             hint="domains · exact match"
-            help="Matches the post's domain exactly, so “reddit.com” covers every subreddit. To narrow to one subreddit or channel, use the URL field below instead."
+            help={t.builder.platformsHelp}
             options={PLATFORM_OPTIONS}
             max={LIMITS.maxDomains}
-            emptyLabel="All platforms (no domain filter)"
-            searchPlaceholder="Search platforms…"
-            customPlaceholder="Other domain, e.g. example-forum.com"
-            footnote="Exorde covers 200+ sources. For subreddits or channels, URL patterns usually work better than domains."
+            emptyLabel={t.builder.platformsEmpty}
+            searchPlaceholder={t.builder.platformsSearch}
+            customPlaceholder={t.builder.platformsCustom}
+            footnote={t.builder.platformsFootnote}
             {...listProps(form.domainsText, (domainsText) => set({ domainsText }))}
           />
           <ChipMultiSelect
-            label="Which languages?"
+            label={t.builder.languages}
             hint="ISO 639 codes"
-            help="Detected per post, not per author. Detection on very short posts is unreliable, so a strict language filter can drop real matches."
+            help={t.builder.languagesHelp}
             options={LANGUAGE_OPTIONS}
             max={LIMITS.maxLanguages}
-            emptyLabel="All languages"
-            searchPlaceholder="Search languages…"
-            customPlaceholder="Other ISO code, e.g. sw"
-            footnote="176+ codes are supported; the list shows the most common. Add any other code directly."
+            emptyLabel={t.builder.languagesEmpty}
+            searchPlaceholder={t.builder.languagesSearch}
+            customPlaceholder={t.builder.languagesCustom}
+            footnote={t.builder.languagesFootnote}
             {...listProps(form.languagesText, (languagesText) => set({ languagesText }))}
           />
         </div>
@@ -363,9 +364,9 @@ export function QueryBuilder({ form, onChange }: Props) {
         <div className="mt-5 border-t border-border pt-4">
           <FieldLabel
             hint={`locations · max ${LIMITS.maxLocations}`}
-            help="This is the free-text location people type on their profile, not a verified GPS location. “Paris” also matches “Paris, Texas” and “Parisian at heart”."
+            help={t.builder.locationHelp}
           >
-            Where is the author from?
+            {t.builder.locationLabel}
           </FieldLabel>
           <TextArea
             rows={2}
@@ -374,19 +375,18 @@ export function QueryBuilder({ form, onChange }: Props) {
             onChange={(e) => set({ locationsText: e.target.value })}
           />
           <p className="mt-1 text-xs text-text-muted">
-            {splitList(form.locationsText).length} / {LIMITS.maxLocations} · matches the user-declared
-            location field, case-insensitively.
+            {t.builder.locationNote(splitList(form.locationsText).length, LIMITS.maxLocations)}
           </p>
         </div>
       </Section>
 
       <Section
-        title="Which authors or specific posts?"
+        title={t.builder.peopleTitle}
         helpHref="/reference?tab=filters&section=People+%26+IDs"
-        helpLabel="authors and post IDs"
+        helpLabel={t.builder.peopleLabel}
         summary={summarizePeople(form).summary}
         count={summarizePeople(form).count}
-        help="These are selective filters — any one of them lets you run a query with no keywords at all."
+        help={t.builder.peopleHelp}
         onClear={() =>
           set({
             usernamesText: "",
@@ -401,9 +401,9 @@ export function QueryBuilder({ form, onChange }: Props) {
           <div>
             <FieldLabel
               hint={`usernames · max ${LIMITS.maxUsernames}`}
-              help="Handles without the @, comma-separated. Setting this alone is enough to run a query — you don't also need keywords."
+              help={t.builder.authorsHelp}
             >
-              Who wrote the post?
+              {t.builder.authors}
             </FieldLabel>
             <TextArea
               rows={3}
@@ -412,12 +412,12 @@ export function QueryBuilder({ form, onChange }: Props) {
               onChange={(e) => set({ usernamesText: e.target.value })}
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-text-muted">Name matching</span>
+              <span className="text-xs text-text-muted">{t.builder.nameMatching}</span>
               <SegmentedControl
                 value={form.caseSensitiveUsernames ? "exact" : "insensitive"}
                 options={[
-                  { value: "insensitive", label: "Ignore case", hint: "Default" },
-                  { value: "exact", label: "Exact case" },
+                  { value: "insensitive", label: t.builder.ignoreCase, hint: t.builder.ignoreCaseHint },
+                  { value: "exact", label: t.builder.exactCase },
                 ]}
                 onChange={(v) => set({ caseSensitiveUsernames: v === "exact" })}
               />
@@ -426,9 +426,9 @@ export function QueryBuilder({ form, onChange }: Props) {
           <div>
             <FieldLabel
               hint={`url_patterns · max ${LIMITS.maxUrlPatterns}`}
-              help="A plain substring of the post's link — no wildcards needed. This is how you target one subreddit or one YouTube channel, which the platform filter can't do."
+              help={t.builder.urlHelp}
             >
-              What should the link contain?
+              {t.builder.urlLabel}
             </FieldLabel>
             <TextArea
               rows={3}
@@ -437,10 +437,10 @@ export function QueryBuilder({ form, onChange }: Props) {
               onChange={(e) => set({ urlPatternsText: e.target.value })}
             />
             <p className="mt-1 text-xs text-text-muted">
-              Case-insensitive substring of the post URL — the reliable way to target a subreddit or channel.
+              {t.builder.urlNote}
             </p>
             <div className="mt-2">
-              <span className="label-caps">Insert an example</span>
+              <span className="label-caps">{t.builder.insertExample}</span>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {URL_PATTERN_EXAMPLES.map((example) => (
                   <button
@@ -465,9 +465,9 @@ export function QueryBuilder({ form, onChange }: Props) {
           <div>
             <FieldLabel
               hint={`external_ids · max ${LIMITS.maxExternalIds}`}
-              help="The platform's own ID for a post — the number at the end of an X link, or a t1_… code on Reddit. Use it to re-fetch posts you already know about."
+              help={t.builder.postIdsHelp}
             >
-              Any exact posts to fetch?
+              {t.builder.postIds}
             </FieldLabel>
             <TextArea
               rows={3}
@@ -475,14 +475,14 @@ export function QueryBuilder({ form, onChange }: Props) {
               value={form.externalIdsText}
               onChange={(e) => set({ externalIdsText: e.target.value })}
             />
-            <p className="mt-1 text-xs text-text-muted">Re-fetch exact posts by their platform ID.</p>
+            <p className="mt-1 text-xs text-text-muted">{t.builder.postIdsNote}</p>
           </div>
           <div>
             <FieldLabel
               hint={`external_parent_ids · max ${LIMITS.maxExternalParentIds}`}
-              help="Give a post's ID and you get the replies underneath it instead of the post itself — useful for pulling a whole discussion thread."
+              help={t.builder.parentIdsHelp}
             >
-              Replies under which posts?
+              {t.builder.parentIds}
             </FieldLabel>
             <TextArea
               rows={3}
@@ -490,15 +490,15 @@ export function QueryBuilder({ form, onChange }: Props) {
               value={form.externalParentIdsText}
               onChange={(e) => set({ externalParentIdsText: e.target.value })}
             />
-            <p className="mt-1 text-xs text-text-muted">Pull the replies and thread under a given post.</p>
+            <p className="mt-1 text-xs text-text-muted">{t.builder.parentIdsNote}</p>
           </div>
         </div>
       </Section>
 
       <Section
-        title="What should be filtered out?"
+        title={t.builder.advancedTitle}
         helpHref="/reference?tab=filters&section=Advanced"
-        helpLabel="exclusions and advanced filters"
+        helpLabel={t.builder.advancedLabel}
         summary={summarizeAdvanced(form).summary}
         count={summarizeAdvanced(form).count}
         onClear={() => set({ excludeKeywordGroups: [], proximityGroups: [], profileFilters: [] })}
@@ -507,9 +507,9 @@ export function QueryBuilder({ form, onChange }: Props) {
           <div>
             <FieldLabel
               hint={`exclude_keyword_groups · max ${LIMITS.maxExcludeKeywordGroups}`}
-              help="Drops any post containing these words. The usual use is spam: “giveaway, airdrop, follow me”. Exclusions always win over keyword matches."
+              help={t.builder.excludeWordsHelp}
             >
-              Which words disqualify a post?
+              {t.builder.excludeWords}
             </FieldLabel>
             <div className="space-y-3">
               {form.excludeKeywordGroups.map((group, index) => (
@@ -531,7 +531,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                         set({ excludeKeywordGroups: form.excludeKeywordGroups.filter((_, i) => i !== index) })
                       }
                     >
-                      Remove
+                      {t.common.remove}
                     </Button>
                   </div>
                   <TextArea
@@ -556,16 +556,16 @@ export function QueryBuilder({ form, onChange }: Props) {
                 set({ excludeKeywordGroups: [...form.excludeKeywordGroups, { termsText: "", operator: "OR" }] })
               }
             >
-              Add exclusion group
+              {t.builder.addExclusion}
             </Button>
           </div>
 
           <div className="border-t border-border pt-5">
             <FieldLabel
               hint={`proximity_groups · max ${LIMITS.maxProximityGroups}`}
-              help="Requires two words to sit close together, which usually means they're actually related. “bitcoin” within 5 words of “ban” finds real discussion; the same two words 200 words apart usually don't."
+              help={t.builder.proximityHelp}
             >
-              Which terms must sit close together?
+              {t.builder.proximity}
             </FieldLabel>
             <div className="space-y-3">
               {form.proximityGroups.map((group, index) => (
@@ -575,7 +575,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                 >
                   <TextInput
                     className="w-40"
-                    placeholder="first term"
+                    placeholder={t.builder.firstTerm}
                     value={group.term_a}
                     onChange={(e) => {
                       const next = [...form.proximityGroups];
@@ -583,7 +583,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                       set({ proximityGroups: next });
                     }}
                   />
-                  <span className="text-xs text-text-muted">within</span>
+                  <span className="text-xs text-text-muted">{t.builder.within}</span>
                   <Select
                     className="w-20"
                     value={group.distance}
@@ -602,10 +602,10 @@ export function QueryBuilder({ form, onChange }: Props) {
                       </option>
                     ))}
                   </Select>
-                  <span className="text-xs text-text-muted">words of</span>
+                  <span className="text-xs text-text-muted">{t.builder.wordsOf}</span>
                   <TextInput
                     className="w-40"
-                    placeholder="second term"
+                    placeholder={t.builder.secondTerm}
                     value={group.term_b}
                     onChange={(e) => {
                       const next = [...form.proximityGroups];
@@ -618,7 +618,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                     variant="ghost"
                     onClick={() => set({ proximityGroups: form.proximityGroups.filter((_, i) => i !== index) })}
                   >
-                    Remove
+                    {t.common.remove}
                   </Button>
                 </div>
               ))}
@@ -632,16 +632,16 @@ export function QueryBuilder({ form, onChange }: Props) {
                 set({ proximityGroups: [...form.proximityGroups, { term_a: "", term_b: "", distance: 5 }] })
               }
             >
-              Add proximity rule
+              {t.builder.addProximity}
             </Button>
           </div>
 
           <div className="border-t border-border pt-5">
             <FieldLabel
               hint={`profile_filters · x.com only · max ${LIMITS.maxProfileFilterFields}`}
-              help="Filters on the author's X profile — bio text, follower count, verified status. Posts from every other platform are dropped when you use this, because only X carries the metadata."
+              help={t.builder.profileHelp}
             >
-              What must be true of the author?
+              {t.builder.profile}
             </FieldLabel>
             <div className="space-y-3">
               {form.profileFilters.map((row, index) => {
@@ -690,7 +690,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                       variant="ghost"
                       onClick={() => set({ profileFilters: form.profileFilters.filter((_, i) => i !== index) })}
                     >
-                      Remove
+                      {t.common.remove}
                     </Button>
                   </div>
                 );
@@ -705,82 +705,80 @@ export function QueryBuilder({ form, onChange }: Props) {
                 set({ profileFilters: [...form.profileFilters, { field: "user_verified", valuesText: "true" }] })
               }
             >
-              Add profile filter
+              {t.builder.addProfile}
             </Button>
             <p className="mt-2 text-xs text-text-muted">
-              Fields combine with AND; up to {LIMITS.maxProfileFilterValues} values each (OR within a field).
-              Only x.com posts carry this metadata.
+              {t.builder.profileNote(LIMITS.maxProfileFilterValues)}
             </p>
           </div>
         </div>
       </Section>
 
       <Section
-        title="What goes in the file?"
+        title={t.builder.outputTitle}
         helpHref="/reference?tab=filters&section=Output"
-        helpLabel="output fields and formats"
+        helpLabel={t.builder.outputLabel}
         defaultOpen
         summary={summarizeOutput(form).summary}
         count={summarizeOutput(form).count}
-        help="Format and row caps apply to exports only — previews ignore them and always return ~100 sample rows."
+        help={t.builder.outputHelp}
       >
         <div className="grid gap-5 lg:grid-cols-2">
           <div>
             <FieldLabel
               hint="output_format"
-              help="Pick CSV if you're opening this in Excel or Sheets. Pick JSONL if you're loading it with pandas, a script, or anything that reads line by line."
+              help={t.builder.formatHelp}
             >
-              Which file format?
+              {t.builder.format}
             </FieldLabel>
             <SegmentedControl
               value={form.outputFormat}
               options={[
-                { value: "jsonl" as const, label: "JSONL", hint: "Default — streaming-friendly, nested fields stay JSON" },
-                { value: "csv" as const, label: "CSV", hint: "Excel/Sheets — UTF-8 BOM, arrays serialized as JSON strings" },
+                { value: "jsonl" as const, label: "JSONL", hint: t.builder.jsonlHint },
+                { value: "csv" as const, label: "CSV", hint: t.builder.csvHint },
               ]}
               onChange={(outputFormat) => set({ outputFormat })}
             />
             <p className="mt-2 text-xs text-text-muted">
               {form.outputFormat === "jsonl"
-                ? "One JSON object per line. Best for large sets and programmatic use."
-                : "RFC 4180 with a UTF-8 BOM so Excel opens it correctly."}
+                ? t.builder.jsonlNote
+                : t.builder.csvNote}
             </p>
           </div>
           <div className="space-y-4">
             <div>
               <FieldLabel
                 hint={`result_limit · max ${LIMITS.resultLimitMax.toLocaleString()}`}
-                help="A hard stop on total rows. Leave it empty to get every match. Rows count against your plan quota, so a cap is a cheap safety net on a broad query."
+                help={t.builder.rowCapHelp}
               >
-                How many rows at most?
+                {t.builder.rowCap}
               </FieldLabel>
               <NumberChoice
                 value={form.resultLimit}
                 presets={RESULT_LIMIT_PRESETS}
                 min={LIMITS.resultLimitMin}
                 max={LIMITS.resultLimitMax}
-                placeholder="rows"
+                placeholder={t.builder.rows}
                 onChange={(resultLimit) => set({ resultLimit })}
               />
             </div>
             <div>
               <FieldLabel
                 hint={`per_day_limit · max ${LIMITS.perDayLimitMax.toLocaleString()}`}
-                help="Takes an even sample from each UTC day instead of letting one busy day dominate. Setting it also raises the maximum date range from 30 to 90 days."
+                help={t.builder.perDayCapHelp}
               >
-                How many rows per day?
+                {t.builder.perDayCap}
               </FieldLabel>
               <NumberChoice
                 value={form.perDayLimit}
                 presets={PER_DAY_LIMIT_PRESETS}
                 min={LIMITS.perDayLimitMin}
                 max={LIMITS.perDayLimitMax}
-                placeholder="rows per UTC day"
+                placeholder={t.builder.rowsPerDay}
                 onChange={(perDayLimit) => set({ perDayLimit })}
               />
               <p className="mt-1.5 text-xs text-text-muted">
-                Samples evenly across days and raises the max span to {LIMITS.maxPerDaySpanDays} days. Requires
-                both dates.
+                {t.builder.perDayNote(LIMITS.maxPerDaySpanDays)}
               </p>
             </div>
           </div>
@@ -789,18 +787,18 @@ export function QueryBuilder({ form, onChange }: Props) {
         <div className="mt-5 border-t border-border pt-4">
           <FieldLabel
             hint="exclude_fields"
-            help={`Every row can carry up to ${SELECTABLE_FIELDS.length} columns, and most of them are AI-generated scores. Picking a preset here sets the API's exclude_fields list for you.`}
+            help={t.builder.fieldsHelp(SELECTABLE_FIELDS.length)}
           >
-            What should each row contain?
+            {t.builder.fieldsLabel}
           </FieldLabel>
           <RadioCards
-            label="What should each row contain?"
+            label={t.builder.fieldsLabel}
             value={form.fieldPreset}
             options={FIELD_PRESETS.map((p) => ({
               value: p.id,
               label: p.label,
               description: p.description,
-              badge: `${keptFields(form, p.id).length} cols`,
+              badge: t.builder.cols(keptFields(form, p.id).length),
             }))}
             onChange={(fieldPreset) => set({ fieldPreset })}
           />
@@ -808,14 +806,14 @@ export function QueryBuilder({ form, onChange }: Props) {
           <p className="mt-3 text-xs leading-relaxed text-text-muted">
             {keptFieldNames.length === 0 ? (
               <span className="text-warning">
-                Every column is excluded — the export would have no data.
+                {t.builder.allExcluded}
               </span>
             ) : (
               <>
-                Keeping{" "}
+                {t.builder.keeping}{" "}
                 <span className="font-mono text-text">
                   {keptFieldNames.slice(0, 12).join(", ")}
-                  {keptFieldNames.length > 12 && ` +${keptFieldNames.length - 12} more`}
+                  {keptFieldNames.length > 12 && t.builder.andMore(keptFieldNames.length - 12)}
                 </span>
               </>
             )}
@@ -824,12 +822,12 @@ export function QueryBuilder({ form, onChange }: Props) {
           {form.fieldPreset === "custom" && (
             <div className="mt-4">
               <ChipMultiSelect
-                label="Which columns should be left out?"
-                help={`Anything you tick here is dropped from every row. Leave it empty to keep all ${SELECTABLE_FIELDS.length}.`}
+                label={t.builder.customFields}
+                help={t.builder.customFieldsHelp(SELECTABLE_FIELDS.length)}
                 options={FIELD_OPTIONS}
-                emptyLabel={`Nothing excluded — all ${SELECTABLE_FIELDS.length} columns`}
-                searchPlaceholder="Search columns…"
-                footnote="analysis_source_type, collection_module and collection_client_version are always excluded by the API."
+                emptyLabel={t.builder.customFieldsEmpty(SELECTABLE_FIELDS.length)}
+                searchPlaceholder={t.builder.customFieldsSearch}
+                footnote={t.builder.customFieldsFootnote}
                 {...listProps(form.excludeFieldsText, (excludeFieldsText) => set({ excludeFieldsText }))}
               />
             </div>
@@ -838,15 +836,15 @@ export function QueryBuilder({ form, onChange }: Props) {
       </Section>
 
       <Section
-        title="What gets sent to the API?"
-        summary="The exact JSON this dashboard will send"
-        help="Use this to reproduce the query outside the dashboard."
+        title={t.builder.payloadTitle}
+        summary={t.builder.payloadSummary}
+        help={t.builder.payloadHelp}
       >
         <SegmentedControl
           value={payloadMode}
           options={[
-            { value: "preview" as const, label: "Preview body" },
-            { value: "export" as const, label: "Export body" },
+            { value: "preview" as const, label: t.builder.previewBody },
+            { value: "export" as const, label: t.builder.exportBody },
           ]}
           onChange={setPayloadMode}
         />
@@ -854,7 +852,7 @@ export function QueryBuilder({ form, onChange }: Props) {
           {JSON.stringify(body, null, 2)}
         </pre>
         <details className="mt-3">
-          <summary className="cursor-pointer text-xs text-accent">Copy as curl</summary>
+          <summary className="cursor-pointer text-xs text-accent">{t.builder.copyCurl}</summary>
           <pre className="mt-2 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
             {buildCurl(body, payloadMode)}
           </pre>
@@ -865,7 +863,7 @@ export function QueryBuilder({ form, onChange }: Props) {
           className="mt-3"
           onClick={() => onChange({ ...empty, startDate: form.startDate, endDate: form.endDate })}
         >
-          Reset all filters
+          {t.builder.resetAll}
         </Button>
       </Section>
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, FieldLabel, TextInput } from "./ui";
+import { useT } from "@/lib/i18n/locale";
 
 export type ChipOption = {
   value: string;
@@ -37,11 +38,12 @@ export function ChipMultiSelect({
   selected,
   onChange,
   max,
-  emptyLabel = "None selected",
-  searchPlaceholder = "Search…",
+  emptyLabel,
+  searchPlaceholder,
   customPlaceholder,
   footnote,
 }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   // useId rather than a slug of the label: two pickers can share a label, and
   // duplicate ids would make aria-controls ambiguous.
@@ -94,7 +96,7 @@ export function ChipMultiSelect({
   const atMax = max != null && selected.length >= max;
   const summary = selected.length
     ? selected.map((v) => known.get(v)?.label ?? v).join(", ")
-    : emptyLabel;
+    : (emptyLabel ?? t.chips.noneSelected);
 
   function toggle(value: string, on: boolean) {
     onChange(on ? [...selected, value] : selected.filter((v) => v !== value));
@@ -132,14 +134,14 @@ export function ChipMultiSelect({
         <div
           id={panelId}
           role="group"
-          aria-label={`${label} options`}
+          aria-label={t.chips.optionsAria(label)}
           className="rounded-xl border border-border bg-surface-raised p-2 shadow-xl shadow-black/40"
         >
           <TextInput
             autoFocus
             type="search"
-            aria-label={searchPlaceholder}
-            placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder ?? t.chips.search}
+            placeholder={searchPlaceholder ?? t.chips.search}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -155,13 +157,13 @@ export function ChipMultiSelect({
                 onChange(max != null ? merged.slice(0, max) : merged);
               }}
             >
-              Select {search ? "matches" : "all"}
+              {search ? t.chips.selectMatches : t.chips.selectAll}
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange(custom)}>
-              Clear listed
+              {t.chips.clearListed}
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange([])}>
-              Clear all
+              {t.chips.clearAll}
             </Button>
           </div>
 
@@ -203,7 +205,7 @@ export function ChipMultiSelect({
               </li>
             ))}
             {!filtered.length && (
-              <li className="px-2 py-3 text-xs text-text-muted">No option matches “{search}”. {customPlaceholder ? "Add it as a custom value below." : ""}</li>
+              <li className="px-2 py-3 text-xs text-text-muted">{t.chips.noMatch(search)} {customPlaceholder ? t.chips.addAsCustom : ""}</li>
             )}
           </ul>
 
@@ -222,7 +224,7 @@ export function ChipMultiSelect({
                   }}
                 />
                 <Button type="button" variant="secondary" size="sm" disabled={!customDraft.trim()} onClick={addCustom}>
-                  Add
+                  {t.chips.addCustom}
                 </Button>
               </div>
             </div>
@@ -238,8 +240,8 @@ export function ChipMultiSelect({
               <button
                 key={value}
                 type="button"
-                aria-label={`Remove ${option?.label ?? value}`}
-                title={`Remove ${value}`}
+                aria-label={t.chips.removeAria(option?.label ?? value)}
+                title={t.chips.removeAria(value)}
                 onClick={() => toggle(value, false)}
                 className={`rounded-full px-2.5 py-1 text-xs transition-colors ${
                   option
@@ -255,7 +257,7 @@ export function ChipMultiSelect({
       )}
 
       {footnote && <p className="text-xs leading-relaxed text-text-subtle">{footnote}</p>}
-      {atMax && <p className="text-xs text-warning">Maximum of {max} reached.</p>}
+      {atMax && <p className="text-xs text-warning">{t.chips.maxReached(max)}</p>}
     </div>
   );
 }
