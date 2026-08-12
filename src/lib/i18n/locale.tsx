@@ -20,7 +20,7 @@ export const LOCALES: ReadonlyArray<{ value: Locale; label: string; short: strin
 ];
 
 const DICTS = { en, es } as const;
-const STORAGE_KEY = "exorde.locale.v1";
+const STORAGE_KEY = "sentinel.locale.v1";
 
 type Ctx = {
   locale: Locale;

@@ -26,9 +26,9 @@ export const en = {
   },
 
   nav: {
-    brand: "Exorde",
-    product: "Data Export",
-    proxiedTo: "Proxied to",
+    brand: "Hybrid Atlantic",
+    product: "Sentinel",
+    signalIndex: "Signal index",
     overview: { label: "Overview", hint: "Health, queue, your quota" },
     query: { label: "Query", hint: "Build · preview · export" },
     jobs: { label: "Jobs", hint: "Monitor · download · history" },
@@ -182,15 +182,15 @@ export const en = {
       "Times are UTC, not your local clock. A post written at 23:00 in Madrid counts as 21:00 or 22:00 here depending on the season.",
     notAfter: "Not after",
     notAfterHelp:
-      "Leave this at \u201cnow\u201d for a rolling window. Exorde indexes posts within minutes, so the last hour may still be filling in.",
+      "Leave this at \u201cnow\u201d for a rolling window. Posts are indexed within minutes, so the last hour may still be filling in.",
     span: "Span:",
     spanDays: (n: string) => `${n} days`,
     spanOverLimit: (span: string, max: number, perDay: number) =>
       `${span}-day span exceeds the ${max}-day limit. Set a per-day row cap under \u201cWhat goes in the file?\u201d to allow up to ${perDay} days.`,
     endBeforeStart: "End date is before start date.",
-    collectedLabel: "When did Exorde collect it?",
+    collectedLabel: "When was it collected?",
     collectedHelp:
-      "Two different clocks: above is when the author posted, this is when Exorde saw it. They differ when older posts get backfilled \u2014 most people can ignore this.",
+      "Two different clocks: above is when the author posted, this is when the index saw it. They differ when older posts get backfilled \u2014 most people can ignore this.",
     collectedOn:
       "Narrows to posts ingested in this window \u2014 useful for catching backfilled data. Requires both dates above.",
     collectedOff: "Set both dates above to enable collection-time filtering.",
@@ -498,13 +498,13 @@ export const en = {
   settings: {
     title: "Settings",
     description:
-      "Your Exorde API key. It is never exposed to the browser — the Next.js API routes attach it server-side.",
+      "Your signal index API key. It is never exposed to the browser — the server-side routes attach it.",
     saved:
       "API key saved in an httpOnly cookie for this browser (30 days). Prefer .env.local for permanence.",
     cleared: "Browser cookie key cleared. Env key (if any) still applies.",
     connection: "Connection",
     baseUrl: "Base URL",
-    envKey: "EXORDE_API_KEY in env",
+    envKey: "SENTINEL_API_KEY in env",
     configured: "configured",
     missing: "missing",
     cookieKey: "Cookie key",
@@ -519,7 +519,7 @@ export const en = {
     clearCookieKey: "Clear cookie key",
     authHeader: "Auth header (reference)",
     keysLookLike: "Keys look like",
-    keysCannotRetrieve: "and cannot be retrieved after creation from Exorde.",
+    keysCannotRetrieve: "and cannot be retrieved after they are created.",
   },
 };
 // No `as const`: the values must widen to `string`, or a translation would have

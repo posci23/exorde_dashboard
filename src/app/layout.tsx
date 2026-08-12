@@ -1,29 +1,36 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import { QueryStoreProvider } from "@/components/QueryStore";
 import { Sidebar } from "@/components/Sidebar";
 import { LocaleProvider } from "@/lib/i18n/locale";
 import "./globals.css";
 
-const sans = Inter({
+/* The three Hybrid Atlantic faces, matching hybridatlantic.com. */
+const sans = Hanken_Grotesk({
   subsets: ["latin"],
   variable: "--font-sans-loaded",
 });
 
-const mono = JetBrains_Mono({
+const display = Fraunces({
+  subsets: ["latin"],
+  axes: ["SOFT", "WONK"],
+  variable: "--font-display-loaded",
+});
+
+const mono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-mono-loaded",
 });
 
 export const metadata: Metadata = {
-  title: "Exorde Data Export Dashboard",
-  description: "Complete operator console for the Exorde Data Export API",
+  title: "Sentinel — Hybrid Atlantic",
+  description: "Signal collection and export console for political intelligence work.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${mono.variable}`}>
       <body className="antialiased">
         <LocaleProvider>
           <QueryStoreProvider>

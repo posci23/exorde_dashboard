@@ -13,8 +13,8 @@ import { createEmptyQueryForm, type QueryFormState } from "@/lib/query-form";
 import type { ExportJobResponse, PreviewResponse } from "@/lib/types";
 
 // v2: `excludeFieldsMode` became the richer `fieldPreset`.
-const FORM_KEY = "exorde.queryForm.v2";
-const JOBS_KEY = "exorde.trackedJobs.v1";
+const FORM_KEY = "sentinel.queryForm.v1";
+const JOBS_KEY = "sentinel.trackedJobs.v1";
 
 type Store = {
   form: QueryFormState;

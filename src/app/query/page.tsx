@@ -42,7 +42,7 @@ export default function QueryPage() {
     setPreviewLoading(true);
     setError(null);
     setNotice(null);
-    const res = await apiFetch<PreviewResponse>("/api/exorde/preview", {
+    const res = await apiFetch<PreviewResponse>("/api/sentinel/preview", {
       method: "POST",
       body: JSON.stringify(parsed.data),
     });

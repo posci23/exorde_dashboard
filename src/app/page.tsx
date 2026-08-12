@@ -44,9 +44,9 @@ export default function OverviewPage() {
   const refresh = useCallback(async () => {
     setLoading(true);
     const [h, q, u] = await Promise.all([
-      apiFetch<HealthResponse>("/api/exorde/health"),
-      apiFetch<QueueCapacityResponse>("/api/exorde/queue-capacity"),
-      apiFetch<UserQuotaResponse>("/api/exorde/user-quota"),
+      apiFetch<HealthResponse>("/api/sentinel/health"),
+      apiFetch<QueueCapacityResponse>("/api/sentinel/queue-capacity"),
+      apiFetch<UserQuotaResponse>("/api/sentinel/user-quota"),
     ]);
 
     setHealth(h.ok && h.data ? h.data : null);

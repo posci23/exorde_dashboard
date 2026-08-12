@@ -243,8 +243,10 @@ export function buildQueryBody(form: QueryFormState, mode: "preview" | "export")
 
 export function buildCurl(body: QueryBody, endpoint: "preview" | "export") {
   const path = endpoint === "preview" ? "/api/v1/preview" : "/api/v1/export";
-  return `curl -X POST https://export-api.exorde.io${path} \\
-  -H "X-API-Key: YOUR_API_KEY" \\
+  // Placeholders rather than a literal host, so a copied snippet carries no
+  // infrastructure detail. Both are read from the environment when you run it.
+  return `curl -X POST "$SENTINEL_API_BASE_URL${path}" \\
+  -H "X-API-Key: $SENTINEL_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '${JSON.stringify(body, null, 2).replace(/'/g, "'\\''")}'`;
 }

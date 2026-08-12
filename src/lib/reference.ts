@@ -69,7 +69,7 @@ export const FILTER_REFERENCE: FilterRef[] = [
     type: "string",
     limit: "requires both post dates",
     description:
-      "Inclusive lower bound on when Exorde ingested the post — useful for picking up backfilled data separately from when it was written.",
+      "Inclusive lower bound on when the post was ingested — useful for picking up backfilled data separately from when it was written.",
   },
   {
     apiField: "collected_at_end_date",
@@ -86,7 +86,7 @@ export const FILTER_REFERENCE: FilterRef[] = [
     type: "string[]",
     limit: `max ${LIMITS.maxDomains}`,
     description:
-      "Exact match on the source domain, OR'd together. Leave empty for every platform. Exorde indexes 200+ sources, so anything not in the picker can be typed in.",
+      "Exact match on the source domain, OR'd together. Leave empty for every platform. Coverage is 11 social platforms plus 7,000+ news domains, so anything not in the picker can be typed in.",
     example: '["x.com", "reddit.com"]',
   },
   {

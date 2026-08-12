@@ -1,11 +1,11 @@
-# Exorde Data Export Dashboard — Guide
+# Sentinel — Guide
 
 ## What this is
 
-An **operator console** for the [Exorde Data Export API](https://exordelabs.com/developer-docs/data-export). It lets you query billions of social media posts with precision filters, preview results for free, run async exports to S3, monitor jobs, and download files — without writing curl/Python by hand.
+An **operator console** for the [signal index API](the provider documentation). It lets you query billions of social media posts with precision filters, preview results for free, run async exports to S3, monitor jobs, and download files — without writing curl/Python by hand.
 
-**Repo:** [github.com/posci23/exorde_dashboard](https://github.com/posci23/exorde_dashboard)  
-**Upstream API base:** `https://export-api.exorde.io`  
+**Repo:** [github.com/posci23/_dashboard](https://github.com/posci23/_dashboard)  
+**Upstream API base:** `https://the upstream index`  
 **Stack:** Next.js (App Router) · TypeScript · Tailwind · Zod · Recharts
 
 This app covers **only the Data Export API** (not FullStream, Intel, Insights, or Custom Feed).
@@ -14,7 +14,7 @@ This app covers **only the Data Export API** (not FullStream, Intel, Insights, o
 
 ## What it does (end-to-end)
 
-Exorde’s Data Export API uses a two-phase model. This dashboard walks you through all of it:
+the signal index’s Data Export API uses a two-phase model. This dashboard walks you through all of it:
 
 1. **Preview** (free, sync) — count + ~100 sample rows, no quota used  
 2. **Refine** — adjust keywords, dates, domains, languages, etc.  
@@ -25,23 +25,23 @@ Exorde’s Data Export API uses a two-phase model. This dashboard walks you thro
 
 Steps 1–3 all happen on **Query**; steps 4–6 on **Jobs**.
 
-Data sources under the hood: `exorde.posts` ∪ `exorde.back_posts` (ClickHouse), quotas/jobs in PostgreSQL, files on Scaleway S3.
+Data sources under the hood: `.posts` ∪ `.back_posts` (ClickHouse), quotas/jobs in PostgreSQL, files on Scaleway S3.
 
 ---
 
 ## Architecture
 
 ```
-Browser UI  →  Next.js /api/exorde/* proxy  →  export-api.exorde.io
+Browser UI  →  Next.js /api/sentinel/* proxy  →  the upstream index
                      ↑
               X-API-Key from .env.local
               or httpOnly cookie (Settings)
 ```
 
-- The browser **never** calls Exorde directly (avoids CORS; keeps the key off client network traces to Exorde).
+- The browser **never** calls the signal index directly (avoids CORS; keeps the key off client network traces to the signal index).
 - Query form state and tracked jobs are saved in **localStorage**.
 - API key options:
-  - `EXORDE_API_KEY` in `.env.local` (recommended)
+  - `SENTINEL_API_KEY` in `.env.local` (recommended)
   - Paste in **Settings** → stored as httpOnly cookie for 30 days
 
 ---
@@ -51,7 +51,7 @@ Browser UI  →  Next.js /api/exorde/* proxy  →  export-api.exorde.io
 ```bash
 npm install
 cp .env.example .env.local
-# set EXORDE_API_KEY=exo_...
+# set SENTINEL_API_KEY=exo_...
 npm run dev
 ```
 
@@ -175,7 +175,7 @@ presets; row caps use preset dropdowns with a custom numeric fallback.
 | Control | API field | Notes |
 |---------|-----------|-------|
 | Posted after / before | `start_date`, `end_date` | Max **30 days** normally; **90 days** with `per_day_limit`. Relative presets (24h / 7d / 30d / 90d) plus pickers; live span readout warns past the cap |
-| Collection window | `collected_at_start_date`, `collected_at_end_date` | Optional — narrows to when Exorde ingested the post. Requires both post dates |
+| Collection window | `collected_at_start_date`, `collected_at_end_date` | Optional — narrows to when the signal index ingested the post. Requires both post dates |
 | Domains | `domains` | Max 50, exact match, OR |
 | Languages | `languages` | Max 10 ISO codes (176+ supported) |
 | Usernames | `usernames` | Max 50 |
@@ -235,20 +235,20 @@ presets; row caps use preset dropdowns with a custom numeric fallback.
 
 ## Proxy API routes (this app)
 
-All under `/api/exorde/*`. They attach `X-API-Key` and forward to Exorde.
+All under `/api/sentinel/*`. They attach `X-API-Key` and forward to the signal index.
 
-| Dashboard route | Method | Exorde endpoint | Auth |
+| Dashboard route | Method | the signal index endpoint | Auth |
 |-----------------|--------|-----------------|------|
-| `/api/exorde/health` | GET | `/health` | No |
-| `/api/exorde/queue-capacity` | GET | `/api/v1/queue/capacity` | Yes |
-| `/api/exorde/preview` | POST | `/api/v1/preview` | Yes |
-| `/api/exorde/export` | POST | `/api/v1/export` | Yes |
-| `/api/exorde/export/[jobId]` | GET | `/api/v1/export/{job_id}` | Yes |
-| `/api/exorde/exports` | GET | `/api/v1/user/exports` | Yes |
-| `/api/exorde/user-info` | GET | `/api/v1/user/info` | Yes |
-| `/api/exorde/user-quota` | GET | `/api/v1/user/quota` | Yes |
-| `/api/exorde/sync` | POST | `/api/v1/sync/export-job` | Yes |
-| `/api/exorde/settings` | GET/POST | (local only) | Cookie / env status |
+| `/api/sentinel/health` | GET | `/health` | No |
+| `/api/sentinel/queue-capacity` | GET | `/api/v1/queue/capacity` | Yes |
+| `/api/sentinel/preview` | POST | `/api/v1/preview` | Yes |
+| `/api/sentinel/export` | POST | `/api/v1/export` | Yes |
+| `/api/sentinel/export/[jobId]` | GET | `/api/v1/export/{job_id}` | Yes |
+| `/api/sentinel/exports` | GET | `/api/v1/user/exports` | Yes |
+| `/api/sentinel/user-info` | GET | `/api/v1/user/info` | Yes |
+| `/api/sentinel/user-quota` | GET | `/api/v1/user/quota` | Yes |
+| `/api/sentinel/sync` | POST | `/api/v1/sync/export-job` | Yes |
+| `/api/sentinel/settings` | GET/POST | (local only) | Cookie / env status |
 
 Envelope shape: `{ ok, data }` on success; `{ ok: false, status, error, retry_after_seconds? }` on failure.
 
@@ -256,11 +256,11 @@ Envelope shape: `{ ok, data }` on success; `{ ok: false, status, error, retry_af
 
 ## Server library functions
 
-### `src/lib/exorde-client.ts`
+### `src/lib/-client.ts`
 
 | Function | Purpose |
 |----------|---------|
-| `exordeFetch(path, options)` | Low-level fetch to Exorde with key + JSON parsing + `ExordeApiError` |
+| `Fetch(path, options)` | Low-level fetch to the signal index with key + JSON parsing + `the signal indexApiError` |
 | `getHealth()` | System health |
 | `getQueueCapacity(apiKey?)` | Queue saturation |
 | `previewQuery(body, apiKey?)` | Free preview |
@@ -305,12 +305,12 @@ Envelope shape: `{ ok, data }` on success; `{ ok: false, status, error, retry_af
 | Function | Purpose |
 |----------|---------|
 | `apiFetch(path, init)` | Browser → local proxy |
-| `formatError(error)` | Human-readable Exorde error / 409 / 429 detail |
+| `formatError(error)` | Human-readable the signal index error / 409 / 429 detail |
 | `getDuplicateJobId(error)` | Extract `existing_job_id` from 409 |
 
 ### `src/lib/types.ts`
 
-Zod `queryBodySchema` + TypeScript types for all request/response shapes, plus `ExordeApiError`.
+Zod `queryBodySchema` + TypeScript types for all request/response shapes, plus `the signal indexApiError`.
 
 ---
 
@@ -363,7 +363,7 @@ pending → running → completed
 
 ## Typical operator workflow
 
-1. Open **Settings** (or set `EXORDE_API_KEY`) and confirm “Ready to call API”.  
+1. Open **Settings** (or set `SENTINEL_API_KEY`) and confirm “Ready to call API”.  
 2. **Overview** → health is `healthy`, queue is accepting jobs, and you have quota left.  
 3. **Query** → pick an example query or build filters. The toolbar pill must read **✓ Query valid**.  
 4. **Run preview** (free) → check the count, estimated size, and sample quality above the builder.  
@@ -376,4 +376,4 @@ pending → running → completed
 
 ## Official docs
 
-Full API reference: [exordelabs.com/developer-docs/data-export](https://exordelabs.com/developer-docs/data-export)
+Full API reference: [the provider/developer-docs/data-export](the provider documentation)

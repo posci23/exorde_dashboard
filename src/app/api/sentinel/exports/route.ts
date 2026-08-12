@@ -1,4 +1,4 @@
-import { listUserExports } from "@/lib/exorde-client";
+import { listUserExports } from "@/lib/api-client";
 import { getRequestApiKey, jsonError, jsonOk } from "@/lib/api-helpers";
 import { LIMITS } from "@/lib/constants";
 

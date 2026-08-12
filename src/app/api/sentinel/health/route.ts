@@ -1,4 +1,4 @@
-import { getHealth } from "@/lib/exorde-client";
+import { getHealth } from "@/lib/api-client";
 import { jsonError, jsonOk } from "@/lib/api-helpers";
 
 export async function GET() {

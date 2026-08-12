@@ -1,39 +1,41 @@
 @import "tailwindcss";
 
 /*
- * Refined dark. Three rules keep it consistent:
- *   1. Neutrals carry the whole UI; the accent marks actions and active state only.
+ * Hybrid Atlantic: warm paper, ink, and a single cobalt accent. Palette values
+ * are taken from hybridatlantic.com so the console reads as part of the brand.
+ *
+ * Three rules keep it consistent:
+ *   1. Neutrals carry the whole UI; cobalt marks actions and active state only.
  *   2. Three radii — 6px controls, 12px cards, full pills. Nothing else.
  *   3. Three text sizes below body — 12px is the floor. No ad-hoc pixel values.
  */
 :root {
-  /* Neutrals */
-  --bg: #0a0a0b;
-  --surface: #101012;
-  --surface-raised: #16161a;
-  --surface-hover: #1c1c21;
-  --border: #232328;
-  --border-strong: #33333b;
+  /* Paper — the brand's warm off-white ground. */
+  --bg: #f4f1ea;
+  --surface: #ffffff;
+  --surface-raised: #faf8f3;
+  --surface-hover: #ece7dc;
+  --border: #d8d2c4;
+  --border-strong: #bdb5a2;
 
-  /* Text */
-  --text: #f4f4f5;
-  --text-muted: #a1a1aa;
-  --text-subtle: #71717a;
+  /* Ink */
+  --text: #15181e;
+  --text-muted: #3a3f49;
+  --text-subtle: #6d7280;
 
-  /* The one accent: actions, focus, active state. */
-  --accent: #818cf8;
-  --accent-solid: #6366f1;
-  --accent-hover: #7377f0;
+  /* Cobalt: actions, focus, active state. */
+  --accent: #004aad;
+  --accent-solid: #004aad;
+  --accent-hover: #003b8a;
   --accent-fg: #ffffff;
-  --accent-soft: rgba(129, 140, 248, 0.12);
-  --accent-ring: rgba(129, 140, 248, 0.35);
+  --accent-soft: #dce8fa;
+  --accent-ring: rgba(0, 74, 173, 0.4);
 
-  /* Status — reserved for state, never decoration. */
-  --success: #4ade80;
-  --danger: #fb7185;
-  --warning: #fbbf24;
-  --info: #60a5fa;
-
+  /* Status — reserved for state, never decoration. Darkened for legibility on paper. */
+  --success: #1a7f4b;
+  --danger: #b3261e;
+  --warning: #8a5a00;
+  --info: #004aad;
 }
 
 @theme inline {
@@ -55,8 +57,10 @@
   --color-warning: var(--warning);
   --color-success: var(--success);
   --color-info: var(--info);
+  --color-accent-ring: var(--accent-ring);
 
   --font-sans: var(--font-sans-loaded, ui-sans-serif), "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-display-loaded, ui-serif), Georgia, serif;
   --font-mono: var(--font-mono-loaded, ui-monospace), "Cascadia Mono", Consolas, monospace;
 }
 
@@ -133,6 +137,18 @@ textarea {
   background: var(--border-strong);
   border-radius: 999px;
   border: 2px solid var(--bg);
+}
+
+/* Native form controls (date pickers, checkboxes) follow the light ground. */
+html {
+  color-scheme: light;
+  accent-color: var(--accent);
+}
+
+/* Display face for the wordmark and page titles. */
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
 }
 
 ::-webkit-scrollbar-thumb:hover {

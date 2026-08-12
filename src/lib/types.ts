@@ -299,7 +299,7 @@ export type RateLimitDetail = {
   span_days?: number;
 };
 
-export class ExordeApiError extends Error {
+export class UpstreamApiError extends Error {
   status: number;
   body: unknown;
   retryAfterSeconds?: number;
@@ -311,9 +311,9 @@ export class ExordeApiError extends Error {
       "detail" in body &&
       typeof (body as { detail: unknown }).detail === "string"
         ? (body as { detail: string }).detail
-        : `Exorde API error ${status}`;
+        : `Upstream API error ${status}`;
     super(message);
-    this.name = "ExordeApiError";
+    this.name = "UpstreamApiError";
     this.status = status;
     this.body = body;
     this.retryAfterSeconds = retryAfterSeconds;

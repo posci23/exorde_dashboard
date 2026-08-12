@@ -66,7 +66,7 @@ function JobsView() {
 
   const pollOnce = useCallback(
     async (jobId: string) => {
-      const res = await apiFetch<ExportJobResponse>(`/api/exorde/export/${encodeURIComponent(jobId)}`);
+      const res = await apiFetch<ExportJobResponse>(`/api/sentinel/export/${encodeURIComponent(jobId)}`);
       if (!res.ok || !res.data) {
         setError(formatError(res.error));
         return null;
@@ -114,7 +114,7 @@ function JobsView() {
 
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
-    const res = await apiFetch<UserExportsResponse>(`/api/exorde/exports?limit=${limit}`);
+    const res = await apiFetch<UserExportsResponse>(`/api/sentinel/exports?limit=${limit}`);
     setHistoryLoading(false);
     if (!res.ok || !res.data) {
       setError(formatError(res.error));
@@ -129,7 +129,7 @@ function JobsView() {
 
   async function syncJob(jobId: string) {
     setNotice(null);
-    const res = await apiFetch<ExportJobResponse>("/api/exorde/sync", {
+    const res = await apiFetch<ExportJobResponse>("/api/sentinel/sync", {
       method: "POST",
       body: JSON.stringify({ job_id: jobId }),
     });

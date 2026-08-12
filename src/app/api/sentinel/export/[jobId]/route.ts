@@ -1,4 +1,4 @@
-import { getExportJob } from "@/lib/exorde-client";
+import { getExportJob } from "@/lib/api-client";
 import { getRequestApiKey, jsonError, jsonOk } from "@/lib/api-helpers";
 
 type Params = { params: Promise<{ jobId: string }> };

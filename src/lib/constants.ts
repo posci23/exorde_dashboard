@@ -1,4 +1,3 @@
-export const EXORDE_DEFAULT_BASE_URL = "https://export-api.exorde.io";
 
 export const LIMITS = {
   maxKeywordGroups: 5,

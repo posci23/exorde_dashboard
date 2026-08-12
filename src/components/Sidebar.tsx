@@ -22,7 +22,7 @@ export function Sidebar() {
       <div className="flex items-start justify-between gap-3 px-6 py-6">
         <div className="min-w-0">
           <div className="label-caps text-accent">{t.nav.brand}</div>
-          <h1 className="mt-1.5 text-base font-semibold tracking-tight text-text">
+          <h1 className="font-display mt-1 text-xl font-semibold tracking-tight text-text">
             {t.nav.product}
           </h1>
         </div>
@@ -53,7 +53,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-6 py-5 text-xs leading-relaxed text-text-subtle">
-        {t.nav.proxiedTo} <span className="font-mono text-text-muted">export-api.exorde.io</span>
+        {t.nav.signalIndex}
       </div>
     </aside>
   );

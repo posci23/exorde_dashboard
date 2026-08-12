@@ -21,7 +21,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     void (async () => {
-      const res = await apiFetch<SettingsInfo>("/api/exorde/settings");
+      const res = await apiFetch<SettingsInfo>("/api/sentinel/settings");
       if (res.ok && res.data) setInfo(res.data);
     })();
   }, []);
@@ -29,7 +29,7 @@ export default function SettingsPage() {
   async function saveKey() {
     setError(null);
     setMessage(null);
-    const res = await apiFetch("/api/exorde/settings", {
+    const res = await apiFetch("/api/sentinel/settings", {
       method: "POST",
       body: JSON.stringify({ apiKey }),
     });
@@ -39,12 +39,12 @@ export default function SettingsPage() {
     }
     setApiKey("");
     setMessage(t.settings.saved);
-    const refreshed = await apiFetch<SettingsInfo>("/api/exorde/settings");
+    const refreshed = await apiFetch<SettingsInfo>("/api/sentinel/settings");
     if (refreshed.ok && refreshed.data) setInfo(refreshed.data);
   }
 
   async function clearKey() {
-    await apiFetch("/api/exorde/settings", {
+    await apiFetch("/api/sentinel/settings", {
       method: "POST",
       body: JSON.stringify({ clear: true }),
     });
@@ -63,10 +63,6 @@ export default function SettingsPage() {
 
       <Panel title={t.settings.connection}>
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="label-caps">{t.settings.baseUrl}</dt>
-            <dd className="mt-1 font-mono text-xs text-text">{info?.baseUrl ?? "…"}</dd>
-          </div>
           <div>
             <dt className="label-caps">{t.settings.envKey}</dt>
             <dd className="mt-1 font-mono text-xs text-text">{info?.envConfigured ? t.settings.configured : t.settings.missing}</dd>
@@ -87,8 +83,7 @@ export default function SettingsPage() {
         description={t.settings.recommendedDescription}
       >
         <pre className="overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
-{`EXORDE_API_KEY=exo_your_key_here
-EXORDE_API_BASE_URL=https://export-api.exorde.io`}
+{`SENTINEL_API_KEY=your_key_here`}
         </pre>
       </Panel>
 

@@ -1,13 +1,13 @@
-import { createExport } from "@/lib/exorde-client";
+import { createExport } from "@/lib/api-client";
 import { getRequestApiKey, jsonError, jsonOk } from "@/lib/api-helpers";
-import { ExordeApiError, queryBodySchema } from "@/lib/types";
+import { UpstreamApiError, queryBodySchema } from "@/lib/types";
 
 export async function POST(request: Request) {
   try {
     const json = await request.json();
     const parsed = queryBodySchema.safeParse(json);
     if (!parsed.success) {
-      throw new ExordeApiError(400, {
+      throw new UpstreamApiError(400, {
         detail: parsed.error.issues.map((i) => i.message).join("; "),
       });
     }

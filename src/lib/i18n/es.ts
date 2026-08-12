@@ -28,9 +28,9 @@ export const es: Dict = {
   },
 
   nav: {
-    brand: "Exorde",
-    product: "Exportación de datos",
-    proxiedTo: "Conectado vía",
+    brand: "Hybrid Atlantic",
+    product: "Sentinel",
+    signalIndex: "Índice de señales",
     overview: { label: "Resumen", hint: "Estado, cola y tu cuota" },
     query: { label: "Consulta", hint: "Construir · previsualizar · exportar" },
     jobs: { label: "Trabajos", hint: "Seguimiento · descarga · historial" },
@@ -187,15 +187,15 @@ export const es: Dict = {
       "Las horas son UTC, no tu reloj local. Una publicaci\u00f3n escrita a las 23:00 en Madrid cuenta aqu\u00ed como las 21:00 o las 22:00 seg\u00fan la \u00e9poca del a\u00f1o.",
     notAfter: "No despu\u00e9s de",
     notAfterHelp:
-      "D\u00e9jalo en \u00abahora\u00bb para una ventana m\u00f3vil. Exorde indexa las publicaciones en cuesti\u00f3n de minutos, as\u00ed que la \u00faltima hora puede estar a\u00fan incompleta.",
+      "D\u00e9jalo en \u00abahora\u00bb para una ventana m\u00f3vil. Las publicaciones se indexan en cuesti\u00f3n de minutos, as\u00ed que la \u00faltima hora puede estar a\u00fan incompleta.",
     span: "Intervalo:",
     spanDays: (n: string) => `${n} d\u00edas`,
     spanOverLimit: (span: string, max: number, perDay: number) =>
       `El intervalo de ${span} d\u00edas supera el l\u00edmite de ${max} d\u00edas. Define un tope de filas por d\u00eda en \u00ab\u00bfQu\u00e9 va en el archivo?\u00bb para permitir hasta ${perDay} d\u00edas.`,
     endBeforeStart: "La fecha final es anterior a la inicial.",
-    collectedLabel: "\u00bfCu\u00e1ndo lo recopil\u00f3 Exorde?",
+    collectedLabel: "\u00bfCu\u00e1ndo se recopil\u00f3?",
     collectedHelp:
-      "Son dos relojes distintos: arriba es cu\u00e1ndo public\u00f3 el autor, esto es cu\u00e1ndo lo vio Exorde. Difieren cuando se recuperan publicaciones antiguas; la mayor\u00eda puede ignorarlo.",
+      "Son dos relojes distintos: arriba es cu\u00e1ndo public\u00f3 el autor, esto es cu\u00e1ndo lo vio el \u00edndice. Difieren cuando se recuperan publicaciones antiguas; la mayor\u00eda puede ignorarlo.",
     collectedOn:
       "Limita a las publicaciones ingeridas en esta ventana; \u00fatil para capturar datos recuperados a posteriori. Requiere las dos fechas de arriba.",
     collectedOff:
@@ -465,8 +465,6 @@ export const es: Dict = {
       "reddit.com": "Usa un patr\u00f3n de URL para apuntar a un subreddit",
       "youtube.com": "Comentarios y metadatos de v\u00eddeo",
       "mastodon.social": "Otras instancias mediante dominio personalizado",
-      "social.com": "IDs estilo X en los propios ejemplos de Exorde",
-      "smth.com": "IDs estilo Reddit (t1_*) en los ejemplos de Exorde",
     } as Record<string, string>,
     profileLabel: {
       user_description: "La biograf\u00eda contiene",
@@ -649,13 +647,13 @@ export const es: Dict = {
   settings: {
     title: "Ajustes",
     description:
-      "Tu clave de API de Exorde. Nunca se expone al navegador: las rutas de API de Next.js la añaden en el servidor.",
+      "Tu clave de API del índice de señales. Nunca se expone al navegador: las rutas del servidor la añaden.",
     saved:
       "Clave de API guardada en una cookie httpOnly para este navegador (30 días). Para algo permanente, usa .env.local.",
     cleared: "Clave de la cookie eliminada. La clave del entorno, si existe, sigue vigente.",
     connection: "Conexión",
     baseUrl: "URL base",
-    envKey: "EXORDE_API_KEY en el entorno",
+    envKey: "SENTINEL_API_KEY en el entorno",
     configured: "configurada",
     missing: "ausente",
     cookieKey: "Clave en cookie",
@@ -671,6 +669,6 @@ export const es: Dict = {
     clearCookieKey: "Eliminar clave de la cookie",
     authHeader: "Cabecera de autenticación (referencia)",
     keysLookLike: "Las claves tienen la forma",
-    keysCannotRetrieve: "y Exorde no permite recuperarlas después de crearlas.",
+    keysCannotRetrieve: "y no se pueden recuperar después de crearlas.",
   },
 };

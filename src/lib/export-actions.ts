@@ -26,7 +26,7 @@ export function describeIssues(result: ReturnType<typeof validateQuery>): string
  * 409 / 429 / 503 responses into something actionable.
  */
 export async function submitExport(body: QueryBody): Promise<SubmitResult> {
-  const capacity = await apiFetch<QueueCapacityResponse>("/api/exorde/queue-capacity");
+  const capacity = await apiFetch<QueueCapacityResponse>("/api/sentinel/queue-capacity");
   if (capacity.ok && capacity.data && !capacity.data.accepting_new_jobs) {
     return {
       kind: "error",
@@ -34,7 +34,7 @@ export async function submitExport(body: QueryBody): Promise<SubmitResult> {
     };
   }
 
-  const res = await apiFetch<ExportCreateResponse>("/api/exorde/export", {
+  const res = await apiFetch<ExportCreateResponse>("/api/sentinel/export", {
     method: "POST",
     body: JSON.stringify(body),
   });

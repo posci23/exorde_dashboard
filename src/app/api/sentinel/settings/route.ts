@@ -1,19 +1,22 @@
 import { cookies } from "next/headers";
+import { resolveBaseUrl } from "@/lib/api-client";
 import { NextResponse } from "next/server";
 
-const COOKIE = "exorde_api_key";
+const COOKIE = "sentinel_api_key";
 
 export async function GET() {
   const jar = await cookies();
   const cookieConfigured = Boolean(jar.get(COOKIE)?.value?.trim());
-  const envConfigured = Boolean(process.env.EXORDE_API_KEY?.trim());
+  const envConfigured = Boolean(
+    process.env.SENTINEL_API_KEY?.trim() || process.env.EXORDE_API_KEY?.trim(),
+  );
   return NextResponse.json({
     ok: true,
     data: {
       envConfigured,
       cookieConfigured,
       keyAvailable: envConfigured || cookieConfigured,
-      baseUrl: process.env.EXORDE_API_BASE_URL || "https://export-api.exorde.io",
+      baseUrl: resolveBaseUrl(),
     },
   });
 }
