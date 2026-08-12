@@ -36,37 +36,32 @@ export const LIMITS = {
 } as const;
 
 /**
- * Known platforms for the `domains` filter (exact match on `domain`). Exorde
- * covers 200+ sources — this is the discoverable shortlist, grouped by kind;
- * anything else goes in as a custom domain.
+ * Sources for the `domains` filter (exact match on `domain`).
+ *
+ * The social list is the 11 platforms named in the April 2026 data dictionary,
+ * plus Instagram — which the dictionary omits but which does appear in exports
+ * (1,001 rows in a 150k sample). Share figures are measured from that sample,
+ * so they show what actually dominates rather than what is merely supported.
+ *
+ * News is 7,000+ domains and only ~0.04% of volume, so it gets examples rather
+ * than a list; any other domain can be typed in directly.
  */
 export const PLATFORMS = [
-  { domain: "x.com", label: "X (Twitter)", group: "Social", note: "Profile filters only work here" },
-  { domain: "reddit.com", label: "Reddit", group: "Social", note: "Use a URL pattern to target a subreddit" },
-  { domain: "youtube.com", label: "YouTube", group: "Social", note: "Comments and video metadata" },
-  { domain: "tiktok.com", label: "TikTok", group: "Social", note: null },
-  { domain: "instagram.com", label: "Instagram", group: "Social", note: null },
-  { domain: "threads.net", label: "Threads", group: "Social", note: null },
-  { domain: "bluesky.social", label: "Bluesky", group: "Decentralized", note: null },
-  { domain: "mastodon.social", label: "Mastodon", group: "Decentralized", note: "Other instances via custom domain" },
-  { domain: "lemmy.world", label: "Lemmy", group: "Decentralized", note: null },
-  { domain: "nostr.com", label: "Nostr", group: "Decentralized", note: null },
-  { domain: "truthsocial.com", label: "Truth Social", group: "Alt social", note: null },
-  { domain: "gab.com", label: "Gab", group: "Alt social", note: null },
-  { domain: "gettr.com", label: "Gettr", group: "Alt social", note: null },
-  { domain: "minds.com", label: "Minds", group: "Alt social", note: null },
-  { domain: "rumble.com", label: "Rumble", group: "Alt social", note: null },
-  { domain: "news.ycombinator.com", label: "Hacker News", group: "Forums & boards", note: null },
-  { domain: "4chan.org", label: "4chan", group: "Forums & boards", note: null },
-  { domain: "stackexchange.com", label: "Stack Exchange", group: "Forums & boards", note: null },
-  { domain: "quora.com", label: "Quora", group: "Forums & boards", note: null },
-  { domain: "medium.com", label: "Medium", group: "Blogs & news", note: null },
-  { domain: "substack.com", label: "Substack", group: "Blogs & news", note: null },
-  { domain: "wordpress.com", label: "WordPress", group: "Blogs & news", note: null },
-  { domain: "bitcointalk.org", label: "Bitcointalk", group: "Crypto", note: null },
-  { domain: "tradingview.com", label: "TradingView", group: "Crypto", note: null },
-  { domain: "social.com", label: "social.com", group: "Docs aliases", note: "X-style IDs in Exorde's own examples" },
-  { domain: "smth.com", label: "smth.com", group: "Docs aliases", note: "Reddit-style t1_* IDs in Exorde's examples" },
+  { domain: "x.com", label: "X (Twitter)", group: "Social", note: "29% of volume · the only platform with profile filters" },
+  { domain: "tiktok.com", label: "TikTok", group: "Social", note: "39% of volume · engagement counts in summary" },
+  { domain: "youtube.com", label: "YouTube", group: "Social", note: "19% of volume · comments, with title populated" },
+  { domain: "reddit.com", label: "Reddit", group: "Social", note: "6% of volume · use a URL pattern for one subreddit" },
+  { domain: "threads.net", label: "Threads", group: "Social", note: "5% of volume" },
+  { domain: "bsky.app", label: "Bluesky", group: "Social", note: "0.7% of volume · note the domain is bsky.app" },
+  { domain: "instagram.com", label: "Instagram", group: "Social", note: "0.7% of volume · absent from the official schema" },
+  { domain: "4channel.org", label: "4chan", group: "Forums & decentralized", note: "Rare · appears as 4channel.org" },
+  { domain: "lemmy.world", label: "Lemmy", group: "Forums & decentralized", note: "Rare" },
+  { domain: "mastodon.social", label: "Mastodon", group: "Forums & decentralized", note: "Rare · other instances via custom domain" },
+  { domain: "truthsocial.com", label: "Truth Social", group: "Forums & decentralized", note: "Listed in the schema; none seen in sampling" },
+  { domain: "nostr.com", label: "Nostr", group: "Forums & decentralized", note: "Listed in the schema; none seen in sampling" },
+  { domain: "bbc.com", label: "BBC", group: "News (7,000+ domains)", note: "News is ~0.04% of volume; type any other outlet directly" },
+  { domain: "reuters.com", label: "Reuters", group: "News (7,000+ domains)", note: null },
+  { domain: "nytimes.com", label: "New York Times", group: "News (7,000+ domains)", note: null },
 ] as const;
 
 /** Ready-made `url_patterns` so the syntax is discoverable rather than guessed. */
@@ -76,8 +71,9 @@ export const URL_PATTERN_EXAMPLES = [
   { value: "youtube.com/watch", label: "YouTube videos", note: "Video watch pages" },
   { value: "youtube.com/@", label: "A YouTube channel", note: "Append the handle" },
   { value: "x.com/i/status", label: "X status pages", note: null },
-  { value: "news.ycombinator.com/item", label: "Hacker News threads", note: null },
-  { value: "medium.com/@", label: "A Medium author", note: "Append the handle" },
+  { value: "tiktok.com/@", label: "A TikTok creator", note: "Append the handle" },
+  { value: "bsky.app/profile/", label: "A Bluesky profile", note: "Append the handle" },
+  { value: "threads.net/@", label: "A Threads account", note: "Append the handle" },
 ] as const;
 
 export type ProfileFilterField = {
@@ -262,7 +258,7 @@ export const FIELD_PRESETS: readonly FieldPreset[] = [
   {
     id: "default",
     label: "Everything but embeddings",
-    description: "The API default: all analysis columns except the 1024-number vector.",
+    description: "The API default: all analysis columns except the 384-number vector.",
     exclude: null,
   },
   {
@@ -298,16 +294,16 @@ export type FieldRef = {
 
 export const FIELD_REFERENCE: FieldRef[] = [
   { name: "created_at", type: "string", description: "Post timestamp (ISO 8601)", category: "Post Metadata" },
-  { name: "title", type: "string?", description: "Post title (if applicable)", category: "Post Metadata" },
-  { name: "summary", type: "string?", description: "AI-generated summary", category: "Post Metadata" },
-  { name: "raw_content", type: "string", description: "Original post text", category: "Post Metadata" },
-  { name: "translated_content", type: "string?", description: "English translation (non-EN posts)", category: "Post Metadata" },
+  { name: "title", type: "string?", description: "Post title — only populated on YouTube and Reddit, null elsewhere", category: "Post Metadata" },
+  { name: "summary", type: "json string?", description: "Platform metadata as JSON, NOT a summary: X profile info, TikTok engagement counts. Schema varies by platform — parse defensively", category: "Post Metadata" },
+  { name: "raw_content", type: "string", description: "Original unaltered text; may have media URLs appended, which are not stripped", category: "Post Metadata" },
+  { name: "translated_content", type: "string?", description: "ArgoTranslate English translation; mirrors raw_content when already English", category: "Post Metadata" },
   { name: "picture", type: "string?", description: "Image URL (if present)", category: "Post Metadata" },
   { name: "collected_at", type: "string", description: "Collection timestamp", category: "Post Metadata" },
-  { name: "author", type: "string?", description: "Author SHA1 hash of username", category: "Author Information" },
+  { name: "author", type: "string?", description: "SHA1 hash of the author identity (40 hex chars) — stable, so usable for dedup without PII", category: "Author Information" },
   { name: "username", type: "string?", description: "Public username (e.g., @user123)", category: "Author Information" },
   { name: "userprofile_url", type: "string?", description: "User profile link", category: "Author Information" },
-  { name: "location", type: "string?", description: "User-declared location", category: "Author Information" },
+  { name: "location", type: "string?", description: "Free text from the profile, X only. Not normalized, not geocoded", category: "Author Information" },
   { name: "external_id", type: "string", description: "Platform post ID", category: "Source Information" },
   { name: "external_parent_id", type: "string?", description: "Parent post ID (replies/threads)", category: "Source Information" },
   { name: "domain", type: "string", description: "Source platform", category: "Source Information" },
@@ -315,9 +311,9 @@ export const FIELD_REFERENCE: FieldRef[] = [
   { name: "language", type: "string", description: "ISO 639-1/639-2 language code", category: "Source Information" },
   { name: "analysis_classification_label", type: "string", description: "Content category", category: "Analysis - Core" },
   { name: "analysis_classification_score", type: "float", description: "Classification confidence (0-1)", category: "Analysis - Core" },
-  { name: "analysis_language_score", type: "float", description: "Language detection confidence", category: "Analysis - Core" },
+  { name: "analysis_language_score", type: "float", description: "Deprecated — not actively populated; slated for replacement", category: "Analysis - Core" },
   { name: "analysis_sentiment", type: "float", description: "Sentiment -1.0 to 1.0", category: "Analysis - Core" },
-  { name: "analysis_embedding", type: "float[]", description: "Vector embedding (excluded by default)", category: "Analysis - Core" },
+  { name: "analysis_embedding", type: "float[384]", description: "384-dim MiniLM v2 vector for clustering and semantic search (excluded by default)", category: "Analysis - Core" },
   { name: "analysis_top_keywords", type: "string[]", description: "AI-extracted top keywords", category: "Analysis - Core" },
   ...EMOTION_FIELDS.map((name) => ({
     name,
@@ -332,6 +328,23 @@ export const FIELD_REFERENCE: FieldRef[] = [
     category: "Always Excluded" as const,
   })),
 ];
+
+/** The fixed set assigned to analysis_classification_label (data dictionary, April 2026). */
+export const CLASSIFICATION_LABELS = [
+  "Technology", "Entertainment", "Sports", "Politics", "Business", "Health", "Science",
+  "People", "Cryptocurrency", "Finance", "Environment", "Economy", "Law", "Investing",
+] as const;
+
+/** external_id shapes, so a pasted ID can be matched to its platform. */
+export const EXTERNAL_ID_FORMATS = [
+  { platform: "X", format: "Numeric tweet ID", example: "2047264620533129609" },
+  { platform: "Reddit (post)", format: "t3_ + base36", example: "t3_1r8ue30" },
+  { platform: "Reddit (comment)", format: "t1_ + base36", example: "t1_m5abc12" },
+  { platform: "Threads", format: "{post_id}_{user_id}", example: "3833269525982314775_67011193166" },
+  { platform: "YouTube", format: "Video ID", example: "dQw4w9WgXcQ" },
+  { platform: "TikTok (comment)", format: "Numeric; parent is the video", example: "7628378578404543762" },
+  { platform: "Bluesky", format: "AT URI or record key", example: "varies" },
+] as const;
 
 export const EXPORT_PHASES = [
   "Validation",

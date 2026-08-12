@@ -4,7 +4,9 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ALL_LANGUAGES,
+  CLASSIFICATION_LABELS,
   EXPORT_PHASES,
+  EXTERNAL_ID_FORMATS,
   FIELD_PRESETS,
   FIELD_REFERENCE,
   HTTP_ERRORS,
@@ -406,6 +408,41 @@ function ReferenceView() {
                 </div>
               )}
             </Panel>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Panel
+                title={t.reference.classificationTitle}
+                description={t.reference.classificationDesc}
+              >
+                <div className="flex flex-wrap gap-1.5">
+                  {CLASSIFICATION_LABELS.map((label) => (
+                    <span
+                      key={label}
+                      className="rounded-full bg-surface-hover px-2.5 py-1 text-xs text-text-muted"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </Panel>
+
+              <Panel title={t.reference.idFormatsTitle} description={t.reference.idFormatsDesc}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <tbody>
+                      {EXTERNAL_ID_FORMATS.map((f) => (
+                        <tr key={f.platform} className="border-b border-border/40 last:border-0">
+                          <td className="py-2 pr-3 text-text">{f.platform}</td>
+                          <td className="py-2 pr-3 text-text-muted">{f.format}</td>
+                          <td className="py-2 font-mono text-text-subtle">{f.example}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Panel>
+            </div>
+
             {FIELD_CATEGORIES.map((category) => {
               const rows = fields.filter((f) => f.category === category);
               if (!rows.length) return null;

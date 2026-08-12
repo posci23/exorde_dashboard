@@ -206,7 +206,7 @@ export const en = {
     platformsSearch: "Search platforms\u2026",
     platformsCustom: "Other domain, e.g. example-forum.com",
     platformsFootnote:
-      "Exorde covers 200+ sources. For subreddits or channels, URL patterns usually work better than domains.",
+      "11 social platforms (~99.96% of volume) plus 7,000+ news domains. For one subreddit or channel, URL patterns work better than domains.",
     languages: "Which languages?",
     languagesHelp:
       "Detected per post, not per author. Detection on very short posts is unreliable, so a strict language filter can drop real matches.",
@@ -402,7 +402,7 @@ export const en = {
     },
     default: {
       label: "Everything but embeddings",
-      description: "The API default: all analysis columns except the 1024-number vector.",
+      description: "The API default: all analysis columns except the 384-number vector.",
     },
     full: {
       label: "Everything",
@@ -462,7 +462,7 @@ export const en = {
     filtersDesc: "Each one maps to a control on the Query page, grouped by the same section names",
     keywordsOptional: "Keywords are optional \u2014 sometimes",
     keywordsOptionalDesc: "The one validation rule worth memorizing",
-    platformsDesc: "Exorde indexes 200+ sources \u2014 add any other domain directly",
+    platformsDesc: "11 social platforms plus 7,000+ news domains \u2014 add any other directly",
     urlExamplesTitle: "URL pattern examples",
     urlExamplesDesc: "Substring matched against the post URL",
     writingTerms: "Writing keyword terms",
@@ -473,6 +473,10 @@ export const en = {
       "You don\u2019t pick these one by one \u2014 Query \u2192 \u201cWhat goes in the file?\u201d offers named presets that set exclude_fields for you. This table is what each preset is choosing between.",
     excludeFieldsOmitted: "exclude_fields omitted",
     nExcluded: (n: number) => `${n} excluded`,
+    classificationTitle: "Classification labels",
+    classificationDesc: "analysis_classification_label is one of these 14, with a 0-1 confidence score",
+    idFormatsTitle: "External ID formats",
+    idFormatsDesc: "What external_id looks like on each platform",
     requestCaps: "Request caps",
     requestCapsDesc: "Enforced client-side before you can submit",
     plans: "Plans",

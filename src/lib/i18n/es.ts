@@ -212,7 +212,7 @@ export const es: Dict = {
     platformsSearch: "Buscar plataformas\u2026",
     platformsCustom: "Otro dominio, p. ej. example-forum.com",
     platformsFootnote:
-      "Exorde cubre m\u00e1s de 200 fuentes. Para subreddits o canales, los patrones de URL suelen funcionar mejor que los dominios.",
+      "11 plataformas sociales (~99,96% del volumen) y m\u00e1s de 7000 dominios de noticias. Para un subreddit o canal concreto, los patrones de URL funcionan mejor que los dominios.",
     languages: "\u00bfQu\u00e9 idiomas?",
     languagesHelp:
       "Se detecta por publicaci\u00f3n, no por autor. La detecci\u00f3n en publicaciones muy cortas no es fiable, as\u00ed que un filtro estricto de idioma puede descartar coincidencias reales.",
@@ -415,7 +415,7 @@ export const es: Dict = {
     default: {
       label: "Todo menos los embeddings",
       description:
-        "El valor por defecto de la API: todas las columnas de an\u00e1lisis salvo el vector de 1024 n\u00fameros.",
+        "El valor por defecto de la API: todas las columnas de an\u00e1lisis salvo el vector de 384 n\u00fameros.",
     },
     full: {
       label: "Todo",
@@ -613,7 +613,7 @@ export const es: Dict = {
       "Cada uno corresponde a un control de la p\u00e1gina Consulta, agrupados con los mismos nombres de secci\u00f3n",
     keywordsOptional: "Las palabras clave son opcionales\u2026 a veces",
     keywordsOptionalDesc: "La \u00fanica regla de validaci\u00f3n que merece la pena memorizar",
-    platformsDesc: "Exorde indexa m\u00e1s de 200 fuentes; puedes a\u00f1adir cualquier otro dominio directamente",
+    platformsDesc: "11 plataformas sociales y m\u00e1s de 7000 dominios de noticias; puedes a\u00f1adir cualquier otro directamente",
     urlExamplesTitle: "Ejemplos de patrones de URL",
     urlExamplesDesc: "Se comparan como subcadena con la URL de la publicaci\u00f3n",
     writingTerms: "C\u00f3mo escribir los t\u00e9rminos de b\u00fasqueda",
@@ -624,6 +624,10 @@ export const es: Dict = {
       "No los eliges uno a uno: en Consulta \u2192 \u00ab\u00bfQu\u00e9 va en el archivo?\u00bb hay preajustes con nombre que definen exclude_fields por ti. Esta tabla es entre lo que elige cada preajuste.",
     excludeFieldsOmitted: "exclude_fields omitido",
     nExcluded: (n: number) => `${n} excluidos`,
+    classificationTitle: "Etiquetas de clasificación",
+    classificationDesc: "analysis_classification_label es una de estas 14, con una puntuación de confianza de 0 a 1",
+    idFormatsTitle: "Formatos de external_id",
+    idFormatsDesc: "Qué aspecto tiene external_id en cada plataforma",
     requestCaps: "Topes de la petici\u00f3n",
     requestCapsDesc: "Se aplican en el navegador antes de poder enviar",
     plans: "Planes",
