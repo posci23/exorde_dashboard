@@ -8,7 +8,7 @@ import { SampleCharts } from "@/components/SampleCharts";
 import { Alert, Button, PageHeader, Panel, Select, Stat, Toolbar } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { describeIssues, submitExport, validateQuery } from "@/lib/export-actions";
-import { QUERY_PRESETS, buildQueryBody } from "@/lib/query-form";
+import { QUERY_PRESETS, buildQueryBody, type QueryFormState } from "@/lib/query-form";
 import { useT } from "@/lib/i18n/locale";
 import type { PreviewResponse, SamplePost } from "@/lib/types";
 
@@ -30,6 +30,16 @@ export default function QueryPage() {
   const exportIssues = describeIssues(validateQuery(buildQueryBody(form, "export")));
   const issues = [...new Set([...exportIssues, ...previewIssues])];
   const busy = previewLoading || exportLoading;
+
+  // The buttons re-derive from `form` every render, so they unblock the moment
+  // a filter is fixed. The banners don't — they are the result of a past run.
+  // Any edit makes that result stale, so clear it as soon as the form changes,
+  // or a fixed query keeps showing the error from before the fix.
+  function updateForm(next: QueryFormState) {
+    setForm(next);
+    setError(null);
+    setNotice(null);
+  }
 
   async function runPreview() {
     const parsed = validateQuery(buildQueryBody(form, "preview"));
@@ -98,7 +108,7 @@ export default function QueryPage() {
               onChange={(e) => {
                 const preset = QUERY_PRESETS.find((p) => p.id === e.target.value);
                 if (preset) {
-                  setForm(preset.apply(form));
+                  updateForm(preset.apply(form));
                   setNotice(
                     t.query.loadedPreset(
                       t.catalog.presetLabel[preset.id] ?? preset.label,
@@ -275,7 +285,7 @@ export default function QueryPage() {
         </div>
       )}
 
-      <QueryBuilder form={form} onChange={setForm} />
+      <QueryBuilder form={form} onChange={updateForm} />
     </div>
   );
 }
