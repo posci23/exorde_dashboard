@@ -1,116 +1,123 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Alert, Button, PageHeader, PageShell, Panel, TextInput } from "@/components/ui";
-import { apiFetch, formatError } from "@/lib/browser-api";
-import { useT } from "@/lib/i18n/locale";
+import { useQueryStore } from "@/components/QueryStore";
+import {
+  Alert,
+  Button,
+  PageHeader,
+  PageShell,
+  Panel,
+  RadioCards,
+  SegmentedControl,
+} from "@/components/ui";
+import { LOCALES, useLocale } from "@/lib/i18n/locale";
 
-type SettingsInfo = {
-  envConfigured: boolean;
-  cookieConfigured: boolean;
-  keyAvailable: boolean;
-  baseUrl: string;
+type DefaultFormat = "jsonl" | "csv";
+
+const PREFS_KEY = "sentinel.preferences.v1";
+
+type Preferences = {
+  defaultFormat: DefaultFormat;
 };
 
+function loadPreferences(): Preferences {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<Preferences>;
+      if (parsed.defaultFormat === "jsonl" || parsed.defaultFormat === "csv") {
+        return { defaultFormat: parsed.defaultFormat };
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return { defaultFormat: "jsonl" };
+}
+
+function savePreferences(prefs: Preferences) {
+  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+}
+
 export default function SettingsPage() {
-  const t = useT();
-  const [info, setInfo] = useState<SettingsInfo | null>(null);
-  const [apiKey, setApiKey] = useState("");
+  const { locale, setLocale, t } = useLocale();
+  const { clearJobs, resetForm } = useQueryStore();
+  const [prefs, setPrefs] = useState<Preferences>({ defaultFormat: "jsonl" });
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void (async () => {
-      const res = await apiFetch<SettingsInfo>("/api/sentinel/settings");
-      if (res.ok && res.data) setInfo(res.data);
-    })();
+    setPrefs(loadPreferences());
   }, []);
 
-  async function saveKey() {
-    setError(null);
-    setMessage(null);
-    const res = await apiFetch("/api/sentinel/settings", {
-      method: "POST",
-      body: JSON.stringify({ apiKey }),
-    });
-    if (!res.ok) {
-      setError(formatError(res.error));
-      return;
-    }
-    setApiKey("");
-    setMessage(t.settings.saved);
-    const refreshed = await apiFetch<SettingsInfo>("/api/sentinel/settings");
-    if (refreshed.ok && refreshed.data) setInfo(refreshed.data);
+  function updatePrefs(next: Partial<Preferences>) {
+    const merged = { ...prefs, ...next };
+    setPrefs(merged);
+    savePreferences(merged);
+    setMessage(t.settings.savedPreferences);
   }
 
-  async function clearKey() {
-    await apiFetch("/api/sentinel/settings", {
-      method: "POST",
-      body: JSON.stringify({ clear: true }),
-    });
-    setMessage(t.settings.cleared);
+  function clearLocalData() {
+    clearJobs();
+    resetForm();
+    setMessage(t.settings.clearedLocal);
   }
 
   return (
     <PageShell className="space-y-6">
-      <PageHeader
-        title={t.settings.title}
-        description={t.settings.description}
-      />
+      <PageHeader title={t.settings.title} description={t.settings.description} />
 
       {message && <Alert tone="success">{message}</Alert>}
-      {error && <Alert tone="danger">{error}</Alert>}
 
-      <Panel title={t.settings.connection}>
-        <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="label-caps">{t.settings.envKey}</dt>
-            <dd className="mt-1 font-mono text-xs text-text">{info?.envConfigured ? t.settings.configured : t.settings.missing}</dd>
-          </div>
-          <div>
-            <dt className="label-caps">{t.settings.cookieKey}</dt>
-            <dd className="mt-1 font-mono text-xs text-text">{info?.cookieConfigured ? t.settings.set : t.settings.notSet}</dd>
-          </div>
-          <div>
-            <dt className="label-caps">{t.settings.readyToCall}</dt>
-            <dd className="mt-1 font-mono text-xs text-text">{info?.keyAvailable ? t.common.yes : t.common.no}</dd>
-          </div>
-        </dl>
-      </Panel>
-
-      <Panel
-        title={t.settings.recommendedTitle}
-        description={t.settings.recommendedDescription}
-      >
-        <pre className="overflow-auto rounded-xl bg-surface p-3 font-mono text-xs text-text-muted">
-{`SENTINEL_API_KEY=your_key_here`}
-        </pre>
-      </Panel>
-
-      <Panel title={t.settings.pasteTitle} description={t.settings.pasteDescription}>
-        <TextInput
-          type="password"
-          autoComplete="off"
-          placeholder="exo_…"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+      <Panel title={t.settings.languageTitle} description={t.settings.languageDescription}>
+        <SegmentedControl
+          value={locale}
+          options={LOCALES.map((option) => ({
+            value: option.value,
+            label: option.short,
+            hint: option.label,
+          }))}
+          onChange={setLocale}
         />
-        <div className="mt-3 flex gap-2">
-          <Button type="button" onClick={() => void saveKey()} disabled={!apiKey.trim()}>
-            {t.settings.saveKey}
-          </Button>
-          <Button type="button" variant="secondary" onClick={() => void clearKey()}>
-            {t.settings.clearCookieKey}
-          </Button>
-        </div>
       </Panel>
 
-      <Panel title={t.settings.authHeader}>
-        <pre className="font-mono text-xs text-text-muted">X-API-Key: YOUR_API_KEY_HERE</pre>
-        <p className="mt-2 text-xs text-text-muted">
-          {t.settings.keysLookLike} <span className="font-mono text-text">exo_AbCd1234…</span>{" "}
-          {t.settings.keysCannotRetrieve}
-        </p>
+      <Panel title={t.settings.defaultsTitle} description={t.settings.defaultsDescription}>
+        <RadioCards
+          label={t.settings.defaultFormat}
+          value={prefs.defaultFormat}
+          columns={2}
+          options={[
+            {
+              value: "jsonl",
+              label: "JSONL",
+              description: t.settings.defaultFormatJsonl,
+            },
+            {
+              value: "csv",
+              label: "CSV",
+              description: t.settings.defaultFormatCsv,
+            },
+          ]}
+          onChange={(defaultFormat) => updatePrefs({ defaultFormat })}
+        />
+      </Panel>
+
+      <Panel title={t.settings.localDataTitle} description={t.settings.localDataDescription}>
+        <p className="text-sm text-text-muted">{t.settings.localDataNote}</p>
+        <Button type="button" variant="secondary" className="mt-4" onClick={clearLocalData}>
+          {t.settings.clearLocalData}
+        </Button>
+      </Panel>
+
+      <Panel title={t.settings.deploymentTitle} description={t.settings.deploymentDescription}>
+        <p className="text-sm leading-relaxed text-text-muted">{t.settings.deploymentNote}</p>
+        <Link
+          href="/reference"
+          className="mt-3 inline-flex text-sm font-medium text-accent hover:text-accent-hover"
+        >
+          {t.settings.viewReference}
+        </Link>
       </Panel>
     </PageShell>
   );

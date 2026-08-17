@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ChipMultiSelect, type ChipOption } from "./ChipMultiSelect";
 import {
   ALL_LANGUAGES,
@@ -15,8 +15,6 @@ import {
   URL_PATTERN_EXAMPLES,
 } from "@/lib/constants";
 import {
-  buildCurl,
-  buildQueryBody,
   createEmptyQueryForm,
   effectiveExcludedFields,
   getSpanDays,
@@ -90,11 +88,9 @@ export function QueryBuilder({ form, onChange }: Props) {
     { value: "OR" as const, label: "OR", hint: t.builder.matchAny },
     { value: "AND" as const, label: "AND", hint: t.builder.matchAll },
   ];
-  const [payloadMode, setPayloadMode] = useState<"preview" | "export">("preview");
   const empty = useMemo(createEmptyQueryForm, []);
   const set = (patch: Partial<QueryFormState>) => onChange({ ...form, ...patch });
 
-  const body = buildQueryBody(form, payloadMode);
   const spanDays = getSpanDays(form.startDate, form.endDate);
   const activePreset = matchDatePreset(form);
   const hasDates = Boolean(form.startDate.trim() && form.endDate.trim());
@@ -842,37 +838,15 @@ export function QueryBuilder({ form, onChange }: Props) {
         </div>
       </Section>
 
-      <Section
-        title={t.builder.payloadTitle}
-        summary={t.builder.payloadSummary}
-        help={t.builder.payloadHelp}
-      >
-        <SegmentedControl
-          value={payloadMode}
-          options={[
-            { value: "preview" as const, label: t.builder.previewBody },
-            { value: "export" as const, label: t.builder.exportBody },
-          ]}
-          onChange={setPayloadMode}
-        />
-        <pre className="mt-3 max-h-80 overflow-auto rounded-xl bg-surface p-3 font-mono text-xs leading-relaxed text-text">
-          {JSON.stringify(body, null, 2)}
-        </pre>
-        <details className="mt-3">
-          <summary className="cursor-pointer text-xs text-text-muted underline decoration-outline-variant underline-offset-2 hover:text-text">{t.builder.copyCurl}</summary>
-          <pre className="mt-2 overflow-auto rounded-xl bg-surface p-3 font-mono text-xs text-text-muted">
-            {buildCurl(body, payloadMode)}
-          </pre>
-        </details>
+      <div className="flex justify-end pt-1">
         <Button
           type="button"
           variant="secondary"
-          className="mt-3"
           onClick={() => onChange({ ...empty, startDate: form.startDate, endDate: form.endDate })}
         >
           {t.builder.resetAll}
         </Button>
-      </Section>
+      </div>
     </div>
   );
 }

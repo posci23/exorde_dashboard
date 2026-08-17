@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { QueryBuilder } from "@/components/QueryBuilder";
 import { PreviewResults, QueryAlerts } from "@/components/PreviewResults";
 import { useQueryStore } from "@/components/QueryStore";
@@ -103,7 +104,18 @@ export default function QueryPage() {
         </div>
       </Toolbar>
 
-      <PageHeader title={t.query.title} description={t.query.description} />
+      <PageHeader
+        title={t.query.title}
+        description={t.query.description}
+        actions={
+          <Link
+            href="/reference?tab=filters"
+            className="inline-flex h-10 items-center rounded-full border border-accent/25 bg-surface/80 px-5 text-sm font-medium text-accent transition-colors hover:bg-accent-soft hover:text-accent-on-soft"
+          >
+            {t.query.openReference}
+          </Link>
+        }
+      />
 
       <QueryAlerts
         showIssues={showIssues}

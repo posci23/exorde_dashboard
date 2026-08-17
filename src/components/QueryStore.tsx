@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createEmptyQueryForm, type QueryFormState } from "@/lib/query-form";
+import { loadPreferences } from "@/lib/preferences";
 import type { ExportJobResponse, PreviewResponse } from "@/lib/types";
 
 // v2: `excludeFieldsMode` became the richer `fieldPreset`.
@@ -19,6 +20,7 @@ const JOBS_KEY = "sentinel.trackedJobs.v1";
 type Store = {
   form: QueryFormState;
   setForm: (form: QueryFormState) => void;
+  resetForm: () => void;
   lastPreview: PreviewResponse | null;
   setLastPreview: (preview: PreviewResponse | null) => void;
   trackedJobs: ExportJobResponse[];
@@ -38,7 +40,12 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(FORM_KEY);
-      if (raw) setFormState({ ...createEmptyQueryForm(), ...JSON.parse(raw) });
+      if (raw) {
+        setFormState({ ...createEmptyQueryForm(), ...JSON.parse(raw) });
+      } else {
+        const prefs = loadPreferences();
+        setFormState({ ...createEmptyQueryForm(), outputFormat: prefs.defaultFormat });
+      }
       const jobs = localStorage.getItem(JOBS_KEY);
       if (jobs) setTrackedJobs(JSON.parse(jobs));
     } catch {
@@ -65,10 +72,18 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(JOBS_KEY);
   }, []);
 
+  const resetForm = useCallback(() => {
+    const prefs = loadPreferences();
+    const empty = { ...createEmptyQueryForm(), outputFormat: prefs.defaultFormat };
+    setFormState(empty);
+    localStorage.removeItem(FORM_KEY);
+  }, []);
+
   const value = useMemo(
     () => ({
       form,
       setForm,
+      resetForm,
       lastPreview,
       setLastPreview,
       trackedJobs,
@@ -76,7 +91,7 @@ export function QueryStoreProvider({ children }: { children: ReactNode }) {
       clearJobs,
       ready,
     }),
-    [form, setForm, lastPreview, trackedJobs, upsertJob, clearJobs, ready],
+    [form, setForm, resetForm, lastPreview, trackedJobs, upsertJob, clearJobs, ready],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
