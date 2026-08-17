@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Alert, Button, PageHeader, Panel, TextInput } from "@/components/ui";
+import { Alert, Button, PageHeader, PageShell, Panel, TextInput } from "@/components/ui";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { useT } from "@/lib/i18n/locale";
 
@@ -52,7 +52,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageShell className="space-y-6">
       <PageHeader
         title={t.settings.title}
         description={t.settings.description}
@@ -82,7 +82,7 @@ export default function SettingsPage() {
         title={t.settings.recommendedTitle}
         description={t.settings.recommendedDescription}
       >
-        <pre className="overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
+        <pre className="overflow-auto rounded-xl bg-surface p-3 font-mono text-xs text-text-muted">
 {`SENTINEL_API_KEY=your_key_here`}
         </pre>
       </Panel>
@@ -112,6 +112,6 @@ export default function SettingsPage() {
           {t.settings.keysCannotRetrieve}
         </p>
       </Panel>
-    </div>
+    </PageShell>
   );
 }

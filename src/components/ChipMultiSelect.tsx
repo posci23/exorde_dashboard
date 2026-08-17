@@ -124,7 +124,7 @@ export function ChipMultiSelect({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
-        className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-bg px-3 py-2 text-left text-sm outline-none transition-colors hover:border-border-strong focus:border-accent"
+        className="flex w-full items-center justify-between gap-3 rounded-lg border border-outline-variant bg-surface px-3 py-2.5 text-left text-sm outline-none transition-colors hover:border-outline focus:border-accent"
       >
         <span className={`truncate ${selected.length ? "text-text" : "text-text-muted"}`}>{summary}</span>
         <span className="shrink-0 text-xs text-text-subtle" aria-hidden>{open ? "▲" : "▼"}</span>
@@ -135,7 +135,7 @@ export function ChipMultiSelect({
           id={panelId}
           role="group"
           aria-label={t.chips.optionsAria(label)}
-          className="rounded-xl border border-border bg-surface-raised p-2 shadow-xl shadow-black/40"
+          className="rounded-xl bg-surface-container-low p-2 shadow-[var(--shadow-3)]"
         >
           <TextInput
             autoFocus
@@ -245,8 +245,8 @@ export function ChipMultiSelect({
                 onClick={() => toggle(value, false)}
                 className={`rounded-full px-2.5 py-1 text-xs transition-colors ${
                   option
-                    ? "bg-accent-soft text-accent hover:bg-accent/20"
-                    : "bg-surface-hover font-mono text-text-muted hover:text-danger"
+                    ? "bg-accent-soft text-accent-on-soft hover:bg-accent-soft/80"
+                    : "bg-surface-container-high font-mono text-text-muted hover:text-danger"
                 }`}
               >
                 {option?.label ?? value} ×

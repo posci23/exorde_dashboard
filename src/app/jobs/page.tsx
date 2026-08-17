@@ -10,6 +10,7 @@ import {
   Button,
   EmptyState,
   PageHeader,
+  PageShell,
   Panel,
   SegmentedControl,
   Select,
@@ -40,7 +41,7 @@ function phasesDone(status: string): number {
 
 export default function JobsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-text-muted">Loading…</p>}>
+    <Suspense fallback={<PageShell><p className="text-sm text-text-muted">Loading…</p></PageShell>}>
       <JobsView />
     </Suspense>
   );
@@ -147,17 +148,17 @@ function JobsView() {
     );
   }
 
-  if (!ready) return <p className="text-sm text-text-muted">Loading…</p>;
+  if (!ready) return <PageShell><p className="text-sm text-text-muted">Loading…</p></PageShell>;
 
   const rows: ExportJobResponse[] = tab === "session" ? trackedJobs : (history?.exports ?? []);
 
   return (
-    <div className="space-y-5">
+    <PageShell className="space-y-5">
       <PageHeader
         title={t.jobs.title}
         description={t.jobs.description(LIMITS.downloadsExpiryHours)}
         actions={
-          <Link href="/query">
+          <Link href="/">
             <Button type="button" variant="secondary">
               {t.jobs.newQuery}
             </Button>
@@ -243,7 +244,7 @@ function JobsView() {
                   href={job.download_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-flex h-9 items-center rounded-md bg-accent-solid px-3.5 text-sm font-medium text-accent-fg transition-colors hover:bg-accent-hover"
+                  className="mt-3 inline-flex h-10 items-center rounded-full bg-accent-solid px-5 text-sm font-medium text-accent-fg transition-colors hover:bg-accent-hover"
                 >
                   {t.jobs.downloadFile}
                 </a>
@@ -264,8 +265,8 @@ function JobsView() {
                   return (
                     <span
                       key={phase}
-                      className={`rounded-md border px-2 py-1 text-xs ${
-                        done ? "border-accent/40 bg-accent-soft text-accent" : "border-border text-text-muted"
+                      className={`rounded-full px-2.5 py-1 text-xs ${
+                        done ? "bg-surface-container-highest text-text" : "bg-surface-container-high text-text-muted"
                       }`}
                     >
                       {i + 1}. {t.catalog.phase[phase] ?? phase}
@@ -278,7 +279,7 @@ function JobsView() {
         ) : (
           <EmptyState>
             {t.jobs.nothingWatched}{" "}
-            <Link href="/query" className="text-accent underline">
+            <Link href="/" className="underline decoration-outline-variant underline-offset-2">
               {t.jobs.buildAQuery}
             </Link>
             {t.jobs.andStartExport}
@@ -357,7 +358,7 @@ function JobsView() {
                 {rows.map((row) => (
                   <tr
                     key={row.job_id}
-                    className={`border-b border-border/50 ${row.job_id === activeJobId ? "bg-accent/5" : ""}`}
+                    className={`border-b border-outline-variant/50 ${row.job_id === activeJobId ? "bg-surface-container-high" : ""}`}
                   >
                     <td className="px-2 py-2 font-mono">{row.job_id}</td>
                     <td className="px-2 py-2">
@@ -397,6 +398,6 @@ function JobsView() {
           </div>
         )}
       </Panel>
-    </div>
+    </PageShell>
   );
 }

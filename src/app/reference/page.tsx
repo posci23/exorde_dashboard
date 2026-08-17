@@ -23,7 +23,7 @@ import {
   WORKFLOW_STEPS,
 } from "@/lib/reference";
 import { QUERY_PRESETS } from "@/lib/query-form";
-import { Badge, EmptyState, PageHeader, Panel, TextInput } from "@/components/ui";
+import { Badge, EmptyState, PageHeader, PageShell, Panel, TextInput } from "@/components/ui";
 import { useT } from "@/lib/i18n/locale";
 
 const TABS = [
@@ -54,7 +54,7 @@ function matches(query: string, ...text: (string | undefined)[]) {
 
 export default function ReferencePage() {
   return (
-    <Suspense fallback={<p className="text-sm text-text-muted">Loading…</p>}>
+    <Suspense fallback={<PageShell><p className="text-sm text-text-muted">Loading…</p></PageShell>}>
       <ReferenceView />
     </Suspense>
   );
@@ -99,7 +99,7 @@ function ReferenceView() {
   );
 
   return (
-    <div className="space-y-6">
+    <PageShell className="space-y-6">
       <PageHeader
         title={t.reference.title}
         description={t.reference.description}
@@ -109,7 +109,7 @@ function ReferenceView() {
         <div
           role="tablist"
           aria-label="Reference sections"
-          className="flex flex-wrap gap-1 rounded-md border border-border bg-bg p-1"
+          className="flex flex-wrap gap-1 rounded-full bg-surface-container-high p-1"
         >
           {TABS.map((item) => (
             <button
@@ -120,10 +120,10 @@ function ReferenceView() {
               aria-selected={tab === item.id}
               aria-controls="reference-panel"
               onClick={() => selectTab(item.id)}
-              className={`rounded-[4px] px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                 tab === item.id
-                  ? "bg-accent-solid text-accent-fg"
-                  : "text-text-muted hover:bg-surface-hover hover:text-text"
+                  ? "bg-accent-soft text-text-on-soft"
+                  : "text-text-muted hover:text-text"
               }`}
             >
               {t.reference[item.key]}
@@ -156,7 +156,7 @@ function ReferenceView() {
               <ol className="space-y-3">
                 {WORKFLOW_STEPS.map((step, i) => (
                   <li key={step.title} className="flex gap-4">
-                    <span className="tnum mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-medium text-accent">
+                    <span className="tnum mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-xs font-medium text-text">
                       {i + 1}
                     </span>
                     <div className="min-w-0">
@@ -239,7 +239,7 @@ function ReferenceView() {
                     >
                       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                         <span className="text-sm font-medium text-text">{f.label}</span>
-                        <code className="font-mono text-xs text-accent">{f.apiField}</code>
+                        <code className="font-mono text-xs text-text">{f.apiField}</code>
                         <Badge>{f.section}</Badge>
                         <span className="text-xs text-text-subtle">{f.limit}</span>
                       </div>
@@ -265,10 +265,10 @@ function ReferenceView() {
               <p className="text-sm leading-relaxed text-text-muted">
                 You must supply <strong className="text-text">either</strong> keyword groups{" "}
                 <strong className="text-text">or</strong> at least one selective filter:{" "}
-                <code className="font-mono text-xs text-accent">usernames</code>,{" "}
-                <code className="font-mono text-xs text-accent">external_ids</code>,{" "}
-                <code className="font-mono text-xs text-accent">external_parent_ids</code>, or{" "}
-                <code className="font-mono text-xs text-accent">url_patterns</code>. Proximity rules
+                <code className="font-mono text-xs text-text">usernames</code>,{" "}
+                <code className="font-mono text-xs text-text">external_ids</code>,{" "}
+                <code className="font-mono text-xs text-text">external_parent_ids</code>, or{" "}
+                <code className="font-mono text-xs text-text">url_patterns</code>. Proximity rules
                 always need keywords too. The Query page enforces this before you can run anything.
               </p>
             </Panel>
@@ -305,7 +305,7 @@ function ReferenceView() {
                 <div className="space-y-2">
                   {URL_PATTERN_EXAMPLES.map((p) => (
                     <div key={p.value} className="border-b border-border/50 pb-2 last:border-0">
-                      <code className="font-mono text-xs text-accent">{p.value}</code>
+                      <code className="font-mono text-xs text-text">{p.value}</code>
                       <p className="mt-0.5 text-xs text-text-muted">
                         {p.label}
                         {p.note ? ` — ${p.note}` : ""}
@@ -348,7 +348,7 @@ function ReferenceView() {
                       className="border-b border-border/50 pb-3 last:border-0 last:pb-0"
                     >
                       <div className="flex flex-wrap items-baseline gap-3">
-                        <code className="rounded-md bg-bg px-2 py-1 font-mono text-xs text-accent">
+                        <code className="rounded-md bg-bg px-2 py-1 font-mono text-xs text-text">
                           {s.syntax}
                         </code>
                         <span className="text-sm font-medium text-text">{s.name}</span>
@@ -466,7 +466,7 @@ function ReferenceView() {
                       <tbody>
                         {rows.map((f) => (
                           <tr key={f.name} className="border-b border-border/40 last:border-0">
-                            <td className="py-2 pr-4 font-mono text-accent">{f.name}</td>
+                            <td className="py-2 pr-4 font-mono text-text">{f.name}</td>
                             <td className="py-2 pr-4 font-mono text-text-subtle">{f.type}</td>
                             <td className="py-2 text-text-muted">{t.catalog.fieldDesc[f.name] ?? f.description}</td>
                           </tr>
@@ -597,7 +597,7 @@ function ReferenceView() {
                       matches(query, String(r.code), r.scenario, r.tip),
                     ).map((row) => (
                       <tr key={row.code} className="border-b border-border/40 last:border-0">
-                        <td className="tnum py-2.5 pr-4 font-mono text-accent">{row.code}</td>
+                        <td className="tnum py-2.5 pr-4 font-mono text-text">{row.code}</td>
                         <td className="py-2.5 pr-4 text-text">{row.scenario}</td>
                         <td className="py-2.5 text-text-muted">{row.tip}</td>
                       </tr>
@@ -609,6 +609,6 @@ function ReferenceView() {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

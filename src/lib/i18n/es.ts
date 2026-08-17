@@ -31,9 +31,13 @@ export const es: Dict = {
     brand: "Hybrid Atlantic",
     product: "Sentinel",
     signalIndex: "Índice de señales",
+    search: { label: "Buscar", hint: "Encontrar publicaciones" },
+    jobs: { label: "Trabajos", hint: "Seguimiento · descarga · historial" },
+    advanced: { label: "Avanzado", hint: "Filtros, estado y ajustes" },
+    filters: { label: "Filtros", hint: "Constructor de consultas" },
+    status: { label: "Estado", hint: "Salud, cola y cuota" },
     overview: { label: "Resumen", hint: "Estado, cola y tu cuota" },
     query: { label: "Consulta", hint: "Construir · previsualizar · exportar" },
-    jobs: { label: "Trabajos", hint: "Seguimiento · descarga · historial" },
     reference: { label: "Referencia", hint: "Todas las opciones, campos y límites" },
     settings: { label: "Ajustes", hint: "Clave de API" },
   },
@@ -62,8 +66,17 @@ export const es: Dict = {
     customValueAriaPlain: "Valor personalizado",
   },
 
+  search: {
+    placeholder: "Buscar publicaciones, temas o autores",
+    submit: "Buscar",
+    tagline: "Previsualiza coincidencias del índice de señales. Los filtros y la exportación están en Avanzado.",
+    advanced: "Filtros avanzados",
+    advancedHint: "Abrir el constructor de consultas",
+    suggestions: "O parte de un ejemplo",
+  },
+
   overview: {
-    title: "Resumen",
+    title: "Estado",
     description:
       "Si la API está disponible, si la cola tiene espacio y cuánta cuota te queda.",
     healthError: (msg: string) => `Estado: ${msg}`,
@@ -114,9 +127,9 @@ export const es: Dict = {
   },
 
   query: {
-    title: "Consulta",
+    title: "Filtros",
     description:
-      "Responde a las preguntas de abajo que necesites: todas son opcionales salvo una palabra clave o un autor. La previsualizaci\u00f3n es gratis e inmediata; la exportaci\u00f3n ejecuta la misma consulta completa y aparece en Trabajos. Pasa el cursor por cualquier ? para ver una explicaci\u00f3n.",
+      "Todos los filtros que acepta la API. La previsualización es gratis; la exportación ejecuta la misma consulta completa y aparece en Trabajos.",
     examples: "Consultas de ejemplo\u2026",
     loadedPreset: (label: string, desc: string) => `Preajuste cargado \u00ab${label}\u00bb \u2014 ${desc}`,
     issues: (n: number) => `${n} ${n > 1 ? "problemas" : "problema"}`,

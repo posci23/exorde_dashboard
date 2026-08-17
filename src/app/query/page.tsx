@@ -1,105 +1,42 @@
 "use client";
 
-import { Fragment, useState } from "react";
-import { useRouter } from "next/navigation";
 import { QueryBuilder } from "@/components/QueryBuilder";
+import { PreviewResults, QueryAlerts } from "@/components/PreviewResults";
 import { useQueryStore } from "@/components/QueryStore";
-import { SampleCharts } from "@/components/SampleCharts";
-import { Alert, Button, PageHeader, Panel, Select, Stat, Toolbar } from "@/components/ui";
-import { apiFetch, formatError } from "@/lib/browser-api";
-import { describeIssues, submitExport, validateQuery } from "@/lib/export-actions";
-import { QUERY_PRESETS, buildQueryBody, type QueryFormState } from "@/lib/query-form";
+import { Button, PageHeader, PageShell, Select, Toolbar } from "@/components/ui";
+import { useQueryActions } from "@/components/useQueryActions";
+import { QUERY_PRESETS } from "@/lib/query-form";
 import { useT } from "@/lib/i18n/locale";
-import type { PreviewResponse, SamplePost } from "@/lib/types";
 
 export default function QueryPage() {
-  const router = useRouter();
   const t = useT();
-  const { form, setForm, lastPreview, setLastPreview, upsertJob, ready } = useQueryStore();
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [showIssues, setShowIssues] = useState(false);
+  const { ready } = useQueryStore();
+  const {
+    form,
+    lastPreview,
+    setLastPreview,
+    updateForm,
+    runPreview,
+    startExport,
+    previewIssues,
+    exportIssues,
+    issues,
+    busy,
+    previewLoading,
+    exportLoading,
+    error,
+    notice,
+    setNotice,
+    showIssues,
+    setShowIssues,
+  } = useQueryActions();
 
-  // The two bodies validate differently: preview drops the export-only row caps,
-  // so a long range that a per-day cap makes legal for export is still too wide
-  // to preview. Each button therefore reads its own verdict.
-  const previewIssues = describeIssues(validateQuery(buildQueryBody(form, "preview")));
-  const exportIssues = describeIssues(validateQuery(buildQueryBody(form, "export")));
-  const issues = [...new Set([...exportIssues, ...previewIssues])];
-  const busy = previewLoading || exportLoading;
-
-  // The buttons re-derive from `form` every render, so they unblock the moment
-  // a filter is fixed. The banners don't — they are the result of a past run.
-  // Any edit makes that result stale, so clear it as soon as the form changes,
-  // or a fixed query keeps showing the error from before the fix.
-  function updateForm(next: QueryFormState) {
-    setForm(next);
-    setError(null);
-    setNotice(null);
-  }
-
-  async function runPreview() {
-    const parsed = validateQuery(buildQueryBody(form, "preview"));
-    if (!parsed.success) {
-      setError(t.query.cantPreview(describeIssues(parsed).join("; ")));
-      setShowIssues(true);
-      return;
-    }
-
-    setPreviewLoading(true);
-    setError(null);
-    setNotice(null);
-    const res = await apiFetch<PreviewResponse>("/api/sentinel/preview", {
-      method: "POST",
-      body: JSON.stringify(parsed.data),
-    });
-    setPreviewLoading(false);
-
-    if (!res.ok || !res.data) {
-      setError(formatError(res.error));
-      return;
-    }
-    setLastPreview(res.data);
-  }
-
-  async function startExport() {
-    const parsed = validateQuery(buildQueryBody(form, "export"));
-    if (!parsed.success) {
-      setError(t.query.cantExport(describeIssues(parsed).join("; ")));
-      setShowIssues(true);
-      return;
-    }
-
-    setExportLoading(true);
-    setError(null);
-    setNotice(null);
-    const result = await submitExport(parsed.data);
-    setExportLoading(false);
-
-    if (result.kind === "error") {
-      setError(result.message);
-      return;
-    }
-
-    if (result.kind === "created") {
-      upsertJob({
-        job_id: result.jobId,
-        status: "pending",
-        job_type: "export",
-      });
-    }
-    router.push(`/jobs?job=${encodeURIComponent(result.jobId)}`);
-  }
-
-  if (!ready) return <p className="text-sm text-text-muted">{t.common.loading}</p>;
+  if (!ready) return <PageShell><p className="text-sm text-text-muted">{t.common.loading}</p></PageShell>;
 
   const presetsByCategory = [...new Set(QUERY_PRESETS.map((p) => p.category))];
 
   return (
-    <div className="space-y-5">
+    <PageShell className="space-y-5">
       <Toolbar>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <div className="w-60">
@@ -138,7 +75,7 @@ export default function QueryPage() {
             onClick={() => setShowIssues((v) => !v)}
             disabled={!issues.length}
             title={issues.length ? t.query.showIssues : t.query.queryReady}
-            className={`h-9 rounded-md px-3 text-xs font-medium transition-colors ${
+            className={`h-8 rounded-full px-3 text-xs font-medium transition-colors ${
               issues.length
                 ? "bg-warning/10 text-warning hover:bg-warning/15"
                 : "bg-success/10 text-success"
@@ -148,6 +85,7 @@ export default function QueryPage() {
           </button>
           <Button
             type="button"
+            variant="tonal"
             onClick={() => void runPreview()}
             disabled={busy || previewIssues.length > 0}
             title={previewIssues.length ? previewIssues.join("; ") : t.query.previewHint}
@@ -156,7 +94,6 @@ export default function QueryPage() {
           </Button>
           <Button
             type="button"
-            variant="secondary"
             onClick={() => void startExport()}
             disabled={busy || exportIssues.length > 0}
             title={exportIssues.length ? exportIssues.join("; ") : t.query.exportHint}
@@ -166,126 +103,30 @@ export default function QueryPage() {
         </div>
       </Toolbar>
 
-      <PageHeader
-        title={t.query.title}
-        description={t.query.description}
+      <PageHeader title={t.query.title} description={t.query.description} />
+
+      <QueryAlerts
+        showIssues={showIssues}
+        issues={issues}
+        previewIssues={previewIssues}
+        exportIssues={exportIssues}
+        notice={notice}
+        error={error}
       />
 
-      {showIssues && issues.length > 0 && (
-        <Alert tone="warning">
-          <ul className="list-inside list-disc space-y-0.5">
-            {issues.map((issue) => {
-              // An issue can block one action and not the other, so say which.
-              const scope = !exportIssues.includes(issue)
-                ? t.query.previewOnly
-                : !previewIssues.includes(issue)
-                  ? t.query.exportOnly
-                  : null;
-              return (
-                <li key={issue}>
-                  {issue}
-                  {scope && <span className="ml-1.5 text-text-subtle">({scope})</span>}
-                </li>
-              );
-            })}
-          </ul>
-        </Alert>
-      )}
-      {notice && <Alert tone="info">{notice}</Alert>}
-      {error && <Alert tone="danger">{error}</Alert>}
-
       {lastPreview && (
-        <div className="space-y-4 rounded-xl border border-accent/20 bg-accent-soft p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-text">{t.query.previewResult}</h2>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setLastPreview(null)}>
-              {t.common.dismiss}
-            </Button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Stat
-              label={t.query.matchingPosts}
-              value={lastPreview.count.toLocaleString()}
-              hint={t.query.matchingPostsHint}
-            />
-            <Stat label={t.query.queryTime} value={`${lastPreview.query_time_seconds}s`} />
-            <Stat label={t.query.estSize} value={`${lastPreview.estimated_export_size_mb} MB`} />
-          </div>
-          <SampleCharts samples={lastPreview.sample ?? []} />
-          <Panel
-            title={t.query.sampleRows(lastPreview.sample?.length ?? 0)}
-            description={t.query.sampleRowsHint}
-          >
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] border-collapse text-left text-xs">
-                <thead className="text-text-muted">
-                  <tr className="border-b border-border">
-                    {[t.query.colPosted, t.query.colPlatform, t.query.colLang, t.query.colSentiment, t.query.colContent, ""].map((h) => (
-                      <th scope="col" key={h || "actions"} className="px-2 py-2 font-medium">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(lastPreview.sample ?? []).map((row: SamplePost, i) => {
-                    const id = String(row.external_id ?? i);
-                    return (
-                      <Fragment key={id}>
-                        <tr className="border-b border-border/60 align-top">
-                          <td className="whitespace-nowrap px-2 py-2 font-mono">
-                            {row.created_at ?? "—"}
-                          </td>
-                          <td className="px-2 py-2">{row.domain ?? "—"}</td>
-                          <td className="px-2 py-2">{row.language ?? "—"}</td>
-                          <td className="px-2 py-2 font-mono">
-                            {typeof row.analysis_sentiment === "number"
-                              ? row.analysis_sentiment.toFixed(2)
-                              : "—"}
-                          </td>
-                          <td className="max-w-md px-2 py-2 text-text-muted">
-                            {(row.raw_content ?? "").slice(0, 160)}
-                            {(row.raw_content?.length ?? 0) > 160 ? "…" : ""}
-                          </td>
-                          <td className="px-2 py-2">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setExpanded(expanded === id ? null : id)}
-                            >
-                              {expanded === id ? t.query.hide : "JSON"}
-                            </Button>
-                          </td>
-                        </tr>
-                        {expanded === id && (
-                          <tr>
-                            <td colSpan={6} className="bg-bg px-2 py-2">
-                              <pre className="overflow-auto font-mono text-xs text-text-muted">
-                                {JSON.stringify(row, null, 2)}
-                              </pre>
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Panel>
-          <details>
-            <summary className="cursor-pointer text-xs text-accent">
-              {t.query.filtersApplied}
-            </summary>
-            <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
-              {JSON.stringify(lastPreview.filters_applied, null, 2)}
-            </pre>
-          </details>
-        </div>
+        <PreviewResults
+          preview={lastPreview}
+          onDismiss={() => setLastPreview(null)}
+          onExport={() => void startExport()}
+          exportLoading={exportLoading}
+          exportDisabled={busy || exportIssues.length > 0}
+          exportTitle={exportIssues.length ? exportIssues.join("; ") : t.query.exportHint}
+          showExport={false}
+        />
       )}
 
       <QueryBuilder form={form} onChange={updateForm} />
-    </div>
+    </PageShell>
   );
 }

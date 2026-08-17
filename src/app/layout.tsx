@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import { QueryStoreProvider } from "@/components/QueryStore";
-import { Sidebar } from "@/components/Sidebar";
+import { NavRail } from "@/components/NavRail";
 import { LocaleProvider } from "@/lib/i18n/locale";
 import "./globals.css";
 
@@ -35,10 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <LocaleProvider>
           <QueryStoreProvider>
             <div className="flex min-h-screen">
-              <Sidebar />
-              <main className="min-w-0 flex-1">
-                <div className="mx-auto max-w-6xl px-8 py-10">{children}</div>
-              </main>
+              <NavRail />
+              <main className="min-w-0 flex-1">{children}</main>
             </div>
           </QueryStoreProvider>
         </LocaleProvider>

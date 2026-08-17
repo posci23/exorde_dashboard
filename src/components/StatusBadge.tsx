@@ -4,13 +4,13 @@ export function StatusBadge({ status }: { status: string }) {
     normalized === "completed" || normalized === "healthy" || normalized === "connected"
       ? "bg-success/15 text-success"
       : normalized === "running" || normalized === "pending" || normalized === "validated"
-        ? "bg-info/15 text-info"
+        ? "bg-surface-container-high text-text"
         : normalized === "failed" || normalized === "rejected" || normalized === "degraded"
           ? "bg-danger/15 text-danger"
           : "bg-warning/15 text-warning";
 
   return (
-    <span className={`inline-flex items-center rounded px-2 py-0.5 font-mono text-xs uppercase tracking-wide ${tone}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-xs uppercase tracking-wide ${tone}`}>
       {status}
     </span>
   );

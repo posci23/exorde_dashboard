@@ -29,9 +29,13 @@ export const en = {
     brand: "Hybrid Atlantic",
     product: "Sentinel",
     signalIndex: "Signal index",
+    search: { label: "Search", hint: "Find posts" },
+    jobs: { label: "Jobs", hint: "Monitor · download · history" },
+    advanced: { label: "Advanced", hint: "Filters, status, and settings" },
+    filters: { label: "Filters", hint: "Full query builder" },
+    status: { label: "Status", hint: "Health, queue, quota" },
     overview: { label: "Overview", hint: "Health, queue, your quota" },
     query: { label: "Query", hint: "Build · preview · export" },
-    jobs: { label: "Jobs", hint: "Monitor · download · history" },
     reference: { label: "Reference", hint: "Every option, field, and limit" },
     settings: { label: "Settings", hint: "API key" },
   },
@@ -60,8 +64,17 @@ export const en = {
     customValueAriaPlain: "Custom value",
   },
 
+  search: {
+    placeholder: "Search posts, topics, or authors",
+    submit: "Search",
+    tagline: "Preview matching posts from the signal index. Filters and export live under Advanced.",
+    advanced: "Advanced filters",
+    advancedHint: "Open the full query builder",
+    suggestions: "Or start from an example",
+  },
+
   overview: {
-    title: "Overview",
+    title: "Status",
     description:
       "Whether the API is up, whether the queue has room, and how much of your quota is left.",
     healthError: (msg: string) => `Health: ${msg}`,
@@ -110,9 +123,9 @@ export const en = {
   },
 
   query: {
-    title: "Query",
+    title: "Filters",
     description:
-      "Answer as many of the questions below as you need \u2014 every one is optional except a keyword or an author. Preview is free and instant; export runs the same query in full and lands in Jobs. Hover any ? for an explanation.",
+      "Every filter the API accepts. Preview is free; export runs the same query in full and lands in Jobs.",
     examples: "Example queries\u2026",
     loadedPreset: (label: string, desc: string) => `Loaded preset \u201c${label}\u201d \u2014 ${desc}`,
     issues: (n: number) => `${n} issue${n > 1 ? "s" : ""}`,

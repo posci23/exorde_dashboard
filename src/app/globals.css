@@ -1,48 +1,69 @@
 @import "tailwindcss";
 
 /*
- * Hybrid Atlantic: warm paper, ink, and a single cobalt accent. Palette values
- * are taken from hybridatlantic.com so the console reads as part of the brand.
+ * Hybrid Atlantic × Material 3
  *
- * Three rules keep it consistent:
- *   1. Neutrals carry the whole UI; cobalt marks actions and active state only.
- *   2. Three radii — 6px controls, 12px cards, full pills. Nothing else.
- *   3. Three text sizes below body — 12px is the floor. No ad-hoc pixel values.
+ * Surfaces and type are cool neutrals. Cobalt is a focus/emphasis color, not a
+ * theme: at most one filled cobalt control should be on screen at a time.
+ * Selected state uses the soft wash (#DCE8FA), never a second solid blue field.
  */
 :root {
-  /* Paper — the brand's warm off-white ground. */
-  --bg: #f4f1ea;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-raised: #faf8f3;
-  --surface-hover: #ece7dc;
-  --border: #d8d2c4;
-  --border-strong: #bdb5a2;
+  --surface-dim: #f3f4f6;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f4f5f7;
+  --surface-container: #eeeef2;
+  --surface-container-high: #e8eaed;
+  --surface-container-highest: #e1e3e6;
+  --surface-raised: #f4f5f7;
+  --surface-hover: #e8eaed;
+  --outline: #74777f;
+  --outline-variant: #c4c7cf;
+  --border: #c4c7cf;
+  --border-strong: #8e9099;
 
-  /* Ink */
-  --text: #15181e;
-  --text-muted: #3a3f49;
-  --text-subtle: #6d7280;
+  --text: #1a1c1e;
+  --text-muted: #44474e;
+  --text-subtle: #74777f;
 
-  /* Cobalt: actions, focus, active state. */
   --accent: #004aad;
   --accent-solid: #004aad;
   --accent-hover: #003b8a;
   --accent-fg: #ffffff;
   --accent-soft: #dce8fa;
-  --accent-ring: rgba(0, 74, 173, 0.4);
+  --accent-on-soft: #003b8a;
+  --accent-ring: rgba(0, 74, 173, 0.36);
 
-  /* Status — reserved for state, never decoration. Darkened for legibility on paper. */
   --success: #1a7f4b;
   --danger: #b3261e;
   --warning: #8a5a00;
-  --info: #004aad;
+  --info: #44474e;
+
+  --shape-xs: 4px;
+  --shape-sm: 8px;
+  --shape-md: 12px;
+  --shape-lg: 16px;
+  --shape-xl: 28px;
+  --easing: cubic-bezier(0.2, 0, 0, 1);
+  --shadow-1: 0 1px 2px rgba(26, 28, 30, 0.08), 0 1px 3px 1px rgba(26, 28, 30, 0.06);
+  --shadow-2: 0 1px 2px rgba(26, 28, 30, 0.1), 0 2px 6px 2px rgba(26, 28, 30, 0.08);
+  --shadow-3: 0 4px 8px 3px rgba(26, 28, 30, 0.08), 0 1px 3px rgba(26, 28, 30, 0.1);
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
   --color-surface-raised: var(--surface-raised);
   --color-surface-hover: var(--surface-hover);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-text: var(--text);
@@ -53,6 +74,7 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-on-soft: var(--accent-on-soft);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-success: var(--success);
@@ -75,15 +97,10 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  /* Flat ground — no gradient. Depth comes from surface steps, not glow. */
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
 }
 
-/*
- * Form/link reset must live in @layer base. Unlayered `color: inherit` beats
- * Tailwind utilities, which left primary cobalt buttons with ink-black text.
- */
 @layer base {
   a {
     color: inherit;
@@ -110,13 +127,11 @@ body {
   }
 }
 
-/* One focus treatment everywhere, keyboard-only. */
 :focus-visible {
-  outline: 2px solid var(--accent-ring);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* Uppercase micro-label — the only text below 12px, and only for labels. */
 .label-caps {
   font-size: 0.6875rem;
   line-height: 1rem;
@@ -125,9 +140,29 @@ body {
   color: var(--text-subtle);
 }
 
-/* Tabular figures so counts and quotas don't jitter as they update. */
 .tnum {
   font-variant-numeric: tabular-nums;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+.icon-btn {
+  display: inline-flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--text);
+  transition: background-color 200ms var(--easing);
+}
+
+.icon-btn:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
 }
 
 ::-webkit-scrollbar {
@@ -140,23 +175,16 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
+  background: var(--outline-variant);
   border-radius: 999px;
   border: 2px solid var(--bg);
 }
 
-/* Native form controls (date pickers, checkboxes) follow the light ground. */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}
+
 html {
   color-scheme: light;
   accent-color: var(--accent);
-}
-
-/* Display face for the wordmark and page titles. */
-.font-display {
-  font-family: var(--font-display);
-  font-optical-sizing: auto;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-subtle);
 }

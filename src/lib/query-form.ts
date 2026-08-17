@@ -90,7 +90,7 @@ const defaults = relativeDateRange(1);
 
 export function createEmptyQueryForm(): QueryFormState {
   return {
-    keywordGroups: [{ termsText: "bitcoin, ethereum", operator: "OR" }],
+    keywordGroups: [{ termsText: "", operator: "OR" }],
     groupOperator: "AND",
     startDate: defaults.startDate,
     endDate: defaults.endDate,
@@ -113,6 +113,22 @@ export function createEmptyQueryForm(): QueryFormState {
     outputFormat: "jsonl",
     resultLimit: "",
     perDayLimit: "",
+  };
+}
+
+export function getSearchText(form: QueryFormState): string {
+  return form.keywordGroups[0]?.termsText ?? "";
+}
+
+export function setSearchText(form: QueryFormState, text: string): QueryFormState {
+  if (!form.keywordGroups.length) {
+    return { ...form, keywordGroups: [{ termsText: text, operator: "OR" }] };
+  }
+  return {
+    ...form,
+    keywordGroups: form.keywordGroups.map((group, index) =>
+      index === 0 ? { ...group, termsText: text } : group,
+    ),
   };
 }
 

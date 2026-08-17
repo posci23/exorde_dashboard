@@ -14,7 +14,7 @@ import {
 import type { SamplePost } from "@/lib/types";
 import { Panel } from "./ui";
 
-const COLORS = ["#2dd4bf", "#60a5fa", "#fbbf24", "#f87171", "#a78bfa", "#34d399"];
+const COLORS = ["#1a1c1e", "#004aad", "#5f6368", "#9aa0a6", "#3c4043", "#80868b"];
 
 function countBy(samples: SamplePost[], key: keyof SamplePost) {
   const map = new Map<string, number>();
@@ -70,10 +70,10 @@ export function SampleCharts({ samples }: { samples: SamplePost[] }) {
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={sentiment}>
-              <XAxis dataKey="name" stroke="#8fa0bd" fontSize={11} />
-              <YAxis stroke="#8fa0bd" fontSize={11} allowDecimals={false} />
+              <XAxis dataKey="name" stroke="#74777f" fontSize={11} />
+              <YAxis stroke="#74777f" fontSize={11} allowDecimals={false} />
               <Tooltip
-                contentStyle={{ background: "#121a2b", border: "1px solid #243049", borderRadius: 8 }}
+                contentStyle={{ background: "#ffffff", border: "1px solid #c4c7cf", borderRadius: 12, color: "#1a1c1e" }}
               />
               <Bar dataKey="value" fill="#2dd4bf" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -90,7 +90,7 @@ export function SampleCharts({ samples }: { samples: SamplePost[] }) {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ background: "#121a2b", border: "1px solid #243049", borderRadius: 8 }}
+                contentStyle={{ background: "#ffffff", border: "1px solid #c4c7cf", borderRadius: 12, color: "#1a1c1e" }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -100,12 +100,12 @@ export function SampleCharts({ samples }: { samples: SamplePost[] }) {
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={languages}>
-              <XAxis dataKey="name" stroke="#8fa0bd" fontSize={11} />
-              <YAxis stroke="#8fa0bd" fontSize={11} allowDecimals={false} />
+              <XAxis dataKey="name" stroke="#74777f" fontSize={11} />
+              <YAxis stroke="#74777f" fontSize={11} allowDecimals={false} />
               <Tooltip
-                contentStyle={{ background: "#121a2b", border: "1px solid #243049", borderRadius: 8 }}
+                contentStyle={{ background: "#ffffff", border: "1px solid #c4c7cf", borderRadius: 12, color: "#1a1c1e" }}
               />
-              <Bar dataKey="value" fill="#60a5fa" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="value" fill="#1a1c1e" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

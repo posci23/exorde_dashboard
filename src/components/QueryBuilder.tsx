@@ -36,6 +36,7 @@ import {
   Button,
   DateTimeField,
   FieldLabel,
+  FilterChip,
   NumberChoice,
   RadioCards,
   Section,
@@ -155,7 +156,7 @@ export function QueryBuilder({ form, onChange }: Props) {
 
         <div className="space-y-3">
           {form.keywordGroups.map((group, index) => (
-            <div key={index} className="rounded-md border border-border bg-surface-raised p-3">
+            <div key={index} className="rounded-xl bg-surface p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs text-text-muted">{t.builder.groupN(index + 1)}</span>
                 <div className="flex items-center gap-2">
@@ -242,19 +243,21 @@ export function QueryBuilder({ form, onChange }: Props) {
         helpLabel={t.builder.timeLabel}
         summary={summarizeTimeRange(form, t).summary}
         count={summarizeTimeRange(form, t).count}
-        defaultOpen
         help={t.builder.timeHelp(LIMITS.maxDateRangeDays, LIMITS.maxPerDaySpanDays)}
       >
         <div className="flex flex-wrap gap-2">
           {DATE_RANGE_PRESETS.map((preset) => (
-            <Button
+            <FilterChip
               key={preset.id}
-              type="button"
-              variant={activePreset === preset.id ? "primary" : "secondary"}
+              selected={activePreset === preset.id}
               onClick={() => set(relativeDateRange(preset.days))}
             >
-              {t.datePresets[preset.id as keyof typeof t.datePresets]}
-            </Button>
+              {t.datePresets[
+                ({ "24h": "last24h", "7d": "last7d", "30d": "last30d", "90d": "last90d" } as const)[
+                  preset.id
+                ]
+              ] ?? preset.label}
+            </FilterChip>
           ))}
         </div>
 
@@ -336,7 +339,6 @@ export function QueryBuilder({ form, onChange }: Props) {
         helpLabel={t.builder.sourcesLabel}
         summary={summarizeSources(form, t).summary}
         count={summarizeSources(form, t).count}
-        defaultOpen
         help={t.builder.sourcesHelp}
         onClear={() => set({ domainsText: "", languagesText: "", locationsText: "" })}
       >
@@ -460,7 +462,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                         ),
                       })
                     }
-                    className="rounded-full bg-surface-hover px-2.5 py-1 font-mono text-xs text-text-muted transition-colors hover:bg-accent-soft hover:text-accent"
+                    className="rounded-full bg-surface-container-high px-2.5 py-1 font-mono text-xs text-text-muted transition-colors hover:bg-surface-container-highest hover:text-text"
                   >
                     + {example.value}
                   </button>
@@ -519,7 +521,7 @@ export function QueryBuilder({ form, onChange }: Props) {
             </FieldLabel>
             <div className="space-y-3">
               {form.excludeKeywordGroups.map((group, index) => (
-                <div key={index} className="rounded-md border border-border bg-surface-raised p-3">
+                <div key={index} className="rounded-xl bg-surface p-3">
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <SegmentedControl
                       value={group.operator}
@@ -577,7 +579,7 @@ export function QueryBuilder({ form, onChange }: Props) {
               {form.proximityGroups.map((group, index) => (
                 <div
                   key={index}
-                  className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-surface-raised p-3"
+                  className="flex flex-wrap items-center gap-2 rounded-xl bg-surface p-3"
                 >
                   <TextInput
                     className="w-40"
@@ -660,7 +662,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                 return (
                   <div
                     key={index}
-                    className="grid gap-2 rounded-md border border-border bg-surface-raised p-3 sm:grid-cols-[1fr_2fr_auto]"
+                    className="grid gap-2 rounded-xl bg-surface p-3 sm:grid-cols-[1fr_2fr_auto]"
                   >
                     <Select
                       value={row.field}
@@ -724,7 +726,6 @@ export function QueryBuilder({ form, onChange }: Props) {
         title={t.builder.outputTitle}
         helpHref="/reference?tab=filters&section=Output"
         helpLabel={t.builder.outputLabel}
-        defaultOpen
         summary={summarizeOutput(form, t).summary}
         count={summarizeOutput(form, t).count}
         help={t.builder.outputHelp}
@@ -854,12 +855,12 @@ export function QueryBuilder({ form, onChange }: Props) {
           ]}
           onChange={setPayloadMode}
         />
-        <pre className="mt-3 max-h-80 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs leading-relaxed text-text">
+        <pre className="mt-3 max-h-80 overflow-auto rounded-xl bg-surface p-3 font-mono text-xs leading-relaxed text-text">
           {JSON.stringify(body, null, 2)}
         </pre>
         <details className="mt-3">
-          <summary className="cursor-pointer text-xs text-accent">{t.builder.copyCurl}</summary>
-          <pre className="mt-2 overflow-auto rounded-md border border-border bg-bg p-3 font-mono text-xs text-text-muted">
+          <summary className="cursor-pointer text-xs text-text-muted underline decoration-outline-variant underline-offset-2 hover:text-text">{t.builder.copyCurl}</summary>
+          <pre className="mt-2 overflow-auto rounded-xl bg-surface p-3 font-mono text-xs text-text-muted">
             {buildCurl(body, payloadMode)}
           </pre>
         </details>
