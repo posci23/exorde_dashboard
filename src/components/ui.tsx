@@ -64,7 +64,7 @@ export function Stat({
   return (
     <div className={`${CARD} border border-outline-variant/40 bg-surface/80 px-4 py-3.5 backdrop-blur-sm`}>
       <div className="label-caps">{label}</div>
-      <div className={`tnum mt-1.5 text-xl font-medium ${tone === "accent" ? "text-text" : "text-text"}`}>
+      <div className={`tnum mt-1.5 text-xl font-medium ${tone === "accent" ? "text-accent" : "text-text"}`}>
         {value}
       </div>
       {hint && <div className="mt-1 text-xs text-text-muted">{hint}</div>}
@@ -85,7 +85,7 @@ export function Button({
   const variants = {
     primary: "bg-accent-solid text-accent-fg hover:bg-accent-hover",
     secondary: "border border-accent/25 bg-surface/80 text-accent hover:bg-accent-soft hover:text-accent-on-soft",
-    tonal: "bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent-on-soft",
+    tonal: "bg-accent-soft text-accent-on-soft hover:bg-surface-container-high",
     ghost: "text-accent/80 hover:bg-accent-soft/60 hover:text-accent-on-soft",
     danger: "text-danger hover:bg-danger/10",
   }[variant];

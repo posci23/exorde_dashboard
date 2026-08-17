@@ -19,7 +19,7 @@ export function NavRail() {
     <aside className="fixed inset-x-0 bottom-0 z-30 flex h-[4.5rem] items-stretch border-t border-outline-variant/60 bg-surface/95 px-2 backdrop-blur-md md:sticky md:top-0 md:h-screen md:w-20 md:shrink-0 md:flex-col md:items-center md:border-r md:border-t-0 md:px-0 md:py-3">
       <Link
         href="/"
-        className="hidden md:mb-4 md:block"
+        className="hidden rounded-[14px] md:mb-4 md:block"
         aria-label={t.nav.product}
         title={t.nav.product}
       >
@@ -63,18 +63,20 @@ function RailItem({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 transition-colors hover:bg-surface-hover md:w-[72px] md:flex-none md:gap-1 md:py-1.5"
+      className="group flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 transition-colors hover:bg-surface-hover md:w-[72px] md:flex-none md:gap-1 md:py-1.5"
     >
       <span
         className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors md:w-14 ${
-          active ? "bg-accent-solid text-accent-fg shadow-[var(--shadow-1)]" : "text-accent/70"
+          active
+            ? "bg-accent-soft text-accent-on-soft"
+            : "text-text-subtle group-hover:text-text"
         }`}
       >
         <Icon name={icon} />
       </span>
       <span
-        className={`max-w-full truncate text-[10px] font-medium leading-none sm:text-[11px] ${
-          active ? "text-accent" : "text-text-subtle"
+        className={`max-w-full truncate text-xs font-medium leading-4 ${
+          active ? "text-accent-on-soft" : "text-text-subtle"
         }`}
       >
         {label}

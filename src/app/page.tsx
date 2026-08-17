@@ -61,7 +61,7 @@ export default function SearchPage() {
           : "flex min-h-[calc(100dvh-4.5rem)] flex-col items-center justify-center px-4 pb-20 pt-12 sm:min-h-screen sm:px-6 sm:pb-24 md:pt-0"
       }
     >
-      <div className={`flex w-full flex-col items-center ${hasResults ? "items-stretch" : ""}`}>
+      <div className={`flex w-full flex-col ${hasResults ? "items-stretch" : "items-center"}`}>
         {!hasResults && (
           <div className="mb-6 sm:mb-8 text-center">
             <div className="flex justify-center">

@@ -79,14 +79,14 @@ export function UserMenu() {
         >
           {letter}
         </span>
-        <span className="text-[11px] font-medium leading-none text-text-subtle">{t.userMenu.account}</span>
+        <span className="text-xs font-medium leading-4 text-text-subtle">{t.userMenu.account}</span>
       </button>
 
       {open && (
         <div
           role="menu"
           aria-label={t.userMenu.account}
-          className="absolute bottom-0 left-[calc(100%+8px)] z-50 w-72 overflow-hidden rounded-xl border border-outline-variant/50 bg-surface shadow-[var(--shadow-3)]"
+          className="fixed bottom-20 right-2 z-50 w-72 overflow-hidden rounded-xl border border-outline-variant/50 bg-surface shadow-[var(--shadow-3)] md:absolute md:bottom-0 md:left-[calc(100%+8px)] md:right-auto"
         >
           <div className="border-b border-outline-variant/40 px-4 py-3.5">
             <div className="flex items-center gap-3">
@@ -105,6 +105,14 @@ export function UserMenu() {
           </div>
 
           <div className="px-2 py-2">
+            <MenuLink
+              href="/status"
+              icon="status"
+              label={t.nav.status.label}
+              hint={t.nav.status.hint}
+              active={pathname.startsWith("/status")}
+              onNavigate={() => setOpen(false)}
+            />
             <MenuLink
               href="/settings"
               icon="settings"

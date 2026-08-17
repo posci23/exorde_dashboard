@@ -1,4 +1,4 @@
-/** Material-style 24px outlined icons. Paths are the standard 24×24 viewport. */
+/** Material-style 24px filled icons using the standard 24×24 viewport. */
 
 const PATHS = {
   search:
