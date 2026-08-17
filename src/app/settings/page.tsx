@@ -13,33 +13,7 @@ import {
   SegmentedControl,
 } from "@/components/ui";
 import { LOCALES, useLocale } from "@/lib/i18n/locale";
-
-type DefaultFormat = "jsonl" | "csv";
-
-const PREFS_KEY = "sentinel.preferences.v1";
-
-type Preferences = {
-  defaultFormat: DefaultFormat;
-};
-
-function loadPreferences(): Preferences {
-  try {
-    const raw = localStorage.getItem(PREFS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<Preferences>;
-      if (parsed.defaultFormat === "jsonl" || parsed.defaultFormat === "csv") {
-        return { defaultFormat: parsed.defaultFormat };
-      }
-    }
-  } catch {
-    // ignore
-  }
-  return { defaultFormat: "jsonl" };
-}
-
-function savePreferences(prefs: Preferences) {
-  localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
-}
+import { loadPreferences, savePreferences, type Preferences } from "@/lib/preferences";
 
 export default function SettingsPage() {
   const { locale, setLocale, t } = useLocale();

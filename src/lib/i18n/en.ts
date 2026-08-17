@@ -28,9 +28,9 @@ export const en = {
   nav: {
     brand: "Hybrid Atlantic",
     product: "Seescape",
-    signalIndex: "Signal sea",
+    signalIndex: "Open index",
     search: { label: "Search", hint: "Find posts" },
-    jobs: { label: "Jobs", hint: "Monitor · download · history" },
+    jobs: { label: "Exports", hint: "Download · link expiry · history" },
     advanced: { label: "Advanced", hint: "Full query builder" },
     filters: { label: "Filters", hint: "Full query builder" },
     status: { label: "Status", hint: "Health, queue, quota" },
@@ -65,13 +65,12 @@ export const en = {
   },
 
   search: {
-    placeholder: "Search the signal sea…",
+    placeholder: "Search posts…",
     submit: "Search",
-    tagline: "Surface posts from the open index — like casting a net. Open Advanced for every filter.",
     advanced: "Advanced filters",
     advancedHint: "Open the full query builder",
-    suggestions: "Or cast from an example",
-    searching: "Casting the net\u2026",
+    suggestions: "Or try an example",
+    searching: "Searching\u2026",
   },
 
   overview: {

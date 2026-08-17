@@ -30,9 +30,9 @@ export const es: Dict = {
   nav: {
     brand: "Hybrid Atlantic",
     product: "Seescape",
-    signalIndex: "Mar de señales",
+    signalIndex: "Índice abierto",
     search: { label: "Buscar", hint: "Encontrar publicaciones" },
-    jobs: { label: "Trabajos", hint: "Seguimiento · descarga · historial" },
+    jobs: { label: "Exportaciones", hint: "Descarga · caducidad · historial" },
     advanced: { label: "Avanzado", hint: "Constructor completo de consultas" },
     filters: { label: "Filtros", hint: "Constructor de consultas" },
     status: { label: "Estado", hint: "Salud, cola y cuota" },
@@ -67,13 +67,12 @@ export const es: Dict = {
   },
 
   search: {
-    placeholder: "Buscar en el mar de señales…",
+    placeholder: "Buscar publicaciones…",
     submit: "Buscar",
-    tagline: "Saca a flote publicaciones del índice abierto. Abre Avanzado para todos los filtros.",
     advanced: "Filtros avanzados",
     advancedHint: "Abrir el constructor de consultas",
-    suggestions: "O parte de un ejemplo",
-    searching: "Lanzando la red\u2026",
+    suggestions: "O prueba un ejemplo",
+    searching: "Buscando\u2026",
   },
 
   overview: {
