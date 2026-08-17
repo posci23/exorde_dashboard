@@ -18,7 +18,7 @@ const FIELD_BASE =
   "focus:border-accent disabled:cursor-not-allowed disabled:opacity-50";
 
 export function PageShell({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`mx-auto max-w-6xl px-6 py-8 ${className}`}>{children}</div>;
+  return <div className={`mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 ${className}`}>{children}</div>;
 }
 
 export function Panel({
@@ -85,7 +85,7 @@ export function Button({
   const variants = {
     primary: "bg-accent-solid text-accent-fg hover:bg-accent-hover",
     secondary: "border border-accent/25 bg-surface/80 text-accent hover:bg-accent-soft hover:text-accent-on-soft",
-    tonal: "bg-sea-accent-soft text-accent hover:bg-accent-soft hover:text-accent-on-soft",
+    tonal: "bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent-on-soft",
     ghost: "text-accent/80 hover:bg-accent-soft/60 hover:text-accent-on-soft",
     danger: "text-danger hover:bg-danger/10",
   }[variant];

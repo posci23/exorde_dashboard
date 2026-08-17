@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import { QueryStoreProvider } from "@/components/QueryStore";
+import { BrandCorner } from "@/components/BrandCorner";
 import { NavRail } from "@/components/NavRail";
 import { LocaleProvider } from "@/lib/i18n/locale";
 import "./globals.css";
@@ -24,7 +25,7 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Seescape — Hybrid Atlantic",
-  description: "Search and export the signal sea — political intelligence from the Hybrid Atlantic index.",
+  description: "Search and export posts from the Hybrid Atlantic open index.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -33,9 +34,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="antialiased">
         <LocaleProvider>
           <QueryStoreProvider>
-            <div className="sea-canvas flex min-h-screen">
+            <div className="app-shell flex min-h-screen flex-col md:flex-row">
               <NavRail />
-              <main className="min-w-0 flex-1">{children}</main>
+              <main className="relative min-w-0 flex-1 pb-[4.5rem] md:pb-0">
+                <BrandCorner />
+                {children}
+              </main>
             </div>
           </QueryStoreProvider>
         </LocaleProvider>

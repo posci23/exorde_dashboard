@@ -1,10 +1,9 @@
 @import "tailwindcss";
 
 /*
- * Seescape — Hybrid Atlantic sea brand
+ * Seescape — Hybrid Atlantic
  *
- * Trademark cobalt anchors actions and wayfinding. Surfaces carry a light sea
- * wash (foam, mist, shallow water) so the product reads coastal, not grey.
+ * Material 3–aligned tokens: cobalt accent, neutral surfaces, readable type scale.
  */
 :root {
   --sea-deep: #0c2d48;
@@ -45,8 +44,8 @@
   --accent-on-soft: #003b8a;
   --accent-ring: rgba(0, 74, 173, 0.42);
 
-  --sea-accent: var(--seafoam);
-  --sea-accent-soft: var(--seafoam-soft);
+  --sea-accent: var(--accent);
+  --sea-accent-soft: var(--accent-soft);
 
   --success: #1a7f4b;
   --danger: #b3261e;
@@ -116,12 +115,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Light horizon wash — reads as open water, not flat grey. */
-.sea-canvas {
+/* App shell — subtle surface tint, not thematic. */
+.app-shell {
   background:
-    radial-gradient(ellipse 120% 80% at 50% -20%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 55%),
-    radial-gradient(ellipse 80% 50% at 100% 100%, color-mix(in srgb, var(--seafoam) 35%, transparent), transparent 50%),
-    linear-gradient(180deg, var(--sea-foam) 0%, #ffffff 45%, var(--sea-mist) 100%);
+    radial-gradient(ellipse 120% 80% at 50% -20%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 55%),
+    linear-gradient(180deg, var(--sea-foam) 0%, #ffffff 50%, var(--surface-dim) 100%);
 }
 
 @layer base {
@@ -158,10 +156,58 @@ body {
 .label-caps {
   font-size: 0.6875rem;
   line-height: 1rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent);
   font-weight: 600;
+}
+
+/* Material 3 type scale (mobile-first) */
+.text-title-lg {
+  font-size: 1.375rem;
+  line-height: 1.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.text-title-md {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.009em;
+}
+
+.text-body-lg {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  letter-spacing: 0.031em;
+}
+
+.text-body-md {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: 0.016em;
+}
+
+.text-label-lg {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.006em;
+}
+
+.text-label-md {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.031em;
+}
+
+@media (min-width: 640px) {
+  .text-title-lg {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
 }
 
 .tnum {
@@ -214,54 +260,11 @@ html {
   accent-color: var(--accent);
 }
 
-/* Simple search — indeterminate sonar ripples while preview runs */
-@keyframes search-ripple {
-  0% {
-    transform: scale(0.35);
-    opacity: 0.55;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0;
-  }
-}
-
-@keyframes search-wave-drift {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(3px);
-  }
-}
-
+/* Search loading spinner */
 @keyframes search-spinner {
   to {
     transform: rotate(360deg);
   }
-}
-
-.search-ripple {
-  animation: search-ripple 2.4s var(--easing) infinite;
-}
-
-.search-ripple-delay-1 {
-  animation-delay: 0.8s;
-}
-
-.search-ripple-delay-2 {
-  animation-delay: 1.6s;
-}
-
-.search-wave {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: search-wave-drift 2s var(--easing) infinite;
-}
-
-.search-wave-delay {
-  animation-delay: 0.35s;
 }
 
 .search-spinner {

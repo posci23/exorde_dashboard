@@ -57,18 +57,16 @@ export default function SearchPage() {
     <div
       className={
         hasResults
-          ? "mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8"
-          : "flex min-h-screen flex-col items-center justify-center px-6 pb-24"
+          ? "mx-auto flex max-w-6xl flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8"
+          : "flex min-h-[calc(100dvh-4.5rem)] flex-col items-center justify-center px-4 pb-20 pt-12 sm:min-h-screen sm:px-6 sm:pb-24 md:pt-0"
       }
     >
       <div className={`flex w-full flex-col items-center ${hasResults ? "items-stretch" : ""}`}>
         {!hasResults && (
-          <div className="mb-8 text-center">
-            <p className="label-caps">{t.nav.brand}</p>
-            <div className="mt-4 flex justify-center">
+          <div className="mb-6 sm:mb-8 text-center">
+            <div className="flex justify-center">
               <SeescapeMark size="lg" showName />
             </div>
-            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-text-muted">{t.search.tagline}</p>
           </div>
         )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-/** Seescape wordmark — wave mark + product name for the nav and hero. */
+/** Seescape wordmark — SS monogram + product name for the nav and hero. */
 export function SeescapeMark({
   size = "md",
   showName = false,
@@ -9,35 +9,23 @@ export function SeescapeMark({
   showName?: boolean;
 }) {
   const sizes = {
-    sm: { box: "h-9 w-9", icon: 18, text: "text-sm" },
-    md: { box: "h-10 w-10", icon: 20, text: "text-base" },
-    lg: { box: "h-14 w-14", icon: 28, text: "text-xl" },
+    sm: { box: "h-9 w-9", mono: "text-xs", name: "text-lg" },
+    md: { box: "h-10 w-10", mono: "text-sm", name: "text-xl" },
+    lg: { box: "h-14 w-14 sm:h-16 sm:w-16", mono: "text-base sm:text-lg", name: "text-2xl sm:text-3xl" },
   }[size];
 
   return (
-    <span className={`inline-flex items-center gap-2.5 ${showName ? "" : ""}`}>
+    <span className="inline-flex items-center gap-2.5">
       <span
-        className={`${sizes.box} flex shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-accent-hover shadow-[var(--shadow-2)]`}
+        className={`${sizes.box} flex shrink-0 items-center justify-center rounded-2xl bg-accent-solid shadow-[var(--shadow-2)]`}
         aria-hidden
       >
-        <svg width={sizes.icon} height={sizes.icon} viewBox="0 0 24 24" fill="none">
-          <path
-            d="M2 14c2.5-2 5-2 7.5 0s5 2 7.5 0 5-2 7.5 0"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          <path
-            d="M2 18c2.5-2 5-2 7.5 0s5 2 7.5 0 5-2 7.5 0"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            opacity="0.65"
-          />
-        </svg>
+        <span className={`font-display font-bold leading-none tracking-tight text-accent-fg ${sizes.mono}`}>
+          SS
+        </span>
       </span>
       {showName && (
-        <span className={`font-display text-4xl font-semibold tracking-tight text-accent ${sizes.text}`}>
+        <span className={`font-display font-semibold tracking-tight text-accent ${sizes.name}`}>
           Seescape
         </span>
       )}
