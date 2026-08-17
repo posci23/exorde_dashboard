@@ -35,7 +35,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`${CARD} bg-surface-container-low ${className}`}>
+    <section className={`${CARD} border border-outline-variant/40 bg-surface/80 backdrop-blur-sm ${className}`}>
       {(title || actions) && (
         <header className="flex flex-wrap items-start justify-between gap-3 px-5 py-4">
           <div className="min-w-0">
@@ -62,7 +62,7 @@ export function Stat({
   tone?: "default" | "accent";
 }) {
   return (
-    <div className={`${CARD} bg-surface-container-low px-4 py-3.5`}>
+    <div className={`${CARD} border border-outline-variant/40 bg-surface/80 px-4 py-3.5 backdrop-blur-sm`}>
       <div className="label-caps">{label}</div>
       <div className={`tnum mt-1.5 text-xl font-medium ${tone === "accent" ? "text-text" : "text-text"}`}>
         {value}
@@ -84,9 +84,9 @@ export function Button({
 }) {
   const variants = {
     primary: "bg-accent-solid text-accent-fg hover:bg-accent-hover",
-    secondary: "border border-outline-variant bg-transparent text-text hover:bg-surface-hover",
-    tonal: "bg-surface-container-high text-text hover:bg-surface-container-highest",
-    ghost: "text-text-muted hover:bg-surface-hover hover:text-text",
+    secondary: "border border-accent/25 bg-surface/80 text-accent hover:bg-accent-soft hover:text-accent-on-soft",
+    tonal: "bg-sea-accent-soft text-accent hover:bg-accent-soft hover:text-accent-on-soft",
+    ghost: "text-accent/80 hover:bg-accent-soft/60 hover:text-accent-on-soft",
     danger: "text-danger hover:bg-danger/10",
   }[variant];
 
@@ -293,7 +293,7 @@ export function Section({
   const linkText = t.ui.readAbout(helpLabel ?? title.toLowerCase());
 
   return (
-    <section className={`${CARD} bg-surface-container-low`}>
+    <section className={`${CARD} border border-outline-variant/40 bg-surface/80 backdrop-blur-sm`}>
       <div className="flex items-center gap-3 px-5 py-4">
         <button
           type="button"
@@ -356,7 +356,7 @@ export function SegmentedControl<T extends string>({
   return (
     <div
       role="radiogroup"
-      className={`inline-flex flex-wrap gap-0.5 rounded-full bg-surface-container-high p-0.5 ${className}`}
+      className={`inline-flex flex-wrap gap-0.5 rounded-full border border-outline-variant/50 bg-surface/80 p-0.5 ${className}`}
     >
       {options.map((option) => (
         <button
@@ -368,8 +368,8 @@ export function SegmentedControl<T extends string>({
           onClick={() => onChange(option.value)}
           className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
             value === option.value
-              ? "bg-accent-soft text-accent-on-soft"
-              : "text-text-muted hover:text-text"
+              ? "bg-accent-solid text-accent-fg"
+              : "text-accent/70 hover:bg-accent-soft/50 hover:text-accent-on-soft"
           }`}
         >
           {option.label}
@@ -468,7 +468,7 @@ export function PageHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div className="max-w-2xl">
-        <h1 className="text-[1.75rem] font-normal tracking-tight text-text">{title}</h1>
+        <h1 className="text-[1.75rem] font-normal tracking-tight text-accent">{title}</h1>
         <p className="mt-1.5 text-sm leading-relaxed text-text-muted">{description}</p>
       </div>
       {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
@@ -478,7 +478,7 @@ export function PageHeader({
 
 export function EmptyState({ children }: { children: ReactNode }) {
   return (
-    <div className={`${CARD} bg-surface-container-low px-4 py-10 text-center`}>
+    <div className={`${CARD} border border-dashed border-accent/25 bg-surface/60 px-4 py-10 text-center backdrop-blur-sm`}>
       <p className="text-sm text-text-muted">{children}</p>
     </div>
   );
@@ -500,8 +500,8 @@ export function FilterChip({
       onClick={onClick}
       className={`h-8 rounded-full px-3.5 text-xs font-medium transition-colors ${
         selected
-          ? "bg-accent-soft text-accent-on-soft"
-          : "bg-surface-container-high text-text-muted hover:bg-surface-container-highest hover:text-text"
+          ? "bg-accent-solid text-accent-fg shadow-[var(--shadow-1)]"
+          : "border border-outline-variant/60 bg-surface/80 text-accent/75 hover:border-accent/30 hover:bg-accent-soft hover:text-accent-on-soft"
       }`}
     >
       {children}

@@ -5,7 +5,6 @@ import { NavRail } from "@/components/NavRail";
 import { LocaleProvider } from "@/lib/i18n/locale";
 import "./globals.css";
 
-/* The three Hybrid Atlantic faces, matching hybridatlantic.com. */
 const sans = Hanken_Grotesk({
   subsets: ["latin"],
   variable: "--font-sans-loaded",
@@ -24,8 +23,8 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sentinel — Hybrid Atlantic",
-  description: "Signal collection and export console for political intelligence work.",
+  title: "Seescape — Hybrid Atlantic",
+  description: "Search and export the signal sea — political intelligence from the Hybrid Atlantic index.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="antialiased">
         <LocaleProvider>
           <QueryStoreProvider>
-            <div className="flex min-h-screen">
+            <div className="sea-canvas flex min-h-screen">
               <NavRail />
               <main className="min-w-0 flex-1">{children}</main>
             </div>

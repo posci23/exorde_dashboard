@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Icon, type IconName } from "./icons";
 import { LanguageToggle } from "./LanguageToggle";
+import { SeescapeMark } from "./SeescapeMark";
 import { useT } from "@/lib/i18n/locale";
 
 const ADVANCED_HREFS = ["/query", "/status", "/reference", "/settings"];
@@ -39,14 +40,14 @@ export function NavRail() {
   }, [pathname]);
 
   return (
-    <aside className="sticky top-0 z-30 flex h-screen w-20 shrink-0 flex-col items-center bg-surface py-3">
+    <aside className="sticky top-0 z-30 flex h-screen w-20 shrink-0 flex-col items-center border-r border-outline-variant/60 bg-surface/80 py-3 backdrop-blur-md">
       <Link
         href="/"
-        className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl text-lg font-semibold tracking-tight text-text"
+        className="mb-4"
         aria-label={t.nav.product}
         title={t.nav.product}
       >
-        S
+        <SeescapeMark size="md" />
       </Link>
 
       <nav className="flex flex-1 flex-col items-center gap-1">
@@ -63,19 +64,21 @@ export function NavRail() {
           >
             <span
               className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors ${
-                advancedActive || advancedOpen ? "bg-accent-soft text-accent-on-soft" : "text-text-muted"
+                advancedActive || advancedOpen
+                  ? "bg-accent-solid text-accent-fg shadow-[var(--shadow-1)]"
+                  : "text-accent/70"
               }`}
             >
               <Icon name="tune" />
             </span>
-            <span className="text-[11px] font-medium leading-none text-text-muted">{t.nav.advanced.label}</span>
+            <span className="text-[11px] font-medium leading-none text-text-subtle">{t.nav.advanced.label}</span>
           </button>
 
           {advancedOpen && (
             <div
               role="menu"
               aria-label={t.nav.advanced.label}
-              className="absolute top-0 left-[calc(100%+8px)] z-50 min-w-56 rounded-xl bg-surface-container-low py-2 shadow-[var(--shadow-3)]"
+              className="absolute top-0 left-[calc(100%+8px)] z-50 min-w-56 rounded-xl border border-outline-variant/50 bg-surface py-2 shadow-[var(--shadow-3)]"
             >
               <p className="px-4 pb-1 pt-1 text-xs text-text-subtle">{t.nav.advanced.hint}</p>
               <MenuRow
@@ -137,12 +140,12 @@ function RailItem({
     >
       <span
         className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors ${
-          active ? "bg-accent-soft text-accent-on-soft" : "text-text-muted"
+          active ? "bg-accent-solid text-accent-fg shadow-[var(--shadow-1)]" : "text-accent/70"
         }`}
       >
         <Icon name={icon} />
       </span>
-      <span className={`text-[11px] font-medium leading-none ${active ? "text-text" : "text-text-muted"}`}>
+      <span className={`text-[11px] font-medium leading-none ${active ? "text-accent" : "text-text-subtle"}`}>
         {label}
       </span>
     </Link>

@@ -14,7 +14,7 @@ export function LanguageToggle() {
     <div
       role="group"
       aria-label={t.common.language}
-      className="inline-flex shrink-0 gap-0.5 rounded-full bg-surface-container-high p-0.5"
+      className="inline-flex shrink-0 gap-0.5 rounded-full border border-outline-variant/50 bg-surface/80 p-0.5"
     >
       {LOCALES.map((option) => {
         const active = option.value === locale;
@@ -30,8 +30,8 @@ export function LanguageToggle() {
             title={option.label}
             className={`rounded-full px-1.5 py-0.5 text-xs font-medium transition-colors ${
               active
-                ? "bg-accent-soft text-accent-on-soft"
-                : "text-text-subtle hover:text-text"
+                ? "bg-accent-solid text-accent-fg"
+                : "text-accent/70 hover:bg-accent-soft/50 hover:text-accent-on-soft"
             }`}
           >
             {option.short}

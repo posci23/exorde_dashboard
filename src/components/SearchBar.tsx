@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "./icons";
+import { SearchSpinner } from "./SearchLoading";
 import { useT } from "@/lib/i18n/locale";
 
 type Props = {
@@ -23,14 +24,15 @@ export function SearchBar({ value, onChange, onSubmit, onAdvanced, loading, auto
         onSubmit();
       }}
     >
-      <div className="flex h-14 items-center rounded-full bg-surface-container-high pl-1 pr-1 transition-[background-color,box-shadow] duration-200 ease-[cubic-bezier(0.2,0,0,1)] focus-within:bg-surface-container-highest focus-within:shadow-[var(--shadow-2)]">
+      <div className="flex h-14 items-center rounded-full border border-outline-variant/70 bg-surface/90 pl-1 pr-1 shadow-[var(--shadow-1)] backdrop-blur-sm transition-[background-color,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.2,0,0,1)] focus-within:border-accent/40 focus-within:bg-surface focus-within:shadow-[var(--shadow-2)]">
         <button
           type="submit"
           className="icon-btn"
-          aria-label={t.search.submit}
+          aria-label={loading ? t.search.searching : t.search.submit}
+          aria-busy={loading || undefined}
           disabled={loading}
         >
-          <Icon name="search" />
+          {loading ? <SearchSpinner /> : <Icon name="search" />}
         </button>
         <input
           type="search"

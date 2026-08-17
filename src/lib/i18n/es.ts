@@ -29,8 +29,8 @@ export const es: Dict = {
 
   nav: {
     brand: "Hybrid Atlantic",
-    product: "Sentinel",
-    signalIndex: "Índice de señales",
+    product: "Seescape",
+    signalIndex: "Mar de señales",
     search: { label: "Buscar", hint: "Encontrar publicaciones" },
     jobs: { label: "Trabajos", hint: "Seguimiento · descarga · historial" },
     advanced: { label: "Avanzado", hint: "Filtros, estado y ajustes" },
@@ -67,12 +67,13 @@ export const es: Dict = {
   },
 
   search: {
-    placeholder: "Buscar publicaciones, temas o autores",
+    placeholder: "Buscar en el mar de señales…",
     submit: "Buscar",
-    tagline: "Previsualiza coincidencias del índice de señales. Los filtros y la exportación están en Avanzado.",
+    tagline: "Saca a flote publicaciones del índice abierto. Los filtros y la exportación están en Avanzado.",
     advanced: "Filtros avanzados",
     advancedHint: "Abrir el constructor de consultas",
     suggestions: "O parte de un ejemplo",
+    searching: "Lanzando la red\u2026",
   },
 
   overview: {
@@ -660,7 +661,7 @@ export const es: Dict = {
   settings: {
     title: "Ajustes",
     description:
-      "Tu clave de API del índice de señales. Nunca se expone al navegador: las rutas del servidor la añaden.",
+      "Tu clave de API de Seescape. Nunca se expone al navegador: las rutas del servidor la añaden.",
     saved:
       "Clave de API guardada en una cookie httpOnly para este navegador (30 días). Para algo permanente, usa .env.local.",
     cleared: "Clave de la cookie eliminada. La clave del entorno, si existe, sigue vigente.",

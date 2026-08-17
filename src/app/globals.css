@@ -1,31 +1,41 @@
 @import "tailwindcss";
 
 /*
- * Hybrid Atlantic × Material 3
+ * Seescape — Hybrid Atlantic sea brand
  *
- * Surfaces and type are cool neutrals. Cobalt is a focus/emphasis color, not a
- * theme: at most one filled cobalt control should be on screen at a time.
- * Selected state uses the soft wash (#DCE8FA), never a second solid blue field.
+ * Trademark cobalt anchors actions and wayfinding. Surfaces carry a light sea
+ * wash (foam, mist, shallow water) so the product reads coastal, not grey.
  */
 :root {
-  --bg: #ffffff;
-  --surface: #ffffff;
-  --surface-dim: #f3f4f6;
-  --surface-container-lowest: #ffffff;
-  --surface-container-low: #f4f5f7;
-  --surface-container: #eeeef2;
-  --surface-container-high: #e8eaed;
-  --surface-container-highest: #e1e3e6;
-  --surface-raised: #f4f5f7;
-  --surface-hover: #e8eaed;
-  --outline: #74777f;
-  --outline-variant: #c4c7cf;
-  --border: #c4c7cf;
-  --border-strong: #8e9099;
+  --sea-deep: #0c2d48;
+  --sea-ink: #1a4466;
+  --sea-slate: #4a7394;
+  --sea-foam: #f2f9fc;
+  --sea-mist: #e6f2f8;
+  --sea-shallow: #d8ebf5;
+  --sea-surface: #c5dff0;
+  --sea-tide: #a8cce3;
+  --seafoam: #8fd4e0;
+  --seafoam-soft: #d9f2f5;
 
-  --text: #1a1c1e;
-  --text-muted: #44474e;
-  --text-subtle: #74777f;
+  --bg: var(--sea-foam);
+  --surface: #ffffff;
+  --surface-dim: var(--sea-mist);
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: var(--sea-mist);
+  --surface-container: var(--sea-shallow);
+  --surface-container-high: var(--sea-surface);
+  --surface-container-highest: var(--sea-tide);
+  --surface-raised: var(--sea-mist);
+  --surface-hover: color-mix(in srgb, var(--accent) 8%, var(--sea-mist));
+  --outline: var(--sea-slate);
+  --outline-variant: #b8d4e6;
+  --border: #b8d4e6;
+  --border-strong: #7aa8c8;
+
+  --text: var(--sea-deep);
+  --text-muted: var(--sea-ink);
+  --text-subtle: var(--sea-slate);
 
   --accent: #004aad;
   --accent-solid: #004aad;
@@ -33,12 +43,15 @@
   --accent-fg: #ffffff;
   --accent-soft: #dce8fa;
   --accent-on-soft: #003b8a;
-  --accent-ring: rgba(0, 74, 173, 0.36);
+  --accent-ring: rgba(0, 74, 173, 0.42);
+
+  --sea-accent: var(--seafoam);
+  --sea-accent-soft: var(--seafoam-soft);
 
   --success: #1a7f4b;
   --danger: #b3261e;
   --warning: #8a5a00;
-  --info: #44474e;
+  --info: var(--accent);
 
   --shape-xs: 4px;
   --shape-sm: 8px;
@@ -46,9 +59,9 @@
   --shape-lg: 16px;
   --shape-xl: 28px;
   --easing: cubic-bezier(0.2, 0, 0, 1);
-  --shadow-1: 0 1px 2px rgba(26, 28, 30, 0.08), 0 1px 3px 1px rgba(26, 28, 30, 0.06);
-  --shadow-2: 0 1px 2px rgba(26, 28, 30, 0.1), 0 2px 6px 2px rgba(26, 28, 30, 0.08);
-  --shadow-3: 0 4px 8px 3px rgba(26, 28, 30, 0.08), 0 1px 3px rgba(26, 28, 30, 0.1);
+  --shadow-1: 0 1px 2px rgba(12, 45, 72, 0.06), 0 1px 3px 1px rgba(12, 45, 72, 0.04);
+  --shadow-2: 0 1px 2px rgba(12, 45, 72, 0.08), 0 2px 8px 2px rgba(0, 74, 173, 0.08);
+  --shadow-3: 0 4px 12px 3px rgba(0, 74, 173, 0.1), 0 1px 3px rgba(12, 45, 72, 0.08);
 }
 
 @theme inline {
@@ -75,6 +88,8 @@
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
   --color-accent-on-soft: var(--accent-on-soft);
+  --color-sea-accent: var(--sea-accent);
+  --color-sea-accent-soft: var(--sea-accent-soft);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-success: var(--success);
@@ -99,6 +114,14 @@ body {
   font-family: var(--font-sans);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
+}
+
+/* Light horizon wash — reads as open water, not flat grey. */
+.sea-canvas {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 100%, color-mix(in srgb, var(--seafoam) 35%, transparent), transparent 50%),
+    linear-gradient(180deg, var(--sea-foam) 0%, #ffffff 45%, var(--sea-mist) 100%);
 }
 
 @layer base {
@@ -135,9 +158,10 @@ body {
 .label-caps {
   font-size: 0.6875rem;
   line-height: 1rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-subtle);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .tnum {
@@ -157,12 +181,13 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  color: var(--text);
-  transition: background-color 200ms var(--easing);
+  color: var(--accent);
+  transition: background-color 200ms var(--easing), color 200ms var(--easing);
 }
 
 .icon-btn:hover {
-  background: color-mix(in srgb, var(--text) 8%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent-hover);
 }
 
 ::-webkit-scrollbar {
@@ -175,16 +200,70 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--outline-variant);
+  background: var(--sea-tide);
   border-radius: 999px;
   border: 2px solid var(--bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--outline);
+  background: var(--accent);
 }
 
 html {
   color-scheme: light;
   accent-color: var(--accent);
+}
+
+/* Simple search — indeterminate sonar ripples while preview runs */
+@keyframes search-ripple {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes search-wave-drift {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes search-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.search-ripple {
+  animation: search-ripple 2.4s var(--easing) infinite;
+}
+
+.search-ripple-delay-1 {
+  animation-delay: 0.8s;
+}
+
+.search-ripple-delay-2 {
+  animation-delay: 1.6s;
+}
+
+.search-wave {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: search-wave-drift 2s var(--easing) infinite;
+}
+
+.search-wave-delay {
+  animation-delay: 0.35s;
+}
+
+.search-spinner {
+  animation: search-spinner 0.85s linear infinite;
 }

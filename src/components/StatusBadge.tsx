@@ -4,7 +4,7 @@ export function StatusBadge({ status }: { status: string }) {
     normalized === "completed" || normalized === "healthy" || normalized === "connected"
       ? "bg-success/15 text-success"
       : normalized === "running" || normalized === "pending" || normalized === "validated"
-        ? "bg-surface-container-high text-text"
+        ? "bg-surface-container-high text-accent"
         : normalized === "failed" || normalized === "rejected" || normalized === "degraded"
           ? "bg-danger/15 text-danger"
           : "bg-warning/15 text-warning";

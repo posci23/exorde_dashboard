@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { SearchBar } from "@/components/SearchBar";
+import { SearchLoading } from "@/components/SearchLoading";
 import { PreviewResults, QueryAlerts } from "@/components/PreviewResults";
+import { SeescapeMark } from "@/components/SeescapeMark";
 import { FilterChip } from "@/components/ui";
 import { useQueryActions } from "@/components/useQueryActions";
 import { useQueryStore } from "@/components/QueryStore";
@@ -63,10 +65,10 @@ export default function SearchPage() {
         {!hasResults && (
           <div className="mb-8 text-center">
             <p className="label-caps">{t.nav.brand}</p>
-            <h1 className="font-display mt-2 text-5xl font-semibold tracking-tight text-text">
-              {t.nav.product}
-            </h1>
-            <p className="mt-3 max-w-md text-sm text-text-muted">{t.search.tagline}</p>
+            <div className="mt-4 flex justify-center">
+              <SeescapeMark size="lg" showName />
+            </div>
+            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-text-muted">{t.search.tagline}</p>
           </div>
         )}
 
@@ -106,7 +108,9 @@ export default function SearchPage() {
           error={error}
         />
 
-        {hasResults && lastPreview ? (
+        {previewLoading ? (
+          <SearchLoading />
+        ) : hasResults && lastPreview ? (
           <PreviewResults
             preview={lastPreview}
             onDismiss={() => setLastPreview(null)}
@@ -128,7 +132,7 @@ export default function SearchPage() {
                       updateForm(preset.apply(form));
                       setLastPreview(null);
                     }}
-                    className="h-8 rounded-full bg-surface-container-high px-3.5 text-xs text-text-muted transition-colors hover:bg-surface-container-highest hover:text-text"
+                    className="h-8 rounded-full border border-outline-variant/60 bg-surface/80 px-3.5 text-xs text-accent/80 transition-colors hover:border-accent/30 hover:bg-accent-soft hover:text-accent-on-soft"
                   >
                     {t.catalog.presetLabel[preset.id] ?? preset.label}
                   </button>

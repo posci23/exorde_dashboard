@@ -27,8 +27,8 @@ export const en = {
 
   nav: {
     brand: "Hybrid Atlantic",
-    product: "Sentinel",
-    signalIndex: "Signal index",
+    product: "Seescape",
+    signalIndex: "Signal sea",
     search: { label: "Search", hint: "Find posts" },
     jobs: { label: "Jobs", hint: "Monitor · download · history" },
     advanced: { label: "Advanced", hint: "Filters, status, and settings" },
@@ -65,12 +65,13 @@ export const en = {
   },
 
   search: {
-    placeholder: "Search posts, topics, or authors",
+    placeholder: "Search the signal sea…",
     submit: "Search",
-    tagline: "Preview matching posts from the signal index. Filters and export live under Advanced.",
+    tagline: "Surface posts from the open index — like casting a net. Filters and export live under Advanced.",
     advanced: "Advanced filters",
     advancedHint: "Open the full query builder",
-    suggestions: "Or start from an example",
+    suggestions: "Or cast from an example",
+    searching: "Casting the net\u2026",
   },
 
   overview: {
@@ -511,7 +512,7 @@ export const en = {
   settings: {
     title: "Settings",
     description:
-      "Your signal index API key. It is never exposed to the browser — the server-side routes attach it.",
+      "Your Seescape API key. It is never exposed to the browser — the server-side routes attach it.",
     saved:
       "API key saved in an httpOnly cookie for this browser (30 days). Prefer .env.local for permanence.",
     cleared: "Browser cookie key cleared. Env key (if any) still applies.",
