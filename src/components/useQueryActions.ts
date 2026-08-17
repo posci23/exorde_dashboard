@@ -6,18 +6,15 @@ import { useQueryStore } from "./QueryStore";
 import { apiFetch, formatError } from "@/lib/browser-api";
 import { describeIssues, submitExport, validateQuery } from "@/lib/export-actions";
 import { buildQueryBody, type QueryFormState } from "@/lib/query-form";
-import { useT } from "@/lib/i18n/locale";
 import type { PreviewResponse } from "@/lib/types";
 
 export function useQueryActions() {
   const router = useRouter();
-  const t = useT();
   const { form, setForm, lastPreview, setLastPreview, upsertJob } = useQueryStore();
   const [previewLoading, setPreviewLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [showIssues, setShowIssues] = useState(false);
 
   const previewIssues = describeIssues(validateQuery(buildQueryBody(form, "preview")));
   const exportIssues = describeIssues(validateQuery(buildQueryBody(form, "export")));
@@ -32,11 +29,7 @@ export function useQueryActions() {
 
   async function runPreview() {
     const parsed = validateQuery(buildQueryBody(form, "preview"));
-    if (!parsed.success) {
-      setError(t.query.cantPreview(describeIssues(parsed).join("; ")));
-      setShowIssues(true);
-      return;
-    }
+    if (!parsed.success) return;
 
     setPreviewLoading(true);
     setError(null);
@@ -56,11 +49,7 @@ export function useQueryActions() {
 
   async function startExport() {
     const parsed = validateQuery(buildQueryBody(form, "export"));
-    if (!parsed.success) {
-      setError(t.query.cantExport(describeIssues(parsed).join("; ")));
-      setShowIssues(true);
-      return;
-    }
+    if (!parsed.success) return;
 
     setExportLoading(true);
     setError(null);
@@ -99,7 +88,5 @@ export function useQueryActions() {
     error,
     notice,
     setNotice,
-    showIssues,
-    setShowIssues,
   };
 }

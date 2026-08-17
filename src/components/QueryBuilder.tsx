@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { ChipMultiSelect, type ChipOption } from "./ChipMultiSelect";
 import {
   ALL_LANGUAGES,
@@ -104,7 +104,6 @@ export function QueryBuilder({ form, onChange }: Props) {
   const PLATFORM_OPTIONS: ChipOption[] = PLATFORMS.map((p) => ({
     value: p.domain,
     label: p.label,
-    note: t.catalog.platformNote[p.domain] ?? p.note ?? undefined,
     group: t.catalog.platformGroup[p.group] ?? p.group,
   }));
   const LANGUAGE_OPTIONS: ChipOption[] = ALL_LANGUAGES.map((l) => ({
@@ -115,9 +114,30 @@ export function QueryBuilder({ form, onChange }: Props) {
   const FIELD_OPTIONS: ChipOption[] = SELECTABLE_FIELDS.map((f) => ({
     value: f.name,
     label: f.name,
-    note: t.catalog.fieldDesc[f.name] ?? f.description,
     group: t.catalog.fieldCategory[f.category] ?? f.category,
   }));
+
+  const urlHelpContent = useMemo((): ReactNode => {
+    return (
+      <span>
+        {t.builder.urlHelp}
+        <span className="mt-2 block font-medium text-text">{t.builder.urlExamplesHeading}</span>
+        <ul className="mt-1 space-y-0.5">
+          {URL_PATTERN_EXAMPLES.map((example) => (
+            <li key={example.value}>
+              <span className="font-mono text-label-md">{example.value}</span>
+              {(t.catalog.urlExample[example.value] ?? example.note) && (
+                <span className="text-text-subtle">
+                  {" "}
+                  — {t.catalog.urlExample[example.value] ?? example.note}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </span>
+    );
+  }, [t]);
 
   return (
     <div className="space-y-3">
@@ -348,7 +368,6 @@ export function QueryBuilder({ form, onChange }: Props) {
             emptyLabel={t.builder.platformsEmpty}
             searchPlaceholder={t.builder.platformsSearch}
             customPlaceholder={t.builder.platformsCustom}
-            footnote={t.builder.platformsFootnote}
             {...listProps(form.domainsText, (domainsText) => set({ domainsText }))}
           />
           <ChipMultiSelect
@@ -360,7 +379,6 @@ export function QueryBuilder({ form, onChange }: Props) {
             emptyLabel={t.builder.languagesEmpty}
             searchPlaceholder={t.builder.languagesSearch}
             customPlaceholder={t.builder.languagesCustom}
-            footnote={t.builder.languagesFootnote}
             {...listProps(form.languagesText, (languagesText) => set({ languagesText }))}
           />
         </div>
@@ -430,7 +448,7 @@ export function QueryBuilder({ form, onChange }: Props) {
           <div>
             <FieldLabel
               hint={`url_patterns · max ${LIMITS.maxUrlPatterns}`}
-              help={t.builder.urlHelp}
+              help={urlHelpContent}
             >
               {t.builder.urlLabel}
             </FieldLabel>
@@ -440,31 +458,6 @@ export function QueryBuilder({ form, onChange }: Props) {
               value={form.urlPatternsText}
               onChange={(e) => set({ urlPatternsText: e.target.value })}
             />
-            <p className="mt-1 text-xs text-text-muted">
-              {t.builder.urlNote}
-            </p>
-            <div className="mt-2">
-              <span className="label-caps">{t.builder.insertExample}</span>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {URL_PATTERN_EXAMPLES.map((example) => (
-                  <button
-                    key={example.value}
-                    type="button"
-                    title={t.catalog.urlExample[example.value] ?? example.note ?? example.label}
-                    onClick={() =>
-                      set({
-                        urlPatternsText: [...new Set([...splitList(form.urlPatternsText), example.value])].join(
-                          ", ",
-                        ),
-                      })
-                    }
-                    className="rounded-full bg-surface-container-high px-2.5 py-1 font-mono text-xs text-text-muted transition-colors hover:bg-surface-container-highest hover:text-text"
-                  >
-                    + {example.value}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
           <div>
             <FieldLabel
@@ -479,7 +472,6 @@ export function QueryBuilder({ form, onChange }: Props) {
               value={form.externalIdsText}
               onChange={(e) => set({ externalIdsText: e.target.value })}
             />
-            <p className="mt-1 text-xs text-text-muted">{t.builder.postIdsNote}</p>
           </div>
           <div>
             <FieldLabel
@@ -494,7 +486,6 @@ export function QueryBuilder({ form, onChange }: Props) {
               value={form.externalParentIdsText}
               onChange={(e) => set({ externalParentIdsText: e.target.value })}
             />
-            <p className="mt-1 text-xs text-text-muted">{t.builder.parentIdsNote}</p>
           </div>
         </div>
       </Section>
@@ -587,7 +578,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                       set({ proximityGroups: next });
                     }}
                   />
-                  <span className="text-xs text-text-muted">{t.builder.within}</span>
+                  <span className="text-body-md text-text-muted">{t.builder.within}</span>
                   <Select
                     className="w-20"
                     value={group.distance}
@@ -606,7 +597,7 @@ export function QueryBuilder({ form, onChange }: Props) {
                       </option>
                     ))}
                   </Select>
-                  <span className="text-xs text-text-muted">{t.builder.wordsOf}</span>
+                  <span className="text-body-md text-text-muted">{t.builder.wordsOf}</span>
                   <TextInput
                     className="w-40"
                     placeholder={t.builder.secondTerm}
@@ -711,9 +702,6 @@ export function QueryBuilder({ form, onChange }: Props) {
             >
               {t.builder.addProfile}
             </Button>
-            <p className="mt-2 text-xs text-text-muted">
-              {t.builder.profileNote(LIMITS.maxProfileFilterValues)}
-            </p>
           </div>
         </div>
       </Section>
@@ -830,7 +818,6 @@ export function QueryBuilder({ form, onChange }: Props) {
                 options={FIELD_OPTIONS}
                 emptyLabel={t.builder.customFieldsEmpty(SELECTABLE_FIELDS.length)}
                 searchPlaceholder={t.builder.customFieldsSearch}
-                footnote={t.builder.customFieldsFootnote}
                 {...listProps(form.excludeFieldsText, (excludeFieldsText) => set({ excludeFieldsText }))}
               />
             </div>

@@ -134,6 +134,8 @@ export const es: Dict = {
     examples: "Consultas de ejemplo\u2026",
     loadedPreset: (label: string, desc: string) => `Preajuste cargado \u00ab${label}\u00bb \u2014 ${desc}`,
     issues: (n: number) => `${n} ${n > 1 ? "problemas" : "problema"}`,
+    fixIssues: (n: number) =>
+      `Corrige ${n} ${n > 1 ? "problemas" : "problema"} para ejecutar`,
     valid: "\u2713 V\u00e1lida",
     showIssues: "Ver qu\u00e9 hay que corregir",
     queryReady: "Esta consulta est\u00e1 lista para ejecutarse",
@@ -221,20 +223,16 @@ export const es: Dict = {
     sourcesHelp: "Deja cualquiera de estos campos vac\u00edo para no restringir esa dimensi\u00f3n.",
     platforms: "\u00bfQu\u00e9 plataformas?",
     platformsHelp:
-      "Coincide exactamente con el dominio de la publicaci\u00f3n, as\u00ed que \u00abreddit.com\u00bb incluye todos los subreddits. Para limitar a un subreddit o canal concreto, usa el campo de URL de abajo.",
+      "Coincide exactamente con el dominio de la publicaci\u00f3n, as\u00ed que \u00abreddit.com\u00bb incluye todos los subreddits. Para limitar a un subreddit o canal concreto, usa patrones de URL. Plataformas listadas m\u00e1s dominios de noticias; escribe cualquier otro dominio directamente.",
     platformsEmpty: "Todas las plataformas (sin filtro de dominio)",
     platformsSearch: "Buscar plataformas\u2026",
     platformsCustom: "Otro dominio, p. ej. example-forum.com",
-    platformsFootnote:
-      "11 plataformas sociales (~99,96% del volumen) y m\u00e1s de 7000 dominios de noticias. Para un subreddit o canal concreto, los patrones de URL funcionan mejor que los dominios.",
     languages: "\u00bfQu\u00e9 idiomas?",
     languagesHelp:
-      "Se detecta por publicaci\u00f3n, no por autor. La detecci\u00f3n en publicaciones muy cortas no es fiable, as\u00ed que un filtro estricto de idioma puede descartar coincidencias reales.",
+      "Se detecta por publicaci\u00f3n, no por autor. La detecci\u00f3n en publicaciones muy cortas no es fiable, as\u00ed que un filtro estricto de idioma puede descartar coincidencias reales. Se admiten m\u00e1s de 176 c\u00f3digos ISO; escribe cualquier c\u00f3digo que no est\u00e9 en la lista.",
     languagesEmpty: "Todos los idiomas",
     languagesSearch: "Buscar idiomas\u2026",
     languagesCustom: "Otro c\u00f3digo ISO, p. ej. sw",
-    languagesFootnote:
-      "Se admiten m\u00e1s de 176 c\u00f3digos; la lista muestra los m\u00e1s habituales. Puedes a\u00f1adir cualquier otro directamente.",
     locationLabel: "\u00bfDe d\u00f3nde es el autor?",
     locationHelp:
       "Es la ubicaci\u00f3n de texto libre que la gente escribe en su perfil, no una ubicaci\u00f3n GPS verificada. \u00abParis\u00bb tambi\u00e9n coincide con \u00abParis, Texas\u00bb y \u00abParisian at heart\u00bb.",
@@ -255,9 +253,7 @@ export const es: Dict = {
     urlLabel: "\u00bfQu\u00e9 debe contener el enlace?",
     urlHelp:
       "Una subcadena simple del enlace de la publicaci\u00f3n, sin comodines. As\u00ed es como se apunta a un subreddit o a un canal de YouTube concreto, algo que el filtro de plataforma no puede hacer.",
-    urlNote:
-      "Subcadena de la URL sin distinguir may\u00fasculas: la forma fiable de apuntar a un subreddit o canal.",
-    insertExample: "Insertar un ejemplo",
+    urlExamplesHeading: "Ejemplos",
     postIds: "\u00bfAlguna publicaci\u00f3n exacta que recuperar?",
     postIdsHelp:
       "El identificador propio de la plataforma: el n\u00famero al final de un enlace de X, o un c\u00f3digo t1_\u2026 en Reddit. \u00dasalo para volver a descargar publicaciones que ya conoces.",
@@ -283,10 +279,8 @@ export const es: Dict = {
     addProximity: "A\u00f1adir regla de proximidad",
     profile: "\u00bfQu\u00e9 debe cumplir el autor?",
     profileHelp:
-      "Filtra por el perfil de X del autor: texto de la biograf\u00eda, n\u00famero de seguidores, verificaci\u00f3n. Al usarlo se descartan las publicaciones de todas las dem\u00e1s plataformas, porque solo X trae estos metadatos.",
+      "Filtra por el perfil de X del autor: texto de la biograf\u00eda, n\u00famero de seguidores, verificaci\u00f3n. Al usarlo se descartan las publicaciones de todas las dem\u00e1s plataformas, porque solo X trae estos metadatos. Los campos se combinan con AND; hasta 10 valores cada uno (OR dentro de un campo).",
     addProfile: "A\u00f1adir filtro de perfil",
-    profileNote: (values: number) =>
-      `Los campos se combinan con AND; hasta ${values} valores cada uno (OR dentro de un campo). Solo las publicaciones de x.com traen estos metadatos.`,
 
     outputTitle: "\u00bfQu\u00e9 va en el archivo?",
     outputLabel: "los campos y formatos de salida",
@@ -318,11 +312,9 @@ export const es: Dict = {
     allExcluded: "Se excluyen todas las columnas: la exportaci\u00f3n no tendr\u00eda datos.",
     customFields: "\u00bfQu\u00e9 columnas hay que dejar fuera?",
     customFieldsHelp: (n: number) =>
-      `Todo lo que marques aqu\u00ed se elimina de cada fila. D\u00e9jalo vac\u00edo para conservar las ${n}.`,
+      `Todo lo que marques aqu\u00ed se elimina de cada fila. D\u00e9jalo vac\u00edo para conservar las ${n}. La API siempre excluye analysis_source_type, collection_module y collection_client_version.`,
     customFieldsEmpty: (n: number) => `Sin exclusiones \u2014 las ${n} columnas`,
     customFieldsSearch: "Buscar columnas\u2026",
-    customFieldsFootnote:
-      "La API siempre excluye analysis_source_type, collection_module y collection_client_version.",
 
     payloadTitle: "\u00bfQu\u00e9 se env\u00eda a la API?",
     payloadSummary: "El JSON exacto que enviar\u00e1 este panel",

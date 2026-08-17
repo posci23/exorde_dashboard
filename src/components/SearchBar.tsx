@@ -11,9 +11,20 @@ type Props = {
   onAdvanced: () => void;
   loading?: boolean;
   autoFocus?: boolean;
+  submitDisabled?: boolean;
+  submitTitle?: string;
 };
 
-export function SearchBar({ value, onChange, onSubmit, onAdvanced, loading, autoFocus }: Props) {
+export function SearchBar({
+  value,
+  onChange,
+  onSubmit,
+  onAdvanced,
+  loading,
+  autoFocus,
+  submitDisabled,
+  submitTitle,
+}: Props) {
   const t = useT();
 
   return (
@@ -27,10 +38,11 @@ export function SearchBar({ value, onChange, onSubmit, onAdvanced, loading, auto
       <div className="flex h-12 items-center rounded-full border border-outline-variant/70 bg-surface/90 pl-1 pr-1 shadow-[var(--shadow-1)] backdrop-blur-sm transition-[background-color,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.2,0,0,1)] focus-within:border-accent/40 focus-within:bg-surface focus-within:shadow-[var(--shadow-2)] sm:h-14">
         <button
           type="submit"
-          className="icon-btn"
+          className="icon-btn disabled:opacity-40"
           aria-label={loading ? t.search.searching : t.search.submit}
           aria-busy={loading || undefined}
-          disabled={loading}
+          disabled={loading || submitDisabled}
+          title={submitTitle}
         >
           {loading ? <SearchSpinner /> : <Icon name="search" />}
         </button>
@@ -44,7 +56,7 @@ export function SearchBar({ value, onChange, onSubmit, onAdvanced, loading, auto
           value={value}
           disabled={loading}
           onChange={(e) => onChange(e.target.value)}
-          className="h-12 min-w-0 flex-1 bg-transparent text-base text-text outline-none placeholder:text-text-subtle sm:h-14"
+          className="h-12 min-w-0 flex-1 bg-transparent text-base text-text outline-none focus-visible:outline-none placeholder:text-text-subtle sm:h-14"
         />
         {value ? (
           <button

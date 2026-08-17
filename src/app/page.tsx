@@ -37,7 +37,6 @@ export default function SearchPage() {
     exportLoading,
     error,
     notice,
-    showIssues,
   } = useQueryActions();
 
   if (!ready) {
@@ -74,10 +73,24 @@ export default function SearchPage() {
           value={query}
           loading={previewLoading}
           autoFocus={!hasResults}
+          submitDisabled={busy || previewIssues.length > 0}
+          submitTitle={previewIssues.length ? previewIssues.join("; ") : undefined}
           onChange={(value) => updateForm(setSearchText(form, value))}
           onSubmit={() => void runPreview()}
           onAdvanced={() => router.push("/query")}
         />
+
+        {(issues.length > 0 || notice || error) && (
+          <div className={`mt-4 w-full ${hasResults ? "" : "max-w-2xl"}`}>
+            <QueryAlerts
+              issues={issues}
+              previewIssues={previewIssues}
+              exportIssues={exportIssues}
+              notice={notice}
+              error={error}
+            />
+          </div>
+        )}
 
         <div className={`mt-4 flex flex-wrap gap-2 ${hasResults ? "" : "justify-center"}`}>
           {DATE_RANGE_PRESETS.filter((p) => p.id !== "90d").map((preset) => (
@@ -97,15 +110,6 @@ export default function SearchPage() {
       </div>
 
       <div className={`w-full space-y-4 ${hasResults ? "" : "mt-10 max-w-2xl"}`}>
-        <QueryAlerts
-          showIssues={showIssues}
-          issues={issues}
-          previewIssues={previewIssues}
-          exportIssues={exportIssues}
-          notice={notice}
-          error={error}
-        />
-
         {previewLoading ? (
           <SearchLoading />
         ) : hasResults && lastPreview ? (

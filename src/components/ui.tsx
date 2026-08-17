@@ -111,14 +111,14 @@ export function HelpIcon({ about, children }: { about?: string; children: ReactN
         type="button"
         aria-label={about ? t.ui.helpAria(about) : t.ui.helpAriaGeneric}
         aria-describedby={id}
-        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-surface-container-high text-xs leading-none font-semibold text-text-subtle transition-colors hover:bg-surface-container-highest hover:text-text"
+        className="flex h-[1.125rem] w-[1.125rem] cursor-help items-center justify-center rounded-full bg-surface-container-high text-label-md leading-none font-medium text-text-subtle transition-colors hover:bg-surface-container-highest hover:text-text"
       >
         ?
       </button>
       <span
         id={id}
         role="tooltip"
-        className="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-xl bg-surface-container-low px-3 py-2 text-xs leading-relaxed font-normal text-text-muted opacity-0 shadow-[var(--shadow-2)] transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+        className="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 w-72 -translate-x-1/2 rounded-xl bg-surface-container-low px-3 py-2.5 text-body-md leading-relaxed font-normal text-text-muted opacity-0 shadow-[var(--shadow-2)] transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
       >
         {children}
       </span>
@@ -201,14 +201,14 @@ export function FieldLabel({
   return (
     <div className="mb-2 flex items-baseline justify-between gap-2">
       <div className="flex items-baseline gap-1.5">
-        <Tag htmlFor={htmlFor} className="block text-xs font-medium text-text">
+        <Tag htmlFor={htmlFor} className="block text-label-lg text-text">
           {children}
         </Tag>
         {help && (
           <HelpIcon about={typeof children === "string" ? children : undefined}>{help}</HelpIcon>
         )}
       </div>
-      {hint && <span className="font-mono text-xs text-text-subtle">{hint}</span>}
+      {hint && <span className="text-label-md text-text-subtle">{hint}</span>}
     </div>
   );
 }
@@ -335,7 +335,7 @@ export function Section({
         </div>
       </div>
       <div id={panelId} hidden={!open} className="border-t border-outline-variant/50 px-5 py-5">
-        {help && <p className="mb-4 text-xs leading-relaxed text-text-muted">{help}</p>}
+        {help && <p className="mb-4 text-body-md leading-relaxed text-text-muted">{help}</p>}
         {children}
       </div>
     </section>

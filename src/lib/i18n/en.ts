@@ -130,6 +130,8 @@ export const en = {
     examples: "Example queries\u2026",
     loadedPreset: (label: string, desc: string) => `Loaded preset \u201c${label}\u201d \u2014 ${desc}`,
     issues: (n: number) => `${n} issue${n > 1 ? "s" : ""}`,
+    fixIssues: (n: number) =>
+      `Fix ${n} issue${n > 1 ? "s" : ""} to run`,
     valid: "\u2713 Valid",
     showIssues: "Show what needs fixing",
     queryReady: "This query is ready to run",
@@ -215,20 +217,16 @@ export const en = {
     sourcesHelp: "Leave any of these empty to place no restriction on that dimension.",
     platforms: "Which platforms?",
     platformsHelp:
-      "Matches the post\u2019s domain exactly, so \u201creddit.com\u201d covers every subreddit. To narrow to one subreddit or channel, use the URL field below instead.",
+      "Matches the post\u2019s domain exactly, so \u201creddit.com\u201d covers every subreddit. To narrow to one subreddit or channel, use URL patterns instead. Listed platforms plus news domains; type any other domain directly.",
     platformsEmpty: "All platforms (no domain filter)",
     platformsSearch: "Search platforms\u2026",
     platformsCustom: "Other domain, e.g. example-forum.com",
-    platformsFootnote:
-      "11 social platforms (~99.96% of volume) plus 7,000+ news domains. For one subreddit or channel, URL patterns work better than domains.",
     languages: "Which languages?",
     languagesHelp:
-      "Detected per post, not per author. Detection on very short posts is unreliable, so a strict language filter can drop real matches.",
+      "Detected per post, not per author. Detection on very short posts is unreliable, so a strict language filter can drop real matches. 176+ ISO codes are accepted; type any code not in the list.",
     languagesEmpty: "All languages",
     languagesSearch: "Search languages\u2026",
     languagesCustom: "Other ISO code, e.g. sw",
-    languagesFootnote:
-      "176+ codes are supported; the list shows the most common. Add any other code directly.",
     locationLabel: "Where is the author from?",
     locationHelp:
       "This is the free-text location people type on their profile, not a verified GPS location. \u201cParis\u201d also matches \u201cParis, Texas\u201d and \u201cParisian at heart\u201d.",
@@ -249,9 +247,7 @@ export const en = {
     urlLabel: "What should the link contain?",
     urlHelp:
       "A plain substring of the post\u2019s link \u2014 no wildcards needed. This is how you target one subreddit or one YouTube channel, which the platform filter can\u2019t do.",
-    urlNote:
-      "Case-insensitive substring of the post URL \u2014 the reliable way to target a subreddit or channel.",
-    insertExample: "Insert an example",
+    urlExamplesHeading: "Examples",
     postIds: "Any exact posts to fetch?",
     postIdsHelp:
       "The platform\u2019s own ID for a post \u2014 the number at the end of an X link, or a t1_\u2026 code on Reddit. Use it to re-fetch posts you already know about.",
@@ -277,10 +273,8 @@ export const en = {
     addProximity: "Add proximity rule",
     profile: "What must be true of the author?",
     profileHelp:
-      "Filters on the author\u2019s X profile \u2014 bio text, follower count, verified status. Posts from every other platform are dropped when you use this, because only X carries the metadata.",
+      "Filters on the author\u2019s X profile \u2014 bio text, follower count, verified status. Posts from every other platform are dropped when you use this, because only X carries the metadata. Fields combine with AND; up to 10 values each (OR within a field).",
     addProfile: "Add profile filter",
-    profileNote: (values: number) =>
-      `Fields combine with AND; up to ${values} values each (OR within a field). Only x.com posts carry this metadata.`,
 
     outputTitle: "What goes in the file?",
     outputLabel: "output fields and formats",
@@ -312,11 +306,9 @@ export const en = {
     allExcluded: "Every column is excluded \u2014 the export would have no data.",
     customFields: "Which columns should be left out?",
     customFieldsHelp: (n: number) =>
-      `Anything you tick here is dropped from every row. Leave it empty to keep all ${n}.`,
+      `Anything you tick here is dropped from every row. Leave it empty to keep all ${n}. analysis_source_type, collection_module and collection_client_version are always excluded by the API.`,
     customFieldsEmpty: (n: number) => `Nothing excluded \u2014 all ${n} columns`,
     customFieldsSearch: "Search columns\u2026",
-    customFieldsFootnote:
-      "analysis_source_type, collection_module and collection_client_version are always excluded by the API.",
 
     payloadTitle: "What gets sent to the API?",
     payloadSummary: "The exact JSON this dashboard will send",

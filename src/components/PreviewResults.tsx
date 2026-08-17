@@ -130,14 +130,12 @@ export function PreviewResults({
 }
 
 export function QueryAlerts({
-  showIssues,
   issues,
   previewIssues,
   exportIssues,
   notice,
   error,
 }: {
-  showIssues: boolean;
   issues: string[];
   previewIssues: string[];
   exportIssues: string[];
@@ -147,9 +145,10 @@ export function QueryAlerts({
   const t = useT();
   return (
     <>
-      {showIssues && issues.length > 0 && (
+      {issues.length > 0 && (
         <Alert tone="warning">
-          <ul className="list-inside list-disc space-y-0.5">
+          <p className="mb-1.5 text-xs font-medium">{t.query.fixIssues(issues.length)}</p>
+          <ul className="list-inside list-disc space-y-0.5 text-sm">
             {issues.map((issue) => {
               const scope = !exportIssues.includes(issue)
                 ? t.query.previewOnly
@@ -169,5 +168,49 @@ export function QueryAlerts({
       {notice && <Alert>{notice}</Alert>}
       {error && <Alert tone="danger">{error}</Alert>}
     </>
+  );
+}
+
+export function QueryRunActions({
+  previewIssues,
+  exportIssues,
+  busy,
+  previewLoading,
+  exportLoading,
+  onPreview,
+  onExport,
+}: {
+  previewIssues: string[];
+  exportIssues: string[];
+  busy: boolean;
+  previewLoading: boolean;
+  exportLoading: boolean;
+  onPreview: () => void;
+  onExport: () => void;
+}) {
+  const t = useT();
+  const previewBlocked = previewIssues.length > 0;
+  const exportBlocked = exportIssues.length > 0;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button
+        type="button"
+        variant="tonal"
+        onClick={onPreview}
+        disabled={busy || previewBlocked}
+        title={previewBlocked ? previewIssues.join("; ") : t.query.previewHint}
+      >
+        {previewLoading ? t.query.previewing : t.query.preview}
+      </Button>
+      <Button
+        type="button"
+        onClick={onExport}
+        disabled={busy || exportBlocked}
+        title={exportBlocked ? exportIssues.join("; ") : t.query.exportHint}
+      >
+        {exportLoading ? t.query.submitting : t.query.startExport}
+      </Button>
+    </div>
   );
 }

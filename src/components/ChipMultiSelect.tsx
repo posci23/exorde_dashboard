@@ -7,7 +7,6 @@ import { useT } from "@/lib/i18n/locale";
 export type ChipOption = {
   value: string;
   label: string;
-  note?: string;
   /** Optional grouping header inside the dropdown. */
   group?: string;
 };
@@ -27,7 +26,6 @@ type Props = {
   searchPlaceholder?: string;
   /** Show a free-text row for values outside the catalog (custom domains, rare language codes). */
   customPlaceholder?: string;
-  footnote?: string;
 };
 
 export function ChipMultiSelect({
@@ -41,7 +39,6 @@ export function ChipMultiSelect({
   emptyLabel,
   searchPlaceholder,
   customPlaceholder,
-  footnote,
 }: Props) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -171,7 +168,7 @@ export function ChipMultiSelect({
             {grouped.map(([group, items]) => (
               <li key={group || "_"}>
                 {group && (
-                  <div className="label-caps px-2 pb-1 pt-2">{group}</div>
+                  <div className="px-2 pb-1 pt-2 text-label-md font-medium text-text-subtle">{group}</div>
                 )}
                 <ul className="space-y-0.5">
                   {items.map((option) => {
@@ -191,11 +188,8 @@ export function ChipMultiSelect({
                             onChange={(e) => toggle(option.value, e.target.checked)}
                           />
                           <span className="min-w-0 flex-1">
-                            <span className="block font-medium text-text">{option.label}</span>
-                            <span className="block font-mono text-xs text-text-subtle">{option.value}</span>
-                            {option.note && (
-                              <span className="mt-0.5 block text-xs text-text-muted">{option.note}</span>
-                            )}
+                            <span className="block text-body-md font-medium text-text">{option.label}</span>
+                            <span className="block font-mono text-label-md text-text-subtle">{option.value}</span>
                           </span>
                         </label>
                       </li>
@@ -256,8 +250,7 @@ export function ChipMultiSelect({
         </div>
       )}
 
-      {footnote && <p className="text-xs leading-relaxed text-text-subtle">{footnote}</p>}
-      {atMax && <p className="text-xs text-warning">{t.chips.maxReached(max)}</p>}
+      {atMax && <p className="text-body-md text-warning">{t.chips.maxReached(max)}</p>}
     </div>
   );
 }

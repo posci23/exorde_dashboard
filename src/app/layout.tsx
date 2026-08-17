@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <QueryStoreProvider>
             <div className="app-shell flex min-h-screen flex-col md:flex-row">
               <NavRail />
-              <main className="relative min-w-0 flex-1 pb-[4.5rem] md:pb-0">
+              <main className="relative min-w-0 flex-1 pb-[4.5rem] pt-9 sm:pt-10 md:pb-0">
                 <BrandCorner />
                 {children}
               </main>
