@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { EmptyState, Panel, SegmentedControl } from "@/components/ui";
+import { EmptyState, Panel, SegmentedControl, TextInput } from "@/components/ui";
 import { keywordRows } from "@/lib/analysis/derive";
 import { formatCount, formatScore } from "@/lib/analysis/format";
 import type { Aggregate, Bands } from "@/lib/analysis/types";
@@ -39,15 +39,15 @@ export function KeywordPanel({ aggregate, bands }: { aggregate: Aggregate; bands
       description={t.analyze.keywords.description}
       actions={
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-1.5 text-xs text-text-muted">
+          <label className="flex items-center gap-2 text-xs text-text-muted">
             {t.analyze.keywords.minCount}
-            <input
+            <TextInput
               type="number"
               min={1}
               max={1000}
               value={minCount}
               onChange={(event) => setMinCount(Math.max(1, Number(event.target.value) || 1))}
-              className="tnum w-16 rounded-lg border border-outline-variant bg-surface px-2 py-1 text-xs text-text outline-none focus:border-accent"
+              className="tnum w-20 px-2 py-1.5 text-xs"
             />
           </label>
           <SegmentedControl

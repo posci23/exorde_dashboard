@@ -90,7 +90,12 @@ export function Button({
     danger: "text-danger hover:bg-danger/10",
   }[variant];
 
-  const sizes = { sm: "h-8 px-3 text-xs", md: "h-10 px-5 text-sm" }[size];
+  // Touch pointers get Material's larger target; mouse pointers keep the
+  // denser sizing the rest of the console uses.
+  const sizes = {
+    sm: "h-8 pointer-coarse:h-10 px-3 pointer-coarse:px-4 text-xs",
+    md: "h-10 pointer-coarse:h-11 px-5 text-sm",
+  }[size];
 
   return (
     <button
@@ -102,23 +107,48 @@ export function Button({
   );
 }
 
-export function HelpIcon({ about, children }: { about?: string; children: ReactNode }) {
+export function HelpIcon({
+  about,
+  children,
+  /**
+   * Anchor the bubble to the whole label row instead of the icon. On a narrow
+   * phone a bubble anchored to the icon runs off the side; anchored to the row
+   * it can never be wider than the row it sits in.
+   */
+  anchorToRow = false,
+}: {
+  about?: string;
+  children: ReactNode;
+  anchorToRow?: boolean;
+}) {
   const id = useId();
   const t = useT();
   return (
-    <span className="group relative inline-flex">
+    <span className={`group inline-flex ${anchorToRow ? "static sm:relative" : "relative"}`}>
       <button
         type="button"
         aria-label={about ? t.ui.helpAria(about) : t.ui.helpAriaGeneric}
         aria-describedby={id}
-        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-surface-container-high text-xs leading-none font-semibold text-text-subtle transition-colors hover:bg-surface-container-highest hover:text-text"
+        /*
+         * The dot stays small; the *target* does not. On a touch pointer a
+         * pseudo-element widens the hit area to Material's 48dp without
+         * moving anything on the page.
+         */
+        className="relative flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-surface-container-high text-xs leading-none font-semibold text-text-subtle transition-colors hover:bg-surface-container-highest hover:text-text pointer-coarse:h-6 pointer-coarse:w-6 pointer-coarse:before:absolute pointer-coarse:before:-inset-2.5 pointer-coarse:before:content-['']"
       >
         ?
       </button>
+      {/*
+        `hidden`, not `invisible`: a hidden-but-laid-out bubble still counts
+        toward the document's width, which is enough to give a 360px phone a
+        horizontal scrollbar before anyone has hovered anything.
+      */}
       <span
         id={id}
         role="tooltip"
-        className="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-xl bg-surface-container-low px-3 py-2 text-xs leading-relaxed font-normal text-text-muted opacity-0 shadow-[var(--shadow-2)] transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+        className={`pointer-events-none absolute bottom-full z-50 mb-2 hidden rounded-xl bg-surface-container-low px-3 py-2 text-xs leading-relaxed font-normal text-text-muted shadow-[var(--shadow-2)] group-hover:block group-focus-within:block sm:left-1/2 sm:w-64 sm:-translate-x-1/2 ${
+          anchorToRow ? "left-0 w-full" : "left-0 w-[min(16rem,calc(100vw-2.5rem))]"
+        }`}
       >
         {children}
       </span>
@@ -199,13 +229,16 @@ export function FieldLabel({
 }) {
   const Tag = htmlFor ? "label" : "span";
   return (
-    <div className="mb-2 flex items-baseline justify-between gap-2">
+    // Positioned so a help bubble can anchor to the row on small screens.
+    <div className="relative mb-2 flex items-baseline justify-between gap-2">
       <div className="flex items-baseline gap-1.5">
         <Tag htmlFor={htmlFor} className="block text-xs font-medium text-text">
           {children}
         </Tag>
         {help && (
-          <HelpIcon about={typeof children === "string" ? children : undefined}>{help}</HelpIcon>
+          <HelpIcon anchorToRow about={typeof children === "string" ? children : undefined}>
+            {help}
+          </HelpIcon>
         )}
       </div>
       {hint && <span className="font-mono text-xs text-text-subtle">{hint}</span>}
@@ -366,7 +399,7 @@ export function SegmentedControl<T extends string>({
           title={option.hint}
           aria-checked={value === option.value}
           onClick={() => onChange(option.value)}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors pointer-coarse:min-h-10 pointer-coarse:px-4 ${
             value === option.value
               ? "bg-accent-solid text-accent-fg"
               : "text-accent/70 hover:bg-accent-soft/50 hover:text-accent-on-soft"
@@ -450,7 +483,9 @@ export function DateTimeField({
 
 export function Toolbar({ children }: { children: ReactNode }) {
   return (
-    <div className="sticky top-0 z-20 -mx-6 mb-2 bg-bg/80 px-6 py-3 backdrop-blur-md">
+    // The bleed has to match PageShell's padding, which is 4 on phones and 6
+    // from sm up; a flat -mx-6 overflowed the viewport on a narrow screen.
+    <div className="sticky top-0 z-20 -mx-4 mb-2 bg-bg/80 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
       <div className="flex flex-wrap items-center gap-2">{children}</div>
     </div>
   );
@@ -498,7 +533,7 @@ export function FilterChip({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`h-8 rounded-full px-3.5 text-xs font-medium transition-colors ${
+      className={`h-8 rounded-full px-3.5 text-xs font-medium transition-colors pointer-coarse:h-11 pointer-coarse:px-4 ${
         selected
           ? "bg-accent-solid text-accent-fg shadow-[var(--shadow-1)]"
           : "border border-outline-variant/60 bg-surface/80 text-accent/75 hover:border-accent/30 hover:bg-accent-soft hover:text-accent-on-soft"

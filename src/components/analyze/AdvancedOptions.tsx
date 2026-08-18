@@ -204,12 +204,12 @@ export function AdvancedOptions({
           </FieldLabel>
 
           <div className="space-y-4">
-            <label className="flex items-start gap-2 text-xs text-text">
+            <label className="-mx-2 flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 text-xs text-text transition-colors hover:bg-surface-hover">
               <input
                 type="checkbox"
                 checked={draft.dedupe}
                 onChange={(event) => onDraft({ ...draft, dedupe: event.target.checked })}
-                className="mt-0.5 h-4 w-4 shrink-0"
+                className="mt-0.5 h-4.5 w-4.5 shrink-0 pointer-coarse:h-5 pointer-coarse:w-5"
               />
               <span>
                 {t.analyze.advanced.dedupe}

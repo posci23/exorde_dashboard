@@ -268,7 +268,9 @@ export class Aggregator {
       return;
     }
 
-    if (this.options.minClassificationScore > 0) {
+    // Only a file that actually carries the confidence column can be filtered
+    // on it; otherwise the rule would silently empty the whole dashboard.
+    if (this.options.minClassificationScore > 0 && this.mapping.classificationScore) {
       const score = readNumber(this.cell(cells, this.mapping.classificationScore));
       if (score == null || score < this.options.minClassificationScore) {
         this.stats.filteredOut++;

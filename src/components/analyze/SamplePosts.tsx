@@ -135,7 +135,7 @@ function PostRow({ row, bands }: { row: SamplePostRow; bands: Bands }) {
             href={row.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-accent underline-offset-2 hover:underline"
+            className="inline-flex items-center rounded-full text-accent underline-offset-2 hover:underline pointer-coarse:min-h-10 pointer-coarse:bg-accent-soft pointer-coarse:px-3 pointer-coarse:no-underline"
           >
             {t.analyze.samples.open}
           </a>

@@ -27,7 +27,11 @@ const ALIASES: Record<Exclude<keyof ColumnMapping, "emotions">, string[]> = {
     "score",
   ],
   createdAt: ["createdat", "collectedat", "date", "datetime", "timestamp", "time", "publishedat"],
-  text: ["rawcontent", "content", "text", "body", "message", "post", "title", "summary"],
+  // `summary` is deliberately absent: in this product's exports it holds
+  // platform metadata as JSON, not prose, so it must never become the text a
+  // scoring API sees. `translated_content` mirrors `raw_content` when the post
+  // is already English, which makes it a safe fallback.
+  text: ["rawcontent", "content", "translatedcontent", "text", "body", "message", "post", "title"],
   domain: ["domain", "site", "source", "platform", "website"],
   language: ["language", "lang", "detectedlanguage"],
   classification: ["analysisclassificationlabel", "classificationlabel", "classification", "category", "topic"],

@@ -50,6 +50,13 @@ drops and why, detects the column layout (with per-role overrides), and keeps
 the sentiment bands adjustable without re-reading the source. The whole
 dashboard exports as one summary CSV.
 
+It reads the export as the API emits it — CSV with its BOM and JSON-string
+arrays, or JSONL with those fields structured — and maps `analysis_sentiment`,
+`created_at`, `raw_content`, `domain`, `language`,
+`analysis_classification_label`, `analysis_top_keywords` and the 27
+`analysis_emotion_*` columns to the charts. See the Analyze section of
+`GUIDE.md` for the full table.
+
 ### Scoring
 
 By default the sentiment column already in the data is used. Rows without one

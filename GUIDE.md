@@ -137,6 +137,42 @@ run the same pipeline.
 | Advanced — scoring | Use the sentiment column in the data, or score the text column through a configured API, with a row ceiling |
 | Summary CSV | The whole dashboard as one CSV: headline, trend, every breakdown, keyword table |
 
+#### What it reads from an export
+
+The roles below are detected from the header row, matched against this
+product's own field names first and common aliases second, and every one of
+them is overridable per column under **Advanced options → Column mapping**.
+
+| Role | Export column | Used for |
+|------|---------------|----------|
+| Sentiment | `analysis_sentiment` (-1…1) | Every band, the trend, the distribution |
+| Timestamp | `created_at`, else `collected_at` | Trend buckets, sample post times |
+| Text | `raw_content`, else `translated_content` / `title` | Sample posts, and the text sent to a scoring API |
+| Domain | `domain` | Breakdown by platform |
+| Language | `language` | Breakdown by language, language filter |
+| Topic | `analysis_classification_label` | Breakdown by topic |
+| Topic score | `analysis_classification_score` | Minimum-confidence filter |
+| Author | `username` (not the `author` hash) | Breakdown by author |
+| Keywords | `analysis_top_keywords` | Keyword table |
+| Row id | `external_id`, else `url` | Duplicate removal |
+| Emotions | the 27 `analysis_emotion_*` columns | Emotion profile |
+
+`summary` is deliberately never used as the text column: in these exports it
+holds platform metadata as JSON, not prose, so it must not reach a scoring API.
+`analysis_embedding` and `analysis_language_score` are ignored — the first is a
+384-number vector, the second is deprecated.
+
+Both export formats are handled as the API emits them: **CSV** with its UTF-8
+BOM, RFC 4180 quoting, and arrays serialised as JSON strings inside cells; and
+**JSONL**, where those same fields stay structured JSON. Timestamps in the
+`YYYY-MM-DD HH:MM:SS.mmm` form are read as UTC, matching the index, and every
+chart buckets in UTC for the same reason. A gzipped file is detected by its
+magic bytes rather than its name.
+
+An export made with the default **"Just the posts"** field preset has no
+analysis columns at all. That is not an error state: the page says which column
+it could not find, and the text can be scored through an API instead.
+
 #### Scoring through an API
 
 Exports carry `analysis_sentiment`, so the default is simply to read it. When
