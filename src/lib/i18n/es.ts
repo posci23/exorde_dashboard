@@ -40,6 +40,7 @@ export const es: Dict = {
     query: { label: "Consulta", hint: "Construir · previsualizar · exportar" },
     reference: { label: "Referencia", hint: "Todas las opciones, campos y límites" },
     settings: { label: "Ajustes", hint: "Clave de API" },
+    analyze: { label: "Analizar", hint: "Graficar una exportación descargada" },
   },
 
   chips: {
@@ -353,6 +354,8 @@ export const es: Dict = {
     expiresDefault: (hours: number) => `${hours} h despu\u00e9s de completarse`,
     downloadFile: "Descargar archivo",
     copyLink: "Copiar enlace",
+    analyze: "Analizar",
+    analyzeHint: "Grafica el sentimiento de este archivo una vez descargado",
     linkCopied: "Enlace de descarga copiado",
     syncForLink: "Sincronizar para obtener un enlace nuevo",
     processingPhases: "Fases del procesamiento",
@@ -683,6 +686,200 @@ export const es: Dict = {
     deploymentNote:
       "La clave de API y la URL base se configuran como variables de entorno en tu proyecto de Vercel, no en el navegador. Actualízalas en el panel de Vercel en Ajustes → Variables de entorno (SENTINEL_API_KEY).",
     viewReference: "Ver referencia de filtros →",
+  },
+
+  analyze: {
+    title: "Análisis",
+    description:
+      "Suelta una exportación y lee su sentimiento. El archivo se procesa aquí, en tu navegador \u2014 no se sube nada, sea del tamaño que sea.",
+    newAnalysis: "Nuevo análisis",
+    another: "Analizar otro archivo",
+
+    drop: {
+      title: "Suelta aquí una exportación",
+      formats: "CSV \u00b7 TSV \u00b7 JSON \u00b7 JSONL \u00b7 XLSX, con o sin gzip",
+      anySize: "De cualquier tamaño \u2014 el archivo se lee por partes, nunca entero",
+      browse: "Elegir un archivo",
+      release: "Suelta para analizar",
+      privacy: "Se procesa en este navegador. El archivo no sale de tu equipo.",
+      unsupported: (name: string) =>
+        `No se puede leer ${name}. Usa CSV, TSV, JSON, JSONL o XLSX \u2014 con gzip si quieres.`,
+      fromExport: "Una exportación descargada desde Exportaciones sirve tal cual.",
+    },
+
+    progress: {
+      reading: (name: string) => `Leyendo ${name}`,
+      rows: (rows: string) => `${rows} filas hasta ahora`,
+      cancel: "Cancelar",
+      background: "Se procesa en un hilo aparte, así que esta página sigue respondiendo.",
+    },
+
+    error: {
+      title: "No se pudo analizar ese archivo",
+      retry: "Probar con otro archivo",
+      noRows: "No se encontró ninguna fila de datos en ese archivo.",
+      noSentiment:
+        "No se encontró columna de sentimiento. Elige una en Opciones avanzadas o vuelve a exportar incluyendo los campos de análisis.",
+    },
+
+    summary: {
+      title: "Sentimiento",
+      posts: "Publicaciones puntuadas",
+      positive: "Positivo",
+      negative: "Negativo",
+      neutral: "Neutral",
+      net: "Sentimiento neto",
+      netHint: "Proporción positiva menos proporción negativa",
+      mean: "Puntuación media",
+      meanHint: (min: string, max: string) => `Rango de ${min} a ${max}`,
+      ofRows: (kept: string, read: string) => `${kept} de ${read} filas`,
+      bands: (negative: string, positive: string) =>
+        `Negativo hasta ${negative} \u00b7 positivo desde ${positive}`,
+      share: (value: string) => `${value} de las publicaciones puntuadas`,
+      labelMode:
+        "Las puntuaciones vienen como palabras en el archivo, así que los límites de banda están desactivados.",
+    },
+
+    trend: {
+      title: "Sentimiento en el tiempo",
+      description: "Agrupado en UTC, igual que las marcas de tiempo de la exportación.",
+      empty: "Este archivo no trae marcas de tiempo utilizables.",
+      bucketHour: "Por hora",
+      bucketDay: "Por día",
+      bucketWeek: "Por semana",
+      metricCount: "Publicaciones",
+      metricShare: "Proporción",
+      worst: (when: string, share: string) => `Tramo más negativo: ${when}, ${share} negativo`,
+    },
+
+    distribution: {
+      title: "Distribución de puntuaciones",
+      description: "Cada publicación puntuada, agrupada por su puntuación.",
+      axis: "Puntuación de sentimiento",
+      posts: "Publicaciones",
+    },
+
+    breakdown: {
+      title: "Desglose",
+      description: "Cómo se reparten las tres bandas dentro de cada grupo.",
+      domain: "Dominio",
+      language: "Idioma",
+      topic: "Tema",
+      author: "Autor",
+      sortVolume: "Por volumen",
+      sortNegative: "Más negativos",
+      sortPositive: "Más positivos",
+      empty: "Este archivo no tiene columna para ese agrupamiento.",
+      posts: (n: string) => `${n} publicaciones`,
+      truncated: (n: string) => `Se siguen los ${n} grupos con más volumen.`,
+    },
+
+    emotions: {
+      title: "Perfil de emociones",
+      description: "Puntuación media por columna de emoción, para la banda que elijas.",
+      all: "Todas",
+      empty:
+        "Este archivo no trae columnas de emoción. Vuelve a exportar con los campos de emoción para ver este gráfico.",
+      mean: "Puntuación media",
+    },
+
+    keywords: {
+      title: "Palabras clave",
+      description: "Palabras clave ordenadas según cómo puntuaron las publicaciones que las llevan.",
+      sortVolume: "Más frecuentes",
+      sortPositive: "Más positivas",
+      sortNegative: "Más negativas",
+      minCount: "Mínimo de publicaciones",
+      empty: "Este archivo no tiene columna de palabras clave.",
+      posts: (n: string) => `${n} publicaciones`,
+      none: "Ninguna palabra clave llega a ese mínimo.",
+    },
+
+    samples: {
+      title: "Publicaciones",
+      description: "Una muestra al azar de filas puntuadas, y las más extremas de cada lado.",
+      tabSample: "Muestra",
+      tabTop: "Más positivas",
+      tabBottom: "Más negativas",
+      all: "Todas",
+      open: "Abrir",
+      empty:
+        "Este archivo no trae el texto de las publicaciones \u2014 vuelve a exportar con la columna de contenido para leer ejemplos.",
+      none: "No hay publicaciones en esa banda.",
+      showing: (shown: string, total: string) => `Mostrando ${shown} de ${total}`,
+      showMore: "Ver más",
+    },
+
+    cleaning: {
+      title: "Qué hizo la limpieza",
+      description: "Cada fila descartada, y por qué.",
+      rowsRead: "Filas leídas",
+      scored: "Filas puntuadas",
+      noScore: "Sin valor de sentimiento",
+      malformed: "Filas mal formadas",
+      duplicates: "Duplicados descartados",
+      filtered: "Quitadas por filtros",
+      withTime: "Con marca de tiempo",
+      withText: "Con texto",
+      file: "Archivo",
+      columnsFound: (n: string) => `${n} columnas`,
+      mapping: "Columnas usadas",
+      unset: "no encontrada",
+      roleSentiment: "Sentimiento",
+      roleTime: "Marca de tiempo",
+      roleText: "Texto",
+      roleDomain: "Dominio",
+      roleLanguage: "Idioma",
+      roleTopic: "Tema",
+      roleTopicScore: "Confianza del tema",
+      roleAuthor: "Autor",
+      roleKeywords: "Palabras clave",
+      roleUrl: "Enlace",
+      roleId: "Id de fila",
+      roleEmotions: (n: string) => `${n} columnas de emoción`,
+      warnNoNegative:
+        "No hay ni una puntuación negativa en este archivo. Si la columna va de 0 a 1 en vez de -1 a 1, cambia la escala en Opciones avanzadas.",
+      warnDedupe:
+        "Demasiados ids distintos para seguir rastreándolos \u2014 el descarte de duplicados se detuvo a medio archivo.",
+      warnTruncated: "Se alcanzó el límite de filas: no se leyó el final de este archivo.",
+      download: "Descargar resumen en CSV",
+    },
+
+    advanced: {
+      title: "Opciones avanzadas",
+      summary: "Bandas, reglas de limpieza, columnas",
+      bands: "Bandas de sentimiento",
+      bandsHelp:
+        "Dónde empieza y termina lo neutral. Se aplica al instante \u2014 los números se recalculan de la misma pasada, no del archivo.",
+      presetBalanced: "Equilibrado",
+      presetStrict: "Estricto",
+      presetSensitive: "Sensible",
+      presetCustom: "Personalizado",
+      negativeAt: "Negativo hasta",
+      positiveAt: "Positivo desde",
+      cleaning: "Reglas de limpieza",
+      cleaningHelp: "Deciden qué filas cuentan, así que hay que volver a leer el archivo.",
+      dedupe: "Descartar publicaciones duplicadas",
+      dedupeHelp: "Conserva la primera fila por id, o por enlace si no hay id.",
+      minScore: "Confianza mínima del tema",
+      from: "Desde",
+      to: "Hasta",
+      dates: "Rango de fechas (UTC)",
+      languages: "Idiomas",
+      languagesHelp: "Separados por comas, p. ej. en, es. Vacío mantiene todos.",
+      domains: "Dominios",
+      domainsHelp: "Separados por comas, p. ej. x.com. Vacío mantiene todos.",
+      scale: "Escala de sentimiento",
+      scaleSigned: "-1 a 1",
+      scaleUnit: "0 a 1",
+      scaleLabel: "Palabras",
+      columns: "Asignación de columnas",
+      columnsHelp: "Detectadas de la fila de encabezados. Corrige lo que se haya adivinado mal.",
+      auto: "Auto",
+      none: "Ninguna",
+      apply: "Volver a analizar",
+      dirty: "Cambiaron las reglas de limpieza \u2014 vuelve a analizar para aplicarlas.",
+    },
   },
 
   userMenu: {

@@ -25,6 +25,7 @@ cookie for that browser and takes precedence over the environment variable.
 | **Overview** | Service health, shared queue capacity, and your plan usage against quota. |
 | **Query** | One form. Preview is free and instant; export runs the same filters in full. |
 | **Jobs** | Track a running export through its phases, then download. Links expire after 48h; Sync mints a fresh one. |
+| **Analyze** | Drop a downloaded export (CSV, JSON, JSONL, XLSX, gzipped or not, any size) and read its sentiment: positive / neutral / negative, trend, breakdowns, emotions, keywords. Parsed in your browser — the file is never uploaded. |
 | **Reference** | Every filter, output column, classification label, and limit, searchable. |
 | **Settings** | API key configuration. |
 
@@ -33,6 +34,14 @@ cookie for that browser and takes precedence over the environment variable.
 The interface ships in English and Spanish. The toggle sits in the sidebar
 header; the choice persists per browser and seeds from the browser's own
 language on a first visit.
+
+## Analysis
+
+The **Analyze** page reads the file locally in a Web Worker, streaming it in
+4 MB slices, so a multi-gigabyte export works on an ordinary laptop. It reports
+every row it drops and why, detects the column layout (with per-role
+overrides), and keeps the sentiment bands adjustable without re-reading the
+file. The whole dashboard can be exported as one summary CSV.
 
 ## Notes
 

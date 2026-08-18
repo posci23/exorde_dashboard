@@ -14,6 +14,7 @@ export function NavRail() {
   const searchActive = pathname === "/";
   const jobsActive = pathname.startsWith("/jobs");
   const advancedActive = pathname.startsWith("/query");
+  const analyzeActive = pathname.startsWith("/analyze");
 
   return (
     <aside className="fixed inset-x-0 bottom-0 z-30 flex h-[4.5rem] items-stretch border-t border-outline-variant/60 bg-surface/95 px-2 backdrop-blur-md md:sticky md:top-0 md:h-screen md:w-20 md:shrink-0 md:flex-col md:items-center md:border-r md:border-t-0 md:px-0 md:py-3">
@@ -34,6 +35,12 @@ export function NavRail() {
           icon="tune"
           label={t.nav.advanced.label}
           active={advancedActive}
+        />
+        <RailItem
+          href="/analyze"
+          icon="insights"
+          label={t.nav.analyze.label}
+          active={analyzeActive}
         />
       </nav>
 

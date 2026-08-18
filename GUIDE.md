@@ -23,7 +23,9 @@ the signal index’s Data Export API uses a two-phase model. This dashboard walk
 5. **Download** — open the presigned S3 URL (valid 48 hours, no auth)  
 6. **History / Sync** — list past jobs and re-fetch download URLs
 
-Steps 1–3 all happen on **Query**; steps 4–6 on **Jobs**.
+Steps 1–3 all happen on **Query**; steps 4–6 on **Jobs**. Step 7 is optional:
+drop the downloaded file on **Analyze** to chart its sentiment, entirely in the
+browser.
 
 Data sources under the hood: `.posts` ∪ `.back_posts` (ClickHouse), quotas/jobs in PostgreSQL, files on Scaleway S3.
 
@@ -108,7 +110,32 @@ Monitor, download, and browse history in one place.
 | This browser | Jobs started or tracked from this browser (localStorage) |
 | Server history | `GET /api/v1/user/exports?limit=` (10 / 20 / 50 / 100) |
 
-### 4. Reference (`/reference`)
+### 4. Analyze (`/analyze`)
+
+Drop a file you already downloaded — CSV, TSV, JSON, JSONL or XLSX, gzipped or
+not — and it is cleaned and charted as a sentiment dashboard. Nothing is
+uploaded: the file is read in a Web Worker on this machine, so file size is
+bounded by disk, not by memory or by an upload limit.
+
+| Function | Description |
+|----------|-------------|
+| Streaming parse | 4 MB slices → decompress → decode → parse; a 1 GB CSV reads in ~30s at flat memory |
+| Cleaning | Drops rows with no score, malformed rows, and duplicate ids; every discard is counted in the report |
+| Column detection | `analysis_sentiment`, `created_at`, `raw_content` … matched by alias, and overridable per role |
+| Headline | Positive / neutral / negative split, net sentiment, mean score |
+| Charts | Trend over time (hour/day/week, count or share), score distribution, breakdown by domain / language / topic / author, emotion profile, keywords, sample posts |
+| Advanced — bands | Where neutral starts and ends; re-cuts instantly from the same pass |
+| Advanced — cleaning | Dedupe, minimum topic confidence, date range, language and domain filters, sentiment scale (-1…1, 0…1, or words), column mapping — these re-read the file |
+| Summary CSV | The whole dashboard as one CSV: headline, trend, every breakdown, keyword table |
+
+**How it stays flat in memory.** The parser never keeps rows. It keeps a
+201-bucket sentiment histogram per dimension (whole file, per hour, per domain,
+per language, per topic, per author, per keyword) plus a 400-row reservoir
+sample and the 25 strongest rows at each end. Band thresholds are applied to
+those bins afterwards, which is why moving them is instant while a cleaning rule
+needs a second pass.
+
+### 5. Reference (`/reference`)
 
 The in-app manual — everything the API accepts, in one searchable page with five tabs.
 
@@ -125,7 +152,7 @@ A free-text search filters all tabs at once, and each Query section's **?** butt
 The old `/fields` and `/limits` pages redirect here; 44 of the 52 columns are exported by default,
 and `analysis_source_type`, `collection_module`, and `collection_client_version` are always excluded.
 
-### 5. Settings (`/settings`)
+### 6. Settings (`/settings`)
 
 | Function | Description |
 |----------|-------------|
