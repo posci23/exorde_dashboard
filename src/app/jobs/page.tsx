@@ -305,6 +305,11 @@ function JobsView() {
                   <Button type="button" variant="secondary" onClick={() => void copyDownloadLink(job.download_url!)}>
                     {t.jobs.copyLink}
                   </Button>
+                  <Link href="/analyze" title={t.jobs.analyzeHint}>
+                    <Button type="button" variant="secondary">
+                      {t.jobs.analyze}
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ) : activeLinkState === "expired" ? (
@@ -522,6 +527,11 @@ function JobsView() {
                               >
                                 {t.jobs.copyLink}
                               </Button>
+                              <Link href="/analyze" title={t.jobs.analyzeHint}>
+                                <Button type="button" variant="ghost" size="sm">
+                                  {t.jobs.analyze}
+                                </Button>
+                              </Link>
                             </>
                           ) : linkState === "expired" || linkState === "unavailable" ? (
                             <Button type="button" variant="ghost" size="sm" onClick={() => void syncJob(row.job_id)}>
