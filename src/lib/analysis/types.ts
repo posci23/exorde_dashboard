@@ -1,5 +1,7 @@
+import type { ScoringOptions } from "./scoring";
+
 /**
- * Shared vocabulary for the drop-a-file sentiment analyzer.
+ * Shared vocabulary for the sentiment analyzer.
  *
  * The whole pipeline is client-side: nothing here ever reaches the server, so
  * an export a user downloaded stays on their machine. That constraint shapes
@@ -132,6 +134,12 @@ export type CleanStats = {
   withText: number;
   negativeSeen: boolean;
   truncated: boolean;
+  /** Rows whose score came from the scoring API rather than a column. */
+  scoredByApi: number;
+  /** Rows the API was asked about but had no answer for. */
+  scoreFailed: number;
+  /** Rows left unscored because the API ceiling was reached. */
+  scoreSkipped: number;
 };
 
 /** Everything one pass over a file produces. Bins, never rows. */
@@ -162,7 +170,11 @@ export type WorkerRequest = {
   type: "analyze";
   file: File;
   options: CleanOptions;
+  /** Scoring choice; the worker reaches an API through this app's own route. */
+  scoring: ScoringOptions;
 };
+
+export type { ScoringOptions };
 
 export type WorkerResponse =
   | { type: "progress"; bytes: number; bytesTotal: number; rowsRead: number }

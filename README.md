@@ -25,7 +25,7 @@ cookie for that browser and takes precedence over the environment variable.
 | **Overview** | Service health, shared queue capacity, and your plan usage against quota. |
 | **Query** | One form. Preview is free and instant; export runs the same filters in full. |
 | **Jobs** | Track a running export through its phases, then download. Links expire after 48h; Sync mints a fresh one. |
-| **Analyze** | Drop a downloaded export (CSV, JSON, JSONL, XLSX, gzipped or not, any size) and read its sentiment: positive / neutral / negative, trend, breakdowns, emotions, keywords. Parsed in your browser — the file is never uploaded. |
+| **Analyze** | Read an export's sentiment: positive / neutral / negative, trend, breakdowns, emotions, keywords. Drop a file (parsed in your browser, any size), or have the server ingest an export job or URL directly. |
 | **Reference** | Every filter, output column, classification label, and limit, searchable. |
 | **Settings** | API key configuration. |
 
@@ -37,11 +37,28 @@ language on a first visit.
 
 ## Analysis
 
-The **Analyze** page reads the file locally in a Web Worker, streaming it in
-4 MB slices, so a multi-gigabyte export works on an ordinary laptop. It reports
-every row it drops and why, detects the column layout (with per-role
-overrides), and keeps the sentiment bands adjustable without re-reading the
-file. The whole dashboard can be exported as one summary CSV.
+The **Analyze** page takes three kinds of source:
+
+- **A dropped file** — read locally in a Web Worker, streamed in 4 MB slices, so
+  a multi-gigabyte export works on an ordinary laptop and nothing is uploaded.
+- **An export job id** — the server asks the index for the download link and
+  reads it in place. No download step.
+- **A URL** — any https link to an export file, streamed and never stored.
+
+All three run the same pipeline, so the numbers match. It reports every row it
+drops and why, detects the column layout (with per-role overrides), and keeps
+the sentiment bands adjustable without re-reading the source. The whole
+dashboard exports as one summary CSV.
+
+### Scoring
+
+By default the sentiment column already in the data is used. Rows without one
+can be scored through an API instead — no vendor is hard-coded, so pointing it
+at yours is a matter of environment variables (endpoint, auth, request shape,
+where the score sits, what scale it is on). See `.env.example` and the Analyze
+section of `GUIDE.md`. The key stays on the server: a dropped file is scored
+through this app's own route, and calls are capped by a row ceiling so a large
+file cannot quietly run up a bill.
 
 ## Notes
 

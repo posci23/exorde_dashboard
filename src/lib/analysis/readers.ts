@@ -7,7 +7,7 @@
  * aligned to it — so the aggregator does not care which format it got.
  */
 
-import { byteStream } from "./stream";
+import { bufferToBlob, fileSource, peek, type AnalysisSource } from "./source";
 import type { FileKind } from "./types";
 import { readXlsxRows } from "./xlsx";
 
@@ -16,9 +16,20 @@ export type RowSink = {
   /** Cells in header order. Missing trailing cells simply aren't there. */
   row: (cells: unknown[]) => void;
   progress: (bytesRead: number) => void;
+  /**
+   * Called at every chunk boundary. This is where anything asynchronous
+   * belongs — scoring a batch through an external API, say — because the hot
+   * per-row path stays synchronous and the reader waits here instead.
+   */
+  afterChunk?: () => Promise<void> | void;
+  /** Checked at every chunk boundary; true stops the read early. */
+  shouldStop?: () => boolean;
 };
 
 export type ReadOutcome = { kind: FileKind; gzipped: boolean };
+
+/** The most a server-side ingest will buffer for a format that needs seeks. */
+const MAX_BUFFERED_BYTES = 256 * 1024 * 1024;
 
 /** Extension → format, after stripping a trailing `.gz`. */
 export function detectKind(fileName: string): FileKind | null {
@@ -33,20 +44,20 @@ export function detectKind(fileName: string): FileKind | null {
 
 export const ACCEPTED_EXTENSIONS = ".csv,.tsv,.json,.jsonl,.ndjson,.xlsx,.xlsm,.gz";
 
-async function isGzipped(file: Blob): Promise<boolean> {
-  const head = new Uint8Array(await file.slice(0, 2).arrayBuffer());
-  return head[0] === 0x1f && head[1] === 0x8b;
-}
-
-/** Text chunks from a file, counting *stored* bytes so progress is honest. */
+/**
+ * Text chunks from a source, counting *stored* bytes so progress is honest.
+ * Gzip is detected from the magic bytes rather than the name, because a
+ * download link often hands over a compressed body under a plain name.
+ */
 async function* textChunks(
-  file: Blob,
-  gzipped: boolean,
+  source: AnalysisSource,
   onBytes: (bytes: number) => void,
 ): AsyncGenerator<string> {
-  let stream = byteStream(file, onBytes);
-  if (gzipped) stream = stream.pipeThrough(new DecompressionStream("gzip"));
+  const opened = await source.open(onBytes);
+  const { head, stream: replayed } = await peek(opened, 2);
+  const gzipped = head[0] === 0x1f && head[1] === 0x8b;
 
+  const stream = gzipped ? replayed.pipeThrough(new DecompressionStream("gzip")) : replayed;
   const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
   try {
     for (;;) {
@@ -183,12 +194,7 @@ class CsvState {
   }
 }
 
-async function readDelimited(
-  file: Blob,
-  kind: FileKind,
-  gzipped: boolean,
-  sink: RowSink,
-): Promise<void> {
+async function readDelimited(source: AnalysisSource, kind: FileKind, sink: RowSink): Promise<void> {
   let headers: string[] | null = null;
   let state: CsvState | null = null;
   let first = "";
@@ -204,7 +210,7 @@ async function readDelimited(
     sink.row(cells);
   };
 
-  for await (const chunk of textChunks(file, gzipped, sink.progress)) {
+  for await (const chunk of textChunks(source, sink.progress)) {
     if (!state) {
       first += chunk;
       // Wait for a full first line before committing to a delimiter.
@@ -212,9 +218,11 @@ async function readDelimited(
       state = new CsvState(sniffDelimiter(first, kind), emit);
       state.push(first.replace(/^﻿/, ""));
       first = "";
-      continue;
+    } else {
+      state.push(chunk);
     }
-    state.push(chunk);
+    await sink.afterChunk?.();
+    if (sink.shouldStop?.()) return;
   }
 
   if (!state && first) {
@@ -296,7 +304,7 @@ function flatten(record: Record<string, unknown>): Record<string, unknown> {
  * single top-level array. The array case is scanned by brace depth so elements
  * are parsed one at a time instead of materialising the whole document.
  */
-async function readJson(file: Blob, gzipped: boolean, sink: RowSink): Promise<FileKind> {
+async function readJson(source: AnalysisSource, sink: RowSink): Promise<FileKind> {
   const rows = new ObjectRows(sink);
   let mode: "unknown" | "array" | "lines" = "unknown";
   let buffer = "";
@@ -359,7 +367,7 @@ async function readJson(file: Blob, gzipped: boolean, sink: RowSink): Promise<Fi
     }
   };
 
-  for await (const chunk of textChunks(file, gzipped, sink.progress)) {
+  for await (const chunk of textChunks(source, sink.progress)) {
     buffer += chunk;
     if (mode === "unknown") {
       const head = buffer.replace(/^\s+/, "");
@@ -373,6 +381,8 @@ async function readJson(file: Blob, gzipped: boolean, sink: RowSink): Promise<Fi
     }
     if (mode === "array") pushArray();
     else pushLines(false);
+    await sink.afterChunk?.();
+    if (sink.shouldStop?.()) return mode === "array" ? "json" : "jsonl";
   }
 
   if (mode === "array") pushArray();
@@ -391,10 +401,14 @@ function safeParse(text: string, rows: ObjectRows) {
   }
 }
 
-async function readXlsx(file: Blob, sink: RowSink): Promise<void> {
+async function readXlsx(source: AnalysisSource, sink: RowSink): Promise<void> {
+  // Sheet cells reference a shared-string table and a zip directory at the end
+  // of the file, so this is the one format that cannot be read as a pure
+  // stream. A server-side ingest buffers it, up to a limit.
+  const blob = await bufferToBlob(source, MAX_BUFFERED_BYTES);
   let headers: string[] | null = null;
   await readXlsxRows(
-    file,
+    blob,
     (cells) => {
       if (!headers) {
         headers = cells.map((h, i) => String(h).trim() || `column_${i + 1}`);
@@ -405,33 +419,47 @@ async function readXlsx(file: Blob, sink: RowSink): Promise<void> {
       sink.row(cells);
     },
     sink.progress,
+    async () => {
+      await sink.afterChunk?.();
+      return sink.shouldStop?.() ?? false;
+    },
   );
 }
 
-/** Read any supported file, dispatching on extension and gzip magic bytes. */
-export async function readRows(file: File, sink: RowSink): Promise<ReadOutcome> {
-  const kind = detectKind(file.name);
-  const gzipped = kind === "xlsx" ? false : await isGzipped(file);
+/**
+ * Read any supported source, dispatching on extension — and, when the name
+ * says nothing, on the first bytes of the content.
+ */
+export async function readRows(source: AnalysisSource, sink: RowSink): Promise<ReadOutcome> {
+  const gzipped = /\.gz$/i.test(source.name);
+  const kind = detectKind(source.name) ?? (await sniffKind(source));
 
   if (kind === "xlsx") {
-    await readXlsx(file, sink);
+    await readXlsx(source, sink);
     return { kind: "xlsx", gzipped: false };
   }
   if (kind === "json" || kind === "jsonl") {
-    const resolved = await readJson(file, gzipped, sink);
+    const resolved = await readJson(source, sink);
     return { kind: resolved, gzipped };
   }
-  if (kind === "csv" || kind === "tsv") {
-    await readDelimited(file, kind, gzipped, sink);
-    return { kind, gzipped };
-  }
+  await readDelimited(source, kind, sink);
+  return { kind, gzipped };
+}
 
-  // No usable extension: let the first bytes decide.
-  const head = (await file.slice(0, 4096).text()).replace(/^﻿\s*/, "");
-  if (head.startsWith("[") || head.startsWith("{")) {
-    const resolved = await readJson(file, gzipped, sink);
-    return { kind: resolved, gzipped };
-  }
-  await readDelimited(file, "csv", gzipped, sink);
-  return { kind: "csv", gzipped };
+/** Convenience wrapper for the browser, where the source is always a File. */
+export function readFileRows(file: File, sink: RowSink): Promise<ReadOutcome> {
+  return readRows(fileSource(file), sink);
+}
+
+/**
+ * Guess the format from the opening bytes. Only reached when the name carries
+ * no usable extension — a download link ending in an id, typically. A pure
+ * stream can't be sniffed without spending its head, and CSV is the safe
+ * default there: `readJson` recognises JSON from its own first chunk anyway.
+ */
+async function sniffKind(source: AnalysisSource): Promise<FileKind> {
+  if (!source.blob) return "csv";
+  const head = (await source.blob.slice(0, 4096).text()).replace(/^﻿\s*/, "");
+  if (head.startsWith("PK")) return "xlsx";
+  return head.startsWith("[") || head.startsWith("{") ? "json" : "csv";
 }

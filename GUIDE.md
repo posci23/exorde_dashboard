@@ -112,10 +112,18 @@ Monitor, download, and browse history in one place.
 
 ### 4. Analyze (`/analyze`)
 
-Drop a file you already downloaded — CSV, TSV, JSON, JSONL or XLSX, gzipped or
-not — and it is cleaned and charted as a sentiment dashboard. Nothing is
-uploaded: the file is read in a Web Worker on this machine, so file size is
-bounded by disk, not by memory or by an upload limit.
+Read an export and chart its sentiment. Three ways in, picked at the top of the
+page:
+
+| Source | Who reads it | Notes |
+|--------|--------------|-------|
+| **Drop a file** | This browser, in a Web Worker | CSV, TSV, JSON, JSONL, XLSX, gzipped or not. Nothing is uploaded, so size is bounded by disk rather than by an upload limit |
+| **From an export** | The server | A completed export job id. The server asks the index for the download link and streams it in place — you download nothing |
+| **From a URL** | The server | Any https link to an export file. Streamed, never stored |
+
+The two server paths answer in NDJSON so progress arrives while the pass is
+still running; the dashboard that renders is identical either way, because both
+run the same pipeline.
 
 | Function | Description |
 |----------|-------------|
@@ -125,8 +133,45 @@ bounded by disk, not by memory or by an upload limit.
 | Headline | Positive / neutral / negative split, net sentiment, mean score |
 | Charts | Trend over time (hour/day/week, count or share), score distribution, breakdown by domain / language / topic / author, emotion profile, keywords, sample posts |
 | Advanced — bands | Where neutral starts and ends; re-cuts instantly from the same pass |
-| Advanced — cleaning | Dedupe, minimum topic confidence, date range, language and domain filters, sentiment scale (-1…1, 0…1, or words), column mapping — these re-read the file |
+| Advanced — cleaning | Dedupe, minimum topic confidence, date range, language and domain filters, sentiment scale (-1…1, 0…1, or words), column mapping — these re-read the source |
+| Advanced — scoring | Use the sentiment column in the data, or score the text column through a configured API, with a row ceiling |
 | Summary CSV | The whole dashboard as one CSV: headline, trend, every breakdown, keyword table |
+
+#### Scoring through an API
+
+Exports carry `analysis_sentiment`, so the default is simply to read it. When
+the data has no score — a file from somewhere else, or an export without the
+analysis columns — the text column can be sent to a scoring API instead.
+
+No vendor is hard-coded. A provider is described entirely by environment
+variables (see `.env.example`): the endpoint, how to authenticate, the request
+body's shape, where the score sits in the response, and what scale it is on.
+
+```
+SENTIMENT_API_URL=https://vendor.example/v1/sentiment
+SENTIMENT_API_KEY=…
+SENTIMENT_API_INPUT_FIELD=texts          # body: { "texts": ["…", "…"] }
+SENTIMENT_API_SCORE_PATH=results[].score # dotted path; [] steps into an array
+SENTIMENT_API_SCALE=unit                 # signed | unit | label | label_score
+```
+
+`label_score` covers the common `[{ "label": "POSITIVE", "score": 0.98 }]`
+shape: the word gives the sign, the confidence gives the magnitude. If a
+response is stranger than the paths can express, `buildProvider` in
+`src/lib/analysis/providers.ts` is the single function to fork.
+
+Two properties hold regardless of vendor:
+
+- **The key never reaches the browser.** A dropped file is scored through this
+  app's own `/api/analysis/score` route, which holds the credentials. The file
+  still stays local — only the text being scored is sent, which is what scoring
+  is.
+- **Calls are capped.** Scoring is billed per request, so a row ceiling
+  (5,000 by default) stops the pass from spending the whole file, and the
+  cleaning report says how many rows went unscored.
+
+If every batch fails, the analysis fails with the provider's own message rather
+than rendering an empty dashboard.
 
 **How it stays flat in memory.** The parser never keeps rows. It keeps a
 201-bucket sentiment histogram per dimension (whole file, per hour, per domain,
@@ -257,6 +302,31 @@ presets; row caps use preset dropdowns with a custom numeric fallback.
 | With exclusions | Domains/languages + exclude groups |
 | Safe mode | Short codes + `full_string_scan` |
 | Per-day sampling export | `per_day_limit` + CSV |
+
+---
+
+## Analysis API routes
+
+| Route | Method | What it does |
+|-------|--------|--------------|
+| `/api/analysis/ingest` | POST | Streams an analysis as NDJSON: `{type:"opened"}`, then `{type:"progress"}` lines, then `{type:"done", aggregate}` (or `{type:"error"}`). Body: `{ source: {kind:"job",jobId} \| {kind:"url",url}, options, scoring }` |
+| `/api/analysis/score` | POST | `{ texts: string[], provider? }` → `{ scores: (number\|null)[] }`. The browser's route to the scoring API, so the key stays server-side |
+| `/api/analysis/providers` | GET | Which scoring options this deployment has, and whether they are configured. Names only — never the endpoint or key |
+
+The aggregate crosses the wire as sparse histograms (`[bin, count, …]`) rather
+than typed arrays, which JSON cannot carry, and the server folds time buckets
+and trims group tables first — see `src/lib/analysis/wire.ts`.
+
+**Fetching a URL a user typed is an SSRF risk**, so `src/lib/analysis/ingest.ts`
+checks every hop: http(s) only, an optional host allowlist
+(`ANALYZE_URL_ALLOWED_HOSTS`), and DNS resolution refused when it lands on a
+private, loopback, link-local or carrier-NAT address. Redirects are followed by
+hand, re-checked each time, three at most. Self-hosted deployments whose storage
+sits on the same private network can set `ANALYZE_URL_ALLOW_PRIVATE=true`.
+
+Long ingests are bounded by the platform's function timeout (`maxDuration` is
+set to 300s; a Hobby-tier Vercel deployment caps lower). A file too big for that
+window is what the in-browser path is for.
 
 ---
 

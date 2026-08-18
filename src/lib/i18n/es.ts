@@ -699,9 +699,47 @@ export const es: Dict = {
   analyze: {
     title: "Análisis",
     description:
-      "Suelta una exportación y lee su sentimiento. El archivo se procesa aquí, en tu navegador \u2014 no se sube nada, sea del tamaño que sea.",
+      "Lee una exportación y grafica su sentimiento. Suelta un archivo y se procesa aquí, en tu navegador, sea del tamaño que sea \u2014 o apunta el servidor directamente a una exportación y sáltate la descarga.",
     newAnalysis: "Nuevo análisis",
-    another: "Analizar otro archivo",
+    another: "Empezar de nuevo",
+
+    source: {
+      title: "De dónde",
+      file: "Soltar un archivo",
+      job: "Desde una exportación",
+      url: "Desde una URL",
+      jobLabel: "ID del trabajo de exportación",
+      jobHelp:
+        "Cualquier exportación completada. El servidor la trae del índice y la lee ahí mismo \u2014 tú no descargas nada.",
+      jobPlaceholder: "id del trabajo, en Exportaciones",
+      urlLabel: "URL del archivo",
+      urlHelp:
+        "Un enlace https a un archivo CSV, TSV, JSON, JSONL o XLSX, con o sin gzip. El servidor lo lee en streaming y no guarda nada.",
+      urlPlaceholder: "https://\u2026",
+      run: "Analizar",
+      serverNote: "Se lee en el servidor. No se descarga nada a este equipo.",
+      reading: (name: string) => `Leyendo ${name}`,
+      needsJob: "Escribe el id de un trabajo de exportación.",
+      needsUrl: "Escribe una URL.",
+    },
+
+    scoring: {
+      title: "Puntuación",
+      help: "De dónde sale la puntuación de sentimiento de cada fila.",
+      column: "La columna de sentimiento del archivo",
+      api: (name: string) => `Puntuar con ${name}`,
+      unconfigured:
+        "Este despliegue no tiene API de puntuación configurada. Define SENTIMENT_API_URL y sus variables para activarla.",
+      warning:
+        "Puntuar con la API envía la columna de texto al endpoint configurado. No se envía nada más del archivo.",
+      maxRows: "Tope de filas para la API",
+      maxRowsHelp:
+        "Cada llamada a la API se cobra, así que la pasada deja de preguntar tras estas filas y reporta el resto como sin puntuar.",
+      scoredByApi: "Puntuadas por la API",
+      scoreFailed: "La API no dio puntuación",
+      scoreSkipped: "Pasado el tope de filas",
+      provider: "Proveedor",
+    },
 
     drop: {
       title: "Suelta aquí una exportación",
@@ -727,7 +765,7 @@ export const es: Dict = {
       retry: "Probar con otro archivo",
       noRows: "No se encontró ninguna fila de datos en ese archivo.",
       noSentiment:
-        "No se encontró columna de sentimiento. Elige una en Opciones avanzadas o vuelve a exportar incluyendo los campos de análisis.",
+        "No se encontró columna de sentimiento. Elige una en Opciones avanzadas, puntúa el texto con la API configurada, o vuelve a exportar incluyendo los campos de análisis.",
     },
 
     summary: {
@@ -855,7 +893,7 @@ export const es: Dict = {
 
     advanced: {
       title: "Opciones avanzadas",
-      summary: "Bandas, reglas de limpieza, columnas",
+      summary: "Bandas, puntuación, reglas de limpieza, columnas",
       bands: "Bandas de sentimiento",
       bandsHelp:
         "Dónde empieza y termina lo neutral. Se aplica al instante \u2014 los números se recalculan de la misma pasada, no del archivo.",

@@ -10,6 +10,7 @@
  */
 
 import { analyzeFile } from "./run";
+import { routeScorer, type ScoringOptions } from "./scoring";
 import type { Aggregate, CleanOptions, WorkerResponse } from "./types";
 
 export type Progress = { bytes: number; bytesTotal: number; rowsRead: number };
@@ -22,6 +23,7 @@ export type AnalysisRun = {
 export function startAnalysis(
   file: File,
   options: CleanOptions,
+  scoring: ScoringOptions,
   onProgress: (progress: Progress) => void,
 ): AnalysisRun {
   let worker: Worker | null = null;
@@ -35,9 +37,18 @@ export function startAnalysis(
 
   if (!worker) {
     let cancelled = false;
-    const result = analyzeFile(file, options, (bytes, rowsRead) => {
-      if (!cancelled) onProgress({ bytes, bytesTotal: file.size, rowsRead });
-    }).then((aggregate) => {
+    const result = analyzeFile(
+      file,
+      options,
+      (bytes, rowsRead) => {
+        if (!cancelled) onProgress({ bytes, bytesTotal: file.size, rowsRead });
+      },
+      {
+        scoring,
+        makeScorer: (config) =>
+          routeScorer({ providerId: config.providerId, label: config.providerId ?? "Scoring API" }),
+      },
+    ).then((aggregate) => {
       if (cancelled) throw new DOMException("Analysis cancelled", "AbortError");
       return aggregate;
     });
@@ -60,7 +71,7 @@ export function startAnalysis(
       active.terminate();
       reject(new Error(event.message || "The analyzer worker failed."));
     };
-    active.postMessage({ type: "analyze", file, options });
+    active.postMessage({ type: "analyze", file, options, scoring });
   });
 
   return {

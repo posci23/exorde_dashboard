@@ -1,8 +1,10 @@
 "use client";
 
-import { Button, FieldLabel, Section, SegmentedControl, Select, TextInput } from "@/components/ui";
+import { Alert, Button, FieldLabel, Section, SegmentedControl, Select, TextInput } from "@/components/ui";
+import type { ScoringOptions } from "@/lib/analysis/scoring";
 import type { Bands, CleanOptions, ColumnMapping, SentimentScale } from "@/lib/analysis/types";
 import { useT } from "@/lib/i18n/locale";
+import type { ProviderSummary } from "./useProviders";
 
 type MappableRole = Exclude<keyof ColumnMapping, "emotions">;
 
@@ -31,6 +33,9 @@ export function AdvancedOptions({
   onBands,
   draft,
   onDraft,
+  scoring,
+  onScoring,
+  providers,
   dirty,
   onApply,
   columns,
@@ -41,6 +46,9 @@ export function AdvancedOptions({
   onBands: (bands: Bands) => void;
   draft: CleanOptions;
   onDraft: (options: CleanOptions) => void;
+  scoring: ScoringOptions;
+  onScoring: (scoring: ScoringOptions) => void;
+  providers: ProviderSummary[];
   dirty: boolean;
   onApply: () => void;
   columns: string[];
@@ -49,6 +57,7 @@ export function AdvancedOptions({
 }) {
   const t = useT();
   const preset = matchPreset(bands);
+  const api = providers.find((provider) => provider.id !== "column");
 
   const roles: Array<{ role: MappableRole; label: string }> = [
     { role: "sentiment", label: t.analyze.cleaning.roleSentiment },
@@ -142,6 +151,51 @@ export function AdvancedOptions({
               </div>
             </div>
           )}
+        </section>
+
+        <section className="border-t border-outline-variant/50 pt-5">
+          <FieldLabel help={t.analyze.scoring.help}>{t.analyze.scoring.title}</FieldLabel>
+          <div className="space-y-3">
+            <SegmentedControl
+              value={scoring.mode}
+              onChange={(mode) => onScoring({ ...scoring, mode, providerId: api?.id ?? null })}
+              options={[
+                { value: "column" as const, label: t.analyze.scoring.column },
+                {
+                  value: "api" as const,
+                  label: t.analyze.scoring.api(api?.label ?? t.analyze.scoring.provider),
+                },
+              ]}
+            />
+
+            {scoring.mode === "api" &&
+              (api?.configured ? (
+                <>
+                  <Alert tone="info">{t.analyze.scoring.warning}</Alert>
+                  <div className="sm:max-w-xs">
+                    <FieldLabel htmlFor="score-max" help={t.analyze.scoring.maxRowsHelp}>
+                      {t.analyze.scoring.maxRows}
+                    </FieldLabel>
+                    <TextInput
+                      id="score-max"
+                      type="number"
+                      min={1}
+                      max={200_000}
+                      step={500}
+                      value={scoring.maxRows}
+                      onChange={(event) =>
+                        onScoring({
+                          ...scoring,
+                          maxRows: clamp(Math.round(Number(event.target.value)), 1, 200_000),
+                        })
+                      }
+                    />
+                  </div>
+                </>
+              ) : (
+                <Alert tone="warning">{api?.description ?? t.analyze.scoring.unconfigured}</Alert>
+              ))}
+          </div>
         </section>
 
         <section className="border-t border-outline-variant/50 pt-5">

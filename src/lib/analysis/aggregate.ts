@@ -102,7 +102,7 @@ export type FileMeta = { name: string; size: number };
 
 export class Aggregator {
   private mapping: ColumnMapping | null = null;
-  private columns: string[] = [];
+  private columns_: string[] = [];
   private index: Record<string, number> = {};
   private emotionIndex: number[] = [];
   private emotionNames: string[] = [];
@@ -141,6 +141,9 @@ export class Aggregator {
     withText: 0,
     negativeSeen: false,
     truncated: false,
+    scoredByApi: 0,
+    scoreFailed: 0,
+    scoreSkipped: 0,
   };
 
   private readonly languageFilter: Set<string>;
@@ -161,7 +164,7 @@ export class Aggregator {
   }
 
   setHeaders(headers: string[]) {
-    this.columns = headers;
+    this.columns_ = headers;
     this.mapping = detectMapping(headers, this.options.mapping);
     this.index = {};
     headers.forEach((header, i) => {
@@ -180,31 +183,78 @@ export class Aggregator {
     return this.stats.rowsRead;
   }
 
+  get columns(): string[] {
+    return this.columns_;
+  }
+
+  get resolvedMapping(): ColumnMapping | null {
+    return this.mapping;
+  }
+
+  /** Counts a row that is on its way to the scoring API. */
+  countRead(): boolean {
+    this.stats.rowsRead++;
+    if (this.stats.rowsRead > MAX_ROWS) {
+      this.stats.truncated = true;
+      return false;
+    }
+    return true;
+  }
+
+  /** Rows the scoring ceiling left untouched. */
+  countUnscored(rows = 1) {
+    this.stats.scoreSkipped += rows;
+    this.stats.noSentiment += rows;
+  }
+
+  /** The text a scoring API should see for this row. */
+  textFor(cells: unknown[]): string {
+    return this.text(cells, this.mapping?.text ?? null);
+  }
+
   get done(): boolean {
     return this.stats.truncated;
   }
 
-  addRow(cells: unknown[]) {
+  /**
+   * @param scored When scoring came from an API rather than a column, the
+   * value it returned — or null when the provider had no answer for this row.
+   * Rows counted before a score arrives (`countRead`) must not be counted here
+   * a second time.
+   */
+  addRow(cells: unknown[], scored?: number | null, alreadyRead = false) {
     if (!this.mapping || this.stats.truncated) return;
-    this.stats.rowsRead++;
-    if (this.stats.rowsRead > MAX_ROWS) {
-      this.stats.truncated = true;
-      return;
+    if (!alreadyRead) {
+      this.stats.rowsRead++;
+      if (this.stats.rowsRead > MAX_ROWS) {
+        this.stats.truncated = true;
+        return;
+      }
     }
 
-    const sentimentColumn = this.mapping.sentiment;
-    if (!sentimentColumn) {
-      this.stats.noSentiment++;
-      return;
-    }
-
-    const raw = this.cell(cells, sentimentColumn);
-    const sentiment = readSentiment(raw, this.options.scale);
-    if (sentiment == null) {
-      // A row with no score is not a neutral row — it is a row we can't judge.
-      if (cells.length <= 1) this.stats.malformed++;
-      else this.stats.noSentiment++;
-      return;
+    let sentiment: number | null;
+    if (scored !== undefined) {
+      sentiment = scored;
+      if (sentiment == null) {
+        this.stats.scoreFailed++;
+        this.stats.noSentiment++;
+        return;
+      }
+      this.stats.scoredByApi++;
+    } else {
+      const sentimentColumn = this.mapping.sentiment;
+      if (!sentimentColumn) {
+        this.stats.noSentiment++;
+        return;
+      }
+      const raw = this.cell(cells, sentimentColumn);
+      sentiment = readSentiment(raw, this.options.scale);
+      if (sentiment == null) {
+        // A row with no score is not a neutral row — it is a row we can't judge.
+        if (cells.length <= 1) this.stats.malformed++;
+        else this.stats.noSentiment++;
+        return;
+      }
     }
 
     const language = this.text(cells, this.mapping.language).toLowerCase();
@@ -367,7 +417,7 @@ export class Aggregator {
   finish(kind: FileKind, gzipped: boolean, scale: SentimentScale): Aggregate {
     const mapping =
       this.mapping ??
-      detectMapping(this.columns, this.options.mapping);
+      detectMapping(this.columns_, this.options.mapping);
 
     const time = [...this.time.entries()]
       .map(([t, bucket]) => ({ t, ...bucket }))
@@ -375,7 +425,7 @@ export class Aggregator {
 
     return {
       file: { name: this.file.name, size: this.file.size, kind, gzipped },
-      columns: this.columns,
+      columns: this.columns_,
       mapping,
       scale,
       stats: this.stats,

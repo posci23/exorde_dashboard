@@ -5,6 +5,8 @@ import { Alert, Button, PageHeader, PageShell, Panel } from "@/components/ui";
 import { startAnalysis, type Progress } from "@/lib/analysis/client";
 import { splitOf } from "@/lib/analysis/derive";
 import { formatBytes, formatCount } from "@/lib/analysis/format";
+import { startIngest } from "@/lib/analysis/ingest-client";
+import { DEFAULT_SCORING, type ScoringOptions } from "@/lib/analysis/scoring";
 import {
   DEFAULT_BANDS,
   DEFAULT_CLEAN_OPTIONS,
@@ -17,27 +19,32 @@ import { AdvancedOptions } from "./AdvancedOptions";
 import { BreakdownPanel } from "./BreakdownPanel";
 import { CleaningReport } from "./CleaningReport";
 import { DistributionChart } from "./DistributionChart";
-import { DropZone } from "./DropZone";
 import { EmotionPanel } from "./EmotionPanel";
 import { KeywordPanel } from "./KeywordPanel";
 import { SamplePosts } from "./SamplePosts";
 import { SentimentSummary } from "./SentimentSummary";
+import { SourcePicker, type PickedSource } from "./SourcePicker";
 import { TrendChart } from "./TrendChart";
+import { useProviders } from "./useProviders";
 
 /**
  * The analyzer page.
  *
- * One file at a time: drop it, watch the pass, then read it. The parsed
- * aggregate stays in state so the band controls and every chart control are
- * instant; only the cleaning rules — which decide what counts as a row — send
- * the file back through the parser.
+ * One source at a time — a dropped file read in this browser, or an export the
+ * server pulls straight from the index — and one aggregate held in state. The
+ * band controls and every chart control re-cut that aggregate instantly;
+ * cleaning rules and the scoring choice decide what a row *is*, so they send
+ * the source back through the pipeline.
  */
 export function AnalyzeView() {
   const t = useT();
+  const providers = useProviders();
 
-  const [file, setFile] = useState<File | null>(null);
+  const [source, setSource] = useState<PickedSource | null>(null);
   const [applied, setApplied] = useState<CleanOptions>(DEFAULT_CLEAN_OPTIONS);
   const [draft, setDraft] = useState<CleanOptions>(DEFAULT_CLEAN_OPTIONS);
+  const [appliedScoring, setAppliedScoring] = useState<ScoringOptions>(DEFAULT_SCORING);
+  const [scoring, setScoring] = useState<ScoringOptions>(DEFAULT_SCORING);
   const [bands, setBands] = useState<Bands>(DEFAULT_BANDS);
   const [aggregate, setAggregate] = useState<Aggregate | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
@@ -46,65 +53,96 @@ export function AnalyzeView() {
   const cancelRef = useRef<(() => void) | null>(null);
   const runIdRef = useRef(0);
 
-  const run = useCallback((target: File, options: CleanOptions) => {
-    cancelRef.current?.();
-    const runId = ++runIdRef.current;
+  const run = useCallback(
+    (target: PickedSource, options: CleanOptions, scoringOptions: ScoringOptions) => {
+      cancelRef.current?.();
+      const runId = ++runIdRef.current;
 
-    setError(null);
-    setAggregate(null);
-    setProgress({ bytes: 0, bytesTotal: target.size, rowsRead: 0 });
-
-    const { result, cancel } = startAnalysis(target, options, (update) => {
-      if (runIdRef.current === runId) setProgress(update);
-    });
-    cancelRef.current = cancel;
-
-    result
-      .then((value) => {
-        if (runIdRef.current !== runId) return;
-        setAggregate(value);
-        setProgress(null);
-      })
-      .catch((cause: unknown) => {
-        if (runIdRef.current !== runId) return;
-        setProgress(null);
-        if (cause instanceof DOMException && cause.name === "AbortError") return;
-        setError(cause instanceof Error ? cause.message : String(cause));
+      setError(null);
+      setAggregate(null);
+      setProgress({
+        bytes: 0,
+        bytesTotal: target.kind === "file" ? target.file.size : 0,
+        rowsRead: 0,
       });
-  }, []);
+
+      const onProgress = (update: Progress) => {
+        if (runIdRef.current === runId) setProgress(update);
+      };
+
+      const { result, cancel } =
+        target.kind === "file"
+          ? startAnalysis(target.file, options, scoringOptions, onProgress)
+          : startIngest(
+              {
+                source:
+                  target.kind === "job"
+                    ? { kind: "job", jobId: target.jobId }
+                    : { kind: "url", url: target.url },
+                options,
+                scoring: scoringOptions,
+              },
+              onProgress,
+            );
+      cancelRef.current = cancel;
+
+      result
+        .then((value) => {
+          if (runIdRef.current !== runId) return;
+          setAggregate(value);
+          setProgress(null);
+        })
+        .catch((cause: unknown) => {
+          if (runIdRef.current !== runId) return;
+          setProgress(null);
+          if (cause instanceof DOMException && cause.name === "AbortError") return;
+          setError(cause instanceof Error ? cause.message : String(cause));
+        });
+    },
+    [],
+  );
 
   // A run outlives the page only if nobody stops it; unmounting should.
   useEffect(() => () => cancelRef.current?.(), []);
 
-  const onFile = useCallback(
-    (picked: File) => {
-      setFile(picked);
+  const onPick = useCallback(
+    (picked: PickedSource) => {
+      setSource(picked);
       setApplied(draft);
-      run(picked, draft);
+      setAppliedScoring(scoring);
+      run(picked, draft, scoring);
     },
-    [draft, run],
+    [draft, scoring, run],
   );
 
   const reset = useCallback(() => {
     runIdRef.current++;
     cancelRef.current?.();
     cancelRef.current = null;
-    setFile(null);
+    setSource(null);
     setAggregate(null);
     setProgress(null);
     setError(null);
     setApplied(DEFAULT_CLEAN_OPTIONS);
     setDraft(DEFAULT_CLEAN_OPTIONS);
+    setAppliedScoring(DEFAULT_SCORING);
+    setScoring(DEFAULT_SCORING);
     setBands(DEFAULT_BANDS);
   }, []);
 
-  const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(applied), [draft, applied]);
+  const dirty = useMemo(
+    () =>
+      JSON.stringify(draft) !== JSON.stringify(applied) ||
+      JSON.stringify(scoring) !== JSON.stringify(appliedScoring),
+    [draft, applied, scoring, appliedScoring],
+  );
   const split = useMemo(
     () => (aggregate ? splitOf(aggregate.total, bands) : null),
     [aggregate, bands],
   );
 
   const running = progress !== null;
+  const sourceLabel = source ? describeSource(source) : "";
 
   return (
     <PageShell className="space-y-5 sm:space-y-6">
@@ -112,7 +150,7 @@ export function AnalyzeView() {
         title={t.analyze.title}
         description={t.analyze.description}
         actions={
-          file && (
+          source && (
             <Button type="button" variant="secondary" onClick={reset}>
               {t.analyze.another}
             </Button>
@@ -120,10 +158,10 @@ export function AnalyzeView() {
         }
       />
 
-      {!file && <DropZone onFile={onFile} />}
+      {!source && <SourcePicker onPick={onPick} />}
 
-      {running && progress && file && (
-        <ReadingPanel file={file} progress={progress} onCancel={reset} />
+      {running && progress && (
+        <ReadingPanel label={sourceLabel} progress={progress} onCancel={reset} />
       )}
 
       {error && (
@@ -166,14 +204,18 @@ export function AnalyzeView() {
             onBands={setBands}
             draft={draft}
             onDraft={setDraft}
+            scoring={scoring}
+            onScoring={setScoring}
+            providers={providers}
             dirty={dirty}
             disabled={running}
             labelMode={aggregate.scale === "label"}
             columns={aggregate.columns}
             onApply={() => {
-              if (!file) return;
+              if (!source) return;
               setApplied(draft);
-              run(file, draft);
+              setAppliedScoring(scoring);
+              run(source, draft, scoring);
             }}
           />
 
@@ -184,12 +226,23 @@ export function AnalyzeView() {
   );
 }
 
+function describeSource(source: PickedSource): string {
+  if (source.kind === "file") return source.file.name;
+  if (source.kind === "job") return source.jobId;
+  try {
+    const url = new URL(source.url);
+    return url.pathname.split("/").filter(Boolean).pop() || url.host;
+  } catch {
+    return source.url;
+  }
+}
+
 function ReadingPanel({
-  file,
+  label,
   progress,
   onCancel,
 }: {
-  file: File;
+  label: string;
   progress: Progress;
   onCancel: () => void;
 }) {
@@ -200,7 +253,7 @@ function ReadingPanel({
 
   return (
     <Panel
-      title={t.analyze.progress.reading(file.name)}
+      title={t.analyze.source.reading(label)}
       description={t.analyze.progress.background}
       actions={
         <Button type="button" variant="ghost" onClick={onCancel}>
@@ -212,19 +265,23 @@ function ReadingPanel({
         <div
           className="h-2 w-full overflow-hidden rounded-full bg-surface-container-low"
           role="progressbar"
-          aria-valuenow={percent}
+          aria-valuenow={progress.bytesTotal ? percent : undefined}
           aria-valuemin={0}
           aria-valuemax={100}
         >
+          {/* A stream of unknown length still shows motion, just not a share. */}
           <div
-            className="h-2 rounded-full bg-accent-solid transition-[width] duration-200"
-            style={{ width: `${percent}%` }}
+            className={`h-2 rounded-full bg-accent-solid transition-[width] duration-200 ${
+              progress.bytesTotal ? "" : "animate-pulse"
+            }`}
+            style={{ width: progress.bytesTotal ? `${percent}%` : "100%" }}
           />
         </div>
         <div className="tnum flex flex-wrap justify-between gap-2 text-xs text-text-muted">
           <span>{t.analyze.progress.rows(formatCount(progress.rowsRead))}</span>
           <span>
-            {formatBytes(progress.bytes)} / {formatBytes(progress.bytesTotal)} · {percent}%
+            {formatBytes(progress.bytes)}
+            {progress.bytesTotal ? ` / ${formatBytes(progress.bytesTotal)} · ${percent}%` : ""}
           </span>
         </div>
       </div>

@@ -26,6 +26,15 @@ export function CleaningReport({ aggregate, bands }: { aggregate: Aggregate; ban
     { label: t.analyze.cleaning.withText, value: stats.withText },
   ];
 
+  // Only worth the space when scoring actually went through an API.
+  if (stats.scoredByApi || stats.scoreFailed || stats.scoreSkipped) {
+    counts.push(
+      { label: t.analyze.scoring.scoredByApi, value: stats.scoredByApi },
+      { label: t.analyze.scoring.scoreFailed, value: stats.scoreFailed },
+      { label: t.analyze.scoring.scoreSkipped, value: stats.scoreSkipped },
+    );
+  }
+
   const roles: Array<{ label: string; column: string | null }> = [
     { label: t.analyze.cleaning.roleSentiment, column: mapping.sentiment },
     { label: t.analyze.cleaning.roleTime, column: mapping.createdAt },

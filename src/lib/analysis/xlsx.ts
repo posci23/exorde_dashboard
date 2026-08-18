@@ -242,6 +242,8 @@ export async function readXlsxRows(
   file: Blob,
   onRow: (cells: string[]) => void,
   onProgress?: (bytesRead: number) => void,
+  /** Runs at each chunk boundary; returning true stops the read. */
+  afterChunk?: () => Promise<boolean>,
 ): Promise<void> {
   const entries = await readDirectory(file);
 
@@ -279,5 +281,6 @@ export async function readXlsxRows(
       cut = ROW_CLOSE.lastIndex;
     }
     if (cut > 0) buffer = buffer.slice(cut);
+    if (afterChunk && (await afterChunk())) return;
   }
 }

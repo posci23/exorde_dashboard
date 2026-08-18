@@ -547,9 +547,47 @@ export const en = {
   analyze: {
     title: "Analysis",
     description:
-      "Drop an export and read its sentiment. The file is parsed here in your browser \u2014 nothing is uploaded, whatever its size.",
+      "Read an export and chart its sentiment. Drop a file and it is parsed here in your browser, at any size \u2014 or point the server straight at an export and skip the download.",
     newAnalysis: "New analysis",
-    another: "Analyze another file",
+    another: "Start over",
+
+    source: {
+      title: "Where from",
+      file: "Drop a file",
+      job: "From an export",
+      url: "From a URL",
+      jobLabel: "Export job ID",
+      jobHelp:
+        "Any completed export. The server fetches it from the index and reads it in place \u2014 you download nothing.",
+      jobPlaceholder: "job id from the Exports page",
+      urlLabel: "File URL",
+      urlHelp:
+        "An https link to a CSV, TSV, JSON, JSONL or XLSX file, gzipped or not. The server streams it and stores nothing.",
+      urlPlaceholder: "https://\u2026",
+      run: "Analyze",
+      serverNote: "Read on the server. Nothing is downloaded to this machine.",
+      reading: (name: string) => `Reading ${name}`,
+      needsJob: "Enter an export job id.",
+      needsUrl: "Enter a URL.",
+    },
+
+    scoring: {
+      title: "Scoring",
+      help: "Where each row\u2019s sentiment score comes from.",
+      column: "The sentiment column in the data",
+      api: (name: string) => `Score with ${name}`,
+      unconfigured:
+        "No scoring API is configured on this deployment. Set SENTIMENT_API_URL and its companions to enable it.",
+      warning:
+        "API scoring sends the text column to the configured endpoint. Nothing else about the file is sent.",
+      maxRows: "Row ceiling for API scoring",
+      maxRowsHelp:
+        "Scoring is billed per call, so the pass stops asking after this many rows and reports the rest as unscored.",
+      scoredByApi: "Scored by the API",
+      scoreFailed: "API returned no score",
+      scoreSkipped: "Past the row ceiling",
+      provider: "Provider",
+    },
 
     drop: {
       title: "Drop an export here",
@@ -575,7 +613,7 @@ export const en = {
       retry: "Try another file",
       noRows: "No data rows were found in that file.",
       noSentiment:
-        "No sentiment column was found. Pick one under Advanced options, or re-export with the analysis fields included.",
+        "No sentiment column was found. Pick one under Advanced options, score the text with the configured API, or re-export with the analysis fields included.",
     },
 
     summary: {
@@ -701,7 +739,7 @@ export const en = {
 
     advanced: {
       title: "Advanced options",
-      summary: "Bands, cleaning rules, column mapping",
+      summary: "Bands, scoring, cleaning rules, columns",
       bands: "Sentiment bands",
       bandsHelp:
         "Where neutral starts and ends. Applies instantly \u2014 the numbers are re-cut from the same pass, not the file.",
