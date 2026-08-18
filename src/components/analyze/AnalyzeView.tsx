@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Button, PageHeader, PageShell, Panel } from "@/components/ui";
+import { Alert, Button, PageHeader, PageShell, Panel, SegmentedControl } from "@/components/ui";
 import { startAnalysis, type Progress } from "@/lib/analysis/client";
 import { splitOf } from "@/lib/analysis/derive";
 import { formatBytes, formatCount } from "@/lib/analysis/format";
@@ -25,6 +25,7 @@ import { SamplePosts } from "./SamplePosts";
 import { SentimentSummary } from "./SentimentSummary";
 import { SourcePicker, type PickedSource } from "./SourcePicker";
 import { TrendChart } from "./TrendChart";
+import { NetworkView } from "./network/NetworkView";
 import { useProviders } from "./useProviders";
 
 /**
@@ -46,6 +47,7 @@ export function AnalyzeView() {
   const [appliedScoring, setAppliedScoring] = useState<ScoringOptions>(DEFAULT_SCORING);
   const [scoring, setScoring] = useState<ScoringOptions>(DEFAULT_SCORING);
   const [bands, setBands] = useState<Bands>(DEFAULT_BANDS);
+  const [view, setView] = useState<"sentiment" | "network">("sentiment");
   const [aggregate, setAggregate] = useState<Aggregate | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -187,15 +189,31 @@ export function AnalyzeView() {
 
           {split.count > 0 && (
             <>
-              <SentimentSummary aggregate={aggregate} split={split} bands={bands} />
-              <TrendChart aggregate={aggregate} bands={bands} />
-              <div className="grid gap-5 lg:grid-cols-2">
-                <DistributionChart aggregate={aggregate} bands={bands} />
-                <EmotionPanel aggregate={aggregate} bands={bands} />
-              </div>
-              <BreakdownPanel aggregate={aggregate} bands={bands} />
-              <KeywordPanel aggregate={aggregate} bands={bands} />
-              <SamplePosts aggregate={aggregate} bands={bands} />
+              {/* One pass over the source, two readings of it. */}
+              <SegmentedControl
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: "sentiment" as const, label: t.analyze.views.sentiment },
+                  { value: "network" as const, label: t.analyze.views.network },
+                ]}
+              />
+
+              {view === "sentiment" ? (
+                <>
+                  <SentimentSummary aggregate={aggregate} split={split} bands={bands} />
+                  <TrendChart aggregate={aggregate} bands={bands} />
+                  <div className="grid gap-5 lg:grid-cols-2">
+                    <DistributionChart aggregate={aggregate} bands={bands} />
+                    <EmotionPanel aggregate={aggregate} bands={bands} />
+                  </div>
+                  <BreakdownPanel aggregate={aggregate} bands={bands} />
+                  <KeywordPanel aggregate={aggregate} bands={bands} />
+                  <SamplePosts aggregate={aggregate} bands={bands} />
+                </>
+              ) : (
+                <NetworkView aggregate={aggregate} bands={bands} />
+              )}
             </>
           )}
 

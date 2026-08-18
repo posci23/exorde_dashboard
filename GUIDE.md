@@ -135,6 +135,7 @@ run the same pipeline.
 | Advanced — bands | Where neutral starts and ends; re-cuts instantly from the same pass |
 | Advanced — cleaning | Dedupe, minimum topic confidence, date range, language and domain filters, sentiment scale (-1…1, 0…1, or words), column mapping — these re-read the source |
 | Advanced — scoring | Use the sentiment column in the data, or score the text column through a configured API, with a row ceiling |
+| Network view | The same pass, read as a graph: who amplifies, answers and names whom |
 | Summary CSV | The whole dashboard as one CSV: headline, trend, every breakdown, keyword table |
 
 #### What it reads from an export
@@ -172,6 +173,49 @@ magic bytes rather than its name.
 An export made with the default **"Just the posts"** field preset has no
 analysis columns at all. That is not an error state: the page says which column
 it could not find, and the text can be scored through an API instead.
+
+#### The network view
+
+The page has two views over one ingest, switched at the top of the results:
+**Sentiment** and **Network**. Nothing is re-read to change view — the graph is
+collected in the same single pass as the sentiment bins.
+
+Four kinds of edge come out of an export:
+
+| Edge | Where it comes from | Note |
+|------|--------------------|------|
+| Retweet | `RT @handle` at the start of `raw_content` | The strongest amplification signal |
+| Mention | any other `@handle`, plus Reddit's `u/name` | Capped at 8 per post |
+| Reply | `external_parent_id`, resolved to the parent's author | Only when the parent post is also in the export |
+| Co-occurrence | two `analysis_top_keywords` on one post | Powers the keyword map |
+
+Replies are the honest one. On X a large share of them are *self-threads* — an
+account replying to its own earlier post — and the rest often point at a parent
+outside the export's window. All three outcomes are counted separately
+(replies between accounts, self-threads, parent not in export), so the numbers
+add up to the rows that had a parent id instead of quietly shrinking. In the
+50-row sample that is 30 self-threads and 20 unresolved: no cross-account reply
+edges at all, which is a fact about the data, not a gap in the reading.
+
+What the view shows:
+
+| Panel | Contents |
+|-------|----------|
+| Graph | Force-directed, size by traffic through the account, colour by sentiment or by community. Tap a node to isolate it and its neighbours |
+| Metrics | Accounts, connections, reciprocity, top-account share, communities, largest group, density |
+| Accounts | Received / sent / posts / mean sentiment, sortable — who is talked about vs who does the talking |
+| Conversations | Reply chains that resolve inside the export, self-threads, unresolved parents, most-replied accounts |
+| Edge list | The graph as `source,target,kind,weight,mean_sentiment` — the shape Gephi and Cytoscape import |
+
+Implementation notes: communities come from label propagation with
+deterministic tie-breaking; the layout is Fruchterman–Reingold with a seeded
+PRNG, followed by a separation pass that pushes overlapping circles apart in
+the units they are drawn in (a sparse graph otherwise settles with its dyads
+stacked on top of each other). Both are deterministic, so the same export lays
+out the same way twice. Node colouring uses the sentiment palette by default;
+community colouring uses three hues validated all-pairs for colour blindness,
+and anything outside the three largest communities is drawn hollow rather than
+given a fourth hue that would collapse under simulation.
 
 #### Scoring through an API
 

@@ -1,3 +1,4 @@
+import type { NetworkAggregate } from "./network";
 import type { ScoringOptions } from "./scoring";
 
 /**
@@ -49,6 +50,8 @@ export type ColumnMapping = {
   url: string | null;
   keywords: string | null;
   id: string | null;
+  /** `external_parent_id`: the reply edge in this product's exports. */
+  parentId: string | null;
   /** Emotion columns found in the file, in file order. */
   emotions: string[];
 };
@@ -162,6 +165,8 @@ export type Aggregate = {
   /** Emotion means, kept per sentiment bin so band averages stay derivable. */
   emotions: { names: string[]; sums: Float64Array; counts: Int32Array };
   keywords: GroupBin[];
+  /** Accounts, the edges between them, and keyword co-occurrence. */
+  network: NetworkAggregate;
   samples: SamplePostRow[];
   extremes: { top: SamplePostRow[]; bottom: SamplePostRow[] };
 };

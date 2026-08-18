@@ -22,6 +22,17 @@ export const BAND_COLOR: Record<BandKey, string> = {
 /** Order used in every stack, legend and table: negative → neutral → positive. */
 export const BAND_ORDER: BandKey[] = ["negative", "neutral", "positive"];
 
+/**
+ * Community colours for the network graph. Identity, not polarity, so these
+ * are categorical hues in a fixed order — the first three slots of the
+ * reference palette, which are the most that clear the all-pairs colour-blind
+ * check (any two nodes can sit side by side in a graph, so all pairs is the
+ * right test). Communities beyond the third are drawn hollow rather than given
+ * a fourth hue: blue ↔ orange ↔ green measure ΔE 8.4-24 apart, while any gray
+ * added as a fourth collapsed to ΔE 7.8 against the green.
+ */
+export const COMMUNITY_COLORS = ["#2a78d6", "#eb6834", "#199e70"] as const;
+
 export const AXIS_COLOR = "#4a7394";
 export const GRID_COLOR = "#e6f2f8";
 

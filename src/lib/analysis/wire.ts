@@ -32,12 +32,18 @@ export type WireLimits = {
   timeBuckets: number;
   groups: number;
   keywords: number;
+  networkNodes: number;
+  networkEdges: number;
 };
 
 export const DEFAULT_WIRE_LIMITS: WireLimits = {
   timeBuckets: 2_000,
   groups: 100,
   keywords: 400,
+  // The graph view draws at most a few hundred nodes; sending tens of
+  // thousands of edges would cost more than it could ever show.
+  networkNodes: 3_000,
+  networkEdges: 6_000,
 };
 
 function packHist(hist: Int32Array): number[] {
@@ -117,6 +123,43 @@ export function packAggregate(
       k: keyword.key,
       ...packBinned(keyword),
     })),
+    network: trimNetwork(aggregate.network, limits),
+  };
+}
+
+/**
+ * Keep the heaviest edges, then the nodes those edges (and the busiest
+ * accounts) actually need. Trimming edges first means the graph that arrives
+ * is a connected view of the strongest activity rather than a random slice.
+ */
+function trimNetwork(network: Aggregate["network"], limits: WireLimits): Aggregate["network"] {
+  if (network.edges.length <= limits.networkEdges && network.nodes.length <= limits.networkNodes) {
+    return network;
+  }
+
+  const edges = [...network.edges]
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, limits.networkEdges);
+  const needed = new Set<string>();
+  for (const edge of edges) {
+    needed.add(edge.source);
+    needed.add(edge.target);
+  }
+
+  const ranked = [...network.nodes].sort((a, b) => b.posts - a.posts);
+  const nodes = ranked.filter((node) => needed.has(node.key));
+  for (const node of ranked) {
+    if (nodes.length >= limits.networkNodes) break;
+    if (!needed.has(node.key)) nodes.push(node);
+  }
+
+  return {
+    nodes: nodes.slice(0, limits.networkNodes),
+    edges,
+    keywordEdges: [...network.keywordEdges]
+      .sort((a, b) => b.weight - a.weight)
+      .slice(0, limits.networkEdges),
+    stats: network.stats,
   };
 }
 

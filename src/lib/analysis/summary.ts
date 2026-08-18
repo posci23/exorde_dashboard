@@ -95,14 +95,42 @@ export function buildSummaryCsv(aggregate: Aggregate, bands: Bands, bucketMs: nu
   return rows.join("\n");
 }
 
+/**
+ * The account graph as an edge list — the shape Gephi, Cytoscape and every
+ * other network tool expects, so this view is a starting point rather than a
+ * dead end.
+ */
+export function buildEdgeListCsv(aggregate: Aggregate): string {
+  const rows: string[] = [line("source", "target", "kind", "weight", "mean_sentiment")];
+  for (const edge of aggregate.network.edges) {
+    rows.push(
+      line(edge.source, edge.target, edge.kind, edge.weight, (edge.sentSum / edge.weight).toFixed(4)),
+    );
+  }
+  return rows.join("\n");
+}
+
+export function downloadEdgeListCsv(aggregate: Aggregate) {
+  download(
+    buildEdgeListCsv(aggregate),
+    `${aggregate.file.name.replace(/\.[^.]+$/, "")}-network-edges.csv`,
+  );
+}
+
 /** Hand the CSV to the browser as a download, named after the source file. */
 export function downloadSummaryCsv(aggregate: Aggregate, bands: Bands, bucketMs: number) {
-  const csv = buildSummaryCsv(aggregate, bands, bucketMs);
+  download(
+    buildSummaryCsv(aggregate, bands, bucketMs),
+    `${aggregate.file.name.replace(/\.[^.]+$/, "")}-sentiment-summary.csv`,
+  );
+}
+
+function download(csv: string, name: string) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${aggregate.file.name.replace(/\.[^.]+$/, "")}-sentiment-summary.csv`;
+  link.download = name;
   link.click();
   URL.revokeObjectURL(url);
 }

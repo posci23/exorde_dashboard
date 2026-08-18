@@ -71,6 +71,7 @@ export function AdvancedOptions({
     { role: "keywords", label: t.analyze.cleaning.roleKeywords },
     { role: "url", label: t.analyze.cleaning.roleUrl },
     { role: "id", label: t.analyze.cleaning.roleId },
+    { role: "parentId", label: t.analyze.cleaning.roleParentId },
   ];
 
   function setMapping(role: MappableRole, value: string) {

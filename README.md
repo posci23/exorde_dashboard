@@ -25,7 +25,7 @@ cookie for that browser and takes precedence over the environment variable.
 | **Overview** | Service health, shared queue capacity, and your plan usage against quota. |
 | **Query** | One form. Preview is free and instant; export runs the same filters in full. |
 | **Jobs** | Track a running export through its phases, then download. Links expire after 48h; Sync mints a fresh one. |
-| **Analyze** | Read an export's sentiment: positive / neutral / negative, trend, breakdowns, emotions, keywords. Drop a file (parsed in your browser, any size), or have the server ingest an export job or URL directly. |
+| **Analyze** | Two views over one export. **Sentiment**: positive / neutral / negative, trend, breakdowns, emotions, keywords. **Network**: who amplifies, answers and names whom, as a graph. Drop a file (parsed in your browser, any size), or have the server ingest an export job or URL directly. |
 | **Reference** | Every filter, output column, classification label, and limit, searchable. |
 | **Settings** | API key configuration. |
 
@@ -56,6 +56,15 @@ arrays, or JSONL with those fields structured — and maps `analysis_sentiment`,
 `analysis_classification_label`, `analysis_top_keywords` and the 27
 `analysis_emotion_*` columns to the charts. See the Analyze section of
 `GUIDE.md` for the full table.
+
+### Network
+
+The **Network** view reads the same pass as a graph: retweets (`RT @handle`),
+mentions, and reply chains resolved through `external_parent_id`, plus a
+keyword co-occurrence map. It reports who is amplified, who does the
+amplifying, how much of the conversation answers back, and which accounts sit
+in which community — with the graph exportable as an edge list for Gephi or
+Cytoscape.
 
 ### Scoring
 

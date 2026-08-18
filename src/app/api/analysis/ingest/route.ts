@@ -24,6 +24,7 @@ const mappingSchema = z
     url: z.string().nullable().optional(),
     keywords: z.string().nullable().optional(),
     id: z.string().nullable().optional(),
+    parentId: z.string().nullable().optional(),
   })
   .default({});
 

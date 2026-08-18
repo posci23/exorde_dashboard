@@ -28,6 +28,7 @@ import {
   readSentiment,
   readTimestamp,
 } from "./columns";
+import { NetworkCollector } from "./network";
 
 const GROUP_LIMIT = 300;
 const KEYWORD_LIMIT = 1500;
@@ -125,6 +126,7 @@ export class Aggregator {
   private bottom: SamplePostRow[] = [];
 
   private readonly seenIds = new Set<string>();
+  private readonly network = new NetworkCollector();
   private eligible = 0;
 
   private readonly stats: CleanStats = {
@@ -321,13 +323,14 @@ export class Aggregator {
     const author = this.text(cells, this.mapping.author);
     if (author) this.authors.add(author, sentiment, bin);
 
-    if (this.mapping.keywords) {
-      for (const keyword of readKeywords(this.cell(cells, this.mapping.keywords))) {
-        const clean = keyword.toLowerCase().trim();
-        if (clean.length > 1 && !KEYWORD_NOISE.has(clean) && /[a-z0-9]/.test(clean)) {
-          this.keywords.add(clean, sentiment, bin);
-        }
-      }
+    const keywords = this.mapping.keywords
+      ? readKeywords(this.cell(cells, this.mapping.keywords)).filter((keyword) => {
+          const clean = keyword.toLowerCase().trim();
+          return clean.length > 1 && !KEYWORD_NOISE.has(clean) && /[a-z0-9]/.test(clean);
+        })
+      : [];
+    for (const keyword of keywords) {
+      this.keywords.add(keyword.toLowerCase().trim(), sentiment, bin);
     }
 
     if (this.emotionNames.length) {
@@ -343,6 +346,16 @@ export class Aggregator {
 
     const text = this.text(cells, this.mapping.text);
     if (text) this.stats.withText++;
+
+    // The graph is read from the same row, in the same pass.
+    this.network.add({
+      author,
+      externalId: this.text(cells, this.mapping.id),
+      parentId: this.text(cells, this.mapping.parentId),
+      text,
+      keywords,
+      sentiment,
+    });
     this.collectSample({
       t,
       sentiment,
@@ -452,6 +465,7 @@ export class Aggregator {
         counts: this.emotionCounts,
       },
       keywords: this.keywords.top(KEYWORD_LIMIT),
+      network: this.network.finish(),
       samples: this.samples,
       extremes: { top: this.top, bottom: this.bottom },
     };

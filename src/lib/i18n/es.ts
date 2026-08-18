@@ -703,6 +703,92 @@ export const es: Dict = {
     newAnalysis: "Nuevo análisis",
     another: "Empezar de nuevo",
 
+    views: {
+      sentiment: "Sentimiento",
+      network: "Red",
+    },
+
+    network: {
+      title: "Red",
+      description:
+        "Quién amplifica, responde y menciona a quién \u2014 leído de los retuits, las menciones y las cadenas de respuestas de la misma exportación.",
+      empty:
+        "No hay conexiones en esta exportación. Pasa cuando las publicaciones no traen @handles ni ids del padre \u2014 incluye las columnas de contenido e id y vuelve a exportar.",
+      graphTitle: "Grafo de cuentas",
+      graphKeywords: "Mapa de palabras clave",
+      graphAria: (nodes: string, edges: string) => `Grafo de red, ${nodes} cuentas y ${edges} conexiones`,
+      graphDescription:
+        "El tamaño del círculo es cuánto tráfico toca a la cuenta. Toca un nodo para aislarlo con sus vecinos.",
+      keywordDescription: "Palabras clave unidas cuando aparecen en la misma publicación.",
+
+      modeAccounts: "Cuentas",
+      modeKeywords: "Palabras clave",
+      colorSentiment: "Color por sentimiento",
+      colorCommunity: "Color por comunidad",
+      kindRetweet: "Retuits",
+      kindMention: "Menciones",
+      kindReply: "Respuestas",
+      nodes: "Cuentas mostradas",
+      minWeight: "Peso mínimo del enlace",
+
+      statAccounts: "Cuentas",
+      statConnections: "Conexiones",
+      statReciprocity: "Reciprocidad",
+      statReciprocityHint: "Proporción de enlaces devueltos \u2014 conversación y no difusión",
+      statCommunities: "Comunidades",
+      statCommunitiesHint: "Grupos hallados por propagación de etiquetas",
+      statLargest: "Grupo mayor",
+      statLargestHint: "Proporción de cuentas mostradas en un mismo grupo conectado",
+      statConcentration: "Peso de la cuenta principal",
+      statConcentrationHint: "Proporción de conexiones que tocan a la cuenta más activa",
+      statDensity: "Densidad",
+      statDensityHint: "Enlaces presentes sobre todos los enlaces posibles",
+
+      legendCommunity: (n: number) => `Comunidad ${n + 1}`,
+      legendOther: "Otras comunidades",
+      legendNoPosts: "Solo mencionada",
+      trimmed: (shown: string, total: string) =>
+        `Mostrando las ${shown} cuentas mejor conectadas de ${total}.`,
+
+      connections: (n: string) => `${n} conexiones`,
+      received: "Menciones recibidas",
+      sent: "Menciones enviadas",
+      posts: "Publicaciones",
+      meanSentiment: "Sentimiento medio",
+
+      accountsTitle: "Cuentas",
+      accountsDescription: "De quién se habla, y quién habla.",
+      sortReceived: "Más mencionadas",
+      sortSent: "Más activas",
+      sortPosts: "Más publicaciones",
+      colAccount: "Cuenta",
+      colReceived: "Recibidas",
+      colSent: "Enviadas",
+      colPosts: "Publicaciones",
+      colSentiment: "Sentimiento",
+      noSentiment: "\u2014",
+
+      threadsTitle: "Conversaciones",
+      threadsDescription: "Cadenas de respuestas que se resuelven dentro de esta exportación.",
+      threadsResolved: "Respuestas entre cuentas",
+      threadsSelf: "Hilos propios",
+      threadsSelfHint: "Una cuenta que responde a su propia publicación anterior",
+      threadsUnresolved: "Publicación padre fuera de la exportación",
+      threadsUnresolvedHint: "Exporta una ventana más amplia o los ids del padre para cerrarlas",
+      threadsConversations: "Grupos de conversación",
+      threadsLargest: "Grupo mayor",
+      mostReplied: "Más respondidas",
+      replies: (n: string) => `${n} respuestas`,
+
+      edgeMix: "De dónde vienen los enlaces",
+      downloadEdges: "Descargar lista de enlaces",
+      downloadEdgesHint: "origen, destino, tipo, peso \u2014 listo para Gephi o Cytoscape",
+      truncatedNodes: "La lista de cuentas llegó a su tope; se conservan las más activas.",
+      truncatedEdges: "La lista de conexiones llegó a su tope; se conservan los enlaces más pesados.",
+      truncatedIndex:
+        "Demasiadas publicaciones para indexar cada id, así que algunas cadenas no se pudieron resolver.",
+    },
+
     source: {
       title: "De dónde",
       file: "Soltar un archivo",
@@ -882,6 +968,7 @@ export const es: Dict = {
       roleKeywords: "Palabras clave",
       roleUrl: "Enlace",
       roleId: "Id de fila",
+      roleParentId: "Id del padre",
       roleEmotions: (n: string) => `${n} columnas de emoción`,
       warnNoNegative:
         "No hay ni una puntuación negativa en este archivo. Si la columna va de 0 a 1 en vez de -1 a 1, cambia la escala en Opciones avanzadas.",

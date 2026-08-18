@@ -551,6 +551,92 @@ export const en = {
     newAnalysis: "New analysis",
     another: "Start over",
 
+    views: {
+      sentiment: "Sentiment",
+      network: "Network",
+    },
+
+    network: {
+      title: "Network",
+      description:
+        "Who amplifies, answers and names whom \u2014 read from retweets, mentions and reply chains in the same export.",
+      empty:
+        "No connections in this export. That happens when posts carry no @handles and no parent ids \u2014 add the content and id columns and re-export.",
+      graphTitle: "Account graph",
+      graphKeywords: "Keyword map",
+      graphAria: (nodes: string, edges: string) => `Network graph, ${nodes} accounts and ${edges} connections`,
+      graphDescription:
+        "Circle size is how much traffic touches an account. Drag-free: tap a node to isolate it and its neighbours.",
+      keywordDescription: "Keywords joined when they appear on the same post.",
+
+      modeAccounts: "Accounts",
+      modeKeywords: "Keywords",
+      colorSentiment: "Colour by sentiment",
+      colorCommunity: "Colour by community",
+      kindRetweet: "Retweets",
+      kindMention: "Mentions",
+      kindReply: "Replies",
+      nodes: "Accounts shown",
+      minWeight: "Minimum edge weight",
+
+      statAccounts: "Accounts",
+      statConnections: "Connections",
+      statReciprocity: "Reciprocity",
+      statReciprocityHint: "Share of links answered back \u2014 conversation rather than broadcast",
+      statCommunities: "Communities",
+      statCommunitiesHint: "Groups found by label propagation",
+      statLargest: "Largest group",
+      statLargestHint: "Share of shown accounts in one connected group",
+      statConcentration: "Top account share",
+      statConcentrationHint: "Share of all connections touching the busiest account",
+      statDensity: "Density",
+      statDensityHint: "Links present, as a share of every link that could exist",
+
+      legendCommunity: (n: number) => `Community ${n + 1}`,
+      legendOther: "Other communities",
+      legendNoPosts: "Mentioned only",
+      trimmed: (shown: string, total: string) =>
+        `Showing the ${shown} best-connected of ${total} accounts.`,
+
+      connections: (n: string) => `${n} connections`,
+      received: "Mentions received",
+      sent: "Mentions sent",
+      posts: "Posts",
+      meanSentiment: "Mean sentiment",
+
+      accountsTitle: "Accounts",
+      accountsDescription: "Who is talked about, and who does the talking.",
+      sortReceived: "Most mentioned",
+      sortSent: "Most active",
+      sortPosts: "Most posts",
+      colAccount: "Account",
+      colReceived: "Received",
+      colSent: "Sent",
+      colPosts: "Posts",
+      colSentiment: "Sentiment",
+      noSentiment: "\u2014",
+
+      threadsTitle: "Conversations",
+      threadsDescription: "Reply chains that resolve inside this export.",
+      threadsResolved: "Replies between accounts",
+      threadsSelf: "Self-threads",
+      threadsSelfHint: "An account replying to its own earlier post",
+      threadsUnresolved: "Parent post not in export",
+      threadsUnresolvedHint: "Export a wider window or the parent ids to close these",
+      threadsConversations: "Conversation groups",
+      threadsLargest: "Largest group",
+      mostReplied: "Most replied to",
+      replies: (n: string) => `${n} replies`,
+
+      edgeMix: "Where the links come from",
+      downloadEdges: "Download edge list",
+      downloadEdgesHint: "source, target, kind, weight \u2014 ready for Gephi or Cytoscape",
+      truncatedNodes: "The account list hit its tracking cap; the busiest accounts are kept.",
+      truncatedEdges: "The connection list hit its tracking cap; the heaviest links are kept.",
+      truncatedIndex:
+        "Too many posts to index every id, so some reply chains could not be resolved.",
+    },
+
     source: {
       title: "Where from",
       file: "Drop a file",
@@ -728,6 +814,7 @@ export const en = {
       roleKeywords: "Keywords",
       roleUrl: "Link",
       roleId: "Row id",
+      roleParentId: "Parent id",
       roleEmotions: (n: string) => `${n} emotion columns`,
       warnNoNegative:
         "Not one negative score in this file. If the column runs 0 to 1 rather than -1 to 1, switch the scale under Advanced options.",

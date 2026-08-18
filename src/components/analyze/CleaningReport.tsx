@@ -47,6 +47,7 @@ export function CleaningReport({ aggregate, bands }: { aggregate: Aggregate; ban
     { label: t.analyze.cleaning.roleKeywords, column: mapping.keywords },
     { label: t.analyze.cleaning.roleUrl, column: mapping.url },
     { label: t.analyze.cleaning.roleId, column: mapping.id },
+    { label: t.analyze.cleaning.roleParentId, column: mapping.parentId },
   ];
 
   return (

@@ -40,6 +40,7 @@ const ALIASES: Record<Exclude<keyof ColumnMapping, "emotions">, string[]> = {
   url: ["url", "link", "permalink", "posturl"],
   keywords: ["analysistopkeywords", "topkeywords", "keywords", "tags", "entities"],
   id: ["externalid", "id", "postid", "docid", "uuid", "guid"],
+  parentId: ["externalparentid", "parentid", "inreplyto", "replyto", "parent"],
 };
 
 /** Columns whose name marks them as one of the per-emotion score columns. */
@@ -75,6 +76,7 @@ export function detectMapping(
     url: null,
     keywords: null,
     id: null,
+    parentId: null,
     emotions,
   };
 
