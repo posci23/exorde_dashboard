@@ -39,7 +39,7 @@ export const es: Dict = {
     overview: { label: "Resumen", hint: "Estado, cola y tu cuota" },
     query: { label: "Consulta", hint: "Construir · previsualizar · exportar" },
     reference: { label: "Referencia", hint: "Todas las opciones, campos y límites" },
-    settings: { label: "Ajustes", hint: "Clave de API" },
+    settings: { label: "Ajustes", hint: "Idioma, valores, datos locales" },
     analyze: { label: "Analizar", hint: "Graficar una exportación descargada" },
   },
 
@@ -684,7 +684,13 @@ export const es: Dict = {
     deploymentTitle: "Despliegue",
     deploymentDescription: "Cómo se conecta este panel a Seescape.",
     deploymentNote:
-      "La clave de API y la URL base se configuran como variables de entorno en tu proyecto de Vercel, no en el navegador. Actualízalas en el panel de Vercel en Ajustes → Variables de entorno (SENTINEL_API_KEY).",
+      "La clave de API y la URL base son variables de entorno del servidor: nunca se envían al navegador y no se pueden configurar desde esta página. En el panel de Vercel están en Ajustes → Variables de entorno.",
+    deploymentCliNote: "Desde la terminal, la CLI de Vercel configura las mismas variables:",
+    deploymentCliRedeploy:
+      "Los cambios de entorno solo se aplican en el siguiente despliegue, así que vuelve a desplegar después de añadir o cambiar una clave.",
+    deploymentVarsTitle: "Variables",
+    deploymentVarApiKey: "Obligatoria. La clave del índice de señales que el servidor envía al servicio.",
+    deploymentVarBaseUrl: "Opcional. Sustituye el host del servicio; por defecto usa el índice de producción.",
     viewReference: "Ver referencia de filtros →",
   },
 

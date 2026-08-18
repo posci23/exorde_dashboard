@@ -37,7 +37,7 @@ export const en = {
     overview: { label: "Overview", hint: "Health, queue, your quota" },
     query: { label: "Query", hint: "Build · preview · export" },
     reference: { label: "Reference", hint: "Every option, field, and limit" },
-    settings: { label: "Settings", hint: "API key" },
+    settings: { label: "Settings", hint: "Language, defaults, local data" },
     analyze: { label: "Analyze", hint: "Chart a downloaded export" },
   },
 
@@ -532,7 +532,13 @@ export const en = {
     deploymentTitle: "Deployment",
     deploymentDescription: "How this dashboard connects to Seescape.",
     deploymentNote:
-      "The API key and base URL are set as environment variables in your Vercel project — not in the browser. Update them in the Vercel dashboard under Settings → Environment Variables (SENTINEL_API_KEY).",
+      "The API key and base URL are environment variables on the server — they are never sent to the browser and cannot be set from this page. In the Vercel dashboard they live under Settings → Environment Variables.",
+    deploymentCliNote: "From a terminal, the Vercel CLI sets the same variables:",
+    deploymentCliRedeploy:
+      "Environment changes only take effect on the next deployment, so redeploy after adding or changing a key.",
+    deploymentVarsTitle: "Variables",
+    deploymentVarApiKey: "Required. The signal index key the server sends upstream.",
+    deploymentVarBaseUrl: "Optional. Overrides the upstream host; defaults to the production index.",
     viewReference: "View filter reference →",
   },
 

@@ -1,5 +1,5 @@
 import { previewQuery } from "@/lib/api-client";
-import { getRequestApiKey, jsonError, jsonOk } from "@/lib/api-helpers";
+import { jsonError, jsonOk } from "@/lib/api-helpers";
 import { UpstreamApiError, queryBodySchema } from "@/lib/types";
 
 export async function POST(request: Request) {
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     delete previewBody.output_format;
     delete previewBody.result_limit;
     delete previewBody.per_day_limit;
-    const data = await previewQuery(previewBody, await getRequestApiKey(request));
+    const data = await previewQuery(previewBody);
     return jsonOk(data);
   } catch (error) {
     return jsonError(error);

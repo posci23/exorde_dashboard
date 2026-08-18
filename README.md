@@ -13,10 +13,26 @@ npm run dev
 ```
 
 The API key never reaches the browser. Server-side routes under
-`/api/sentinel/*` attach it, so the client only ever talks to this app.
+`/api/sentinel/*` read it from the environment and attach it, so the client
+only ever talks to this app. There is no way to supply a key from the
+browser — that is the point.
 
-You can also paste a key on the Settings page; it is stored in an httpOnly
-cookie for that browser and takes precedence over the environment variable.
+## Deploy
+
+The app is a stock Next.js project, so Vercel needs no configuration beyond
+the key:
+
+```bash
+npm i -g vercel
+vercel link
+vercel env add SENTINEL_API_KEY production   # paste exo_… when prompted
+vercel deploy --prod
+```
+
+`SENTINEL_API_BASE_URL` is optional and only needed to point at a non-production
+index. Environment changes apply on the next deployment, so redeploy after
+adding or rotating a key. To run the production build locally against the same
+variables, use `vercel env pull .env.local`.
 
 ## Pages
 
@@ -27,7 +43,7 @@ cookie for that browser and takes precedence over the environment variable.
 | **Jobs** | Track a running export through its phases, then download. Links expire after 48h; Sync mints a fresh one. |
 | **Analyze** | Drop a downloaded export (CSV, JSON, JSONL, XLSX, gzipped or not, any size) and read its sentiment: positive / neutral / negative, trend, breakdowns, emotions, keywords. Parsed in your browser — the file is never uploaded. |
 | **Reference** | Every filter, output column, classification label, and limit, searchable. |
-| **Settings** | API key configuration. |
+| **Settings** | Language, default export format, and local data. Credentials live in the deployment environment, not here. |
 
 ## Language
 

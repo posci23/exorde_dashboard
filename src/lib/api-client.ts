@@ -29,14 +29,15 @@ export function resolveBaseUrl() {
   );
 }
 
-function getApiKey(override?: string) {
-  const key =
-    override?.trim() ||
-    process.env.SENTINEL_API_KEY?.trim() ||
-    process.env.EXORDE_API_KEY?.trim();
+function getApiKey() {
+  // The key is read from the environment only. There is deliberately no path
+  // for the browser to supply one: it would put the credential on the client.
+  const key = process.env.SENTINEL_API_KEY?.trim() || process.env.EXORDE_API_KEY?.trim();
   if (!key) {
     throw new UpstreamApiError(401, {
-      detail: "SENTINEL_API_KEY is not configured. Add it in Settings or .env.local.",
+      detail:
+        "SENTINEL_API_KEY is not configured. Set it in .env.local for local development, " +
+        "or with `vercel env add SENTINEL_API_KEY` for a deployment.",
     });
   }
   return key;
@@ -45,14 +46,13 @@ function getApiKey(override?: string) {
 type FetchOptions = {
   method?: string;
   body?: unknown;
-  apiKey?: string;
   requireAuth?: boolean;
   searchParams?: Record<string, string | number | undefined>;
 };
 
 export async function upstreamFetch<T>(
   path: string,
-  { method = "GET", body, apiKey, requireAuth = true, searchParams }: FetchOptions = {},
+  { method = "GET", body, requireAuth = true, searchParams }: FetchOptions = {},
 ): Promise<T> {
   const url = new URL(path, resolveBaseUrl());
   if (searchParams) {
@@ -68,7 +68,7 @@ export async function upstreamFetch<T>(
   };
 
   if (requireAuth) {
-    headers["X-API-Key"] = getApiKey(apiKey);
+    headers["X-API-Key"] = getApiKey();
   }
 
   if (body !== undefined) {
@@ -106,51 +106,45 @@ export function getHealth() {
   return upstreamFetch<HealthResponse>("/health", { requireAuth: false });
 }
 
-export function getQueueCapacity(apiKey?: string) {
-  return upstreamFetch<QueueCapacityResponse>("/api/v1/queue/capacity", { apiKey });
+export function getQueueCapacity() {
+  return upstreamFetch<QueueCapacityResponse>("/api/v1/queue/capacity");
 }
 
-export function getUserInfo(apiKey?: string) {
-  return upstreamFetch<UserInfoResponse>("/api/v1/user/info", { apiKey });
+export function getUserInfo() {
+  return upstreamFetch<UserInfoResponse>("/api/v1/user/info");
 }
 
-export function getUserQuota(apiKey?: string) {
-  return upstreamFetch<UserQuotaResponse>("/api/v1/user/quota", { apiKey });
+export function getUserQuota() {
+  return upstreamFetch<UserQuotaResponse>("/api/v1/user/quota");
 }
 
-export function previewQuery(body: QueryBody, apiKey?: string) {
+export function previewQuery(body: QueryBody) {
   return upstreamFetch<PreviewResponse>("/api/v1/preview", {
     method: "POST",
     body,
-    apiKey,
   });
 }
 
-export function createExport(body: QueryBody, apiKey?: string) {
+export function createExport(body: QueryBody) {
   return upstreamFetch<ExportCreateResponse>("/api/v1/export", {
     method: "POST",
     body,
-    apiKey,
   });
 }
 
-export function getExportJob(jobId: string, apiKey?: string) {
-  return upstreamFetch<ExportJobResponse>(`/api/v1/export/${encodeURIComponent(jobId)}`, {
-    apiKey,
-  });
+export function getExportJob(jobId: string) {
+  return upstreamFetch<ExportJobResponse>(`/api/v1/export/${encodeURIComponent(jobId)}`);
 }
 
-export function syncExportJob(jobId: string, apiKey?: string) {
+export function syncExportJob(jobId: string) {
   return upstreamFetch<ExportJobResponse>("/api/v1/sync/export-job", {
     method: "POST",
     body: { job_id: jobId },
-    apiKey,
   });
 }
 
-export function listUserExports(limit = 20, apiKey?: string) {
+export function listUserExports(limit = 20) {
   return upstreamFetch<UserExportsResponse>("/api/v1/user/exports", {
-    apiKey,
     searchParams: { limit },
   });
 }

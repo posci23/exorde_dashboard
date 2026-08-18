@@ -1,5 +1,5 @@
 import { listUserExports } from "@/lib/api-client";
-import { getRequestApiKey, jsonError, jsonOk } from "@/lib/api-helpers";
+import { jsonError, jsonOk } from "@/lib/api-helpers";
 import { LIMITS } from "@/lib/constants";
 
 export async function GET(request: Request) {
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
       Math.max(Number.isFinite(raw) ? raw : LIMITS.historyLimitDefault, 1),
       LIMITS.historyLimitMax,
     );
-    const data = await listUserExports(limit, await getRequestApiKey(request));
+    const data = await listUserExports(limit);
     return jsonOk(data);
   } catch (error) {
     return jsonError(error);

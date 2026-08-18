@@ -36,15 +36,14 @@ Data sources under the hood: `.posts` ∪ `.back_posts` (ClickHouse), quotas/job
 ```
 Browser UI  →  Next.js /api/sentinel/* proxy  →  the upstream index
                      ↑
-              X-API-Key from .env.local
-              or httpOnly cookie (Settings)
+              X-API-Key from the server environment
 ```
 
 - The browser **never** calls the signal index directly (avoids CORS; keeps the key off client network traces to the signal index).
 - Query form state and tracked jobs are saved in **localStorage**.
-- API key options:
-  - `SENTINEL_API_KEY` in `.env.local` (recommended)
-  - Paste in **Settings** → stored as httpOnly cookie for 30 days
+- The API key is read from the server environment only — `SENTINEL_API_KEY` in
+  `.env.local` locally, or a Vercel environment variable in a deployment. The
+  browser cannot supply one, and no route accepts a key from the request.
 
 ---
 
@@ -156,10 +155,18 @@ and `analysis_source_type`, `collection_module`, and `collection_client_version`
 
 | Function | Description |
 |----------|-------------|
-| Show connection | Base URL, whether env key / cookie key is set |
-| Save API key | Store `exo_…` in httpOnly cookie (30 days) |
-| Clear cookie key | Remove browser cookie (env key still applies if set) |
-| `.env.local` instructions | Recommended permanent setup |
+| Language | Interface language, persisted per browser |
+| Default export format | JSONL or CSV, seeded into new exports |
+| Clear local data | Drop the saved filter draft and tracked jobs from localStorage |
+| Deployment | The environment variables the server reads, and the Vercel CLI commands that set them |
+
+Credentials are not editable here. `SENTINEL_API_KEY` (required) and
+`SENTINEL_API_BASE_URL` (optional) are server environment variables:
+
+```bash
+vercel env add SENTINEL_API_KEY production
+vercel deploy --prod
+```
 
 ---
 
@@ -275,7 +282,6 @@ All under `/api/sentinel/*`. They attach `X-API-Key` and forward to the signal i
 | `/api/sentinel/user-info` | GET | `/api/v1/user/info` | Yes |
 | `/api/sentinel/user-quota` | GET | `/api/v1/user/quota` | Yes |
 | `/api/sentinel/sync` | POST | `/api/v1/sync/export-job` | Yes |
-| `/api/sentinel/settings` | GET/POST | (local only) | Cookie / env status |
 
 Envelope shape: `{ ok, data }` on success; `{ ok: false, status, error, retry_after_seconds? }` on failure.
 
@@ -289,20 +295,22 @@ Envelope shape: `{ ok, data }` on success; `{ ok: false, status, error, retry_af
 |----------|---------|
 | `Fetch(path, options)` | Low-level fetch to the signal index with key + JSON parsing + `the signal indexApiError` |
 | `getHealth()` | System health |
-| `getQueueCapacity(apiKey?)` | Queue saturation |
-| `previewQuery(body, apiKey?)` | Free preview |
-| `createExport(body, apiKey?)` | Start export job |
-| `getExportJob(jobId, apiKey?)` | Poll job status |
-| `syncExportJob(jobId, apiKey?)` | Dashboard sync for owned job |
-| `listUserExports(limit, apiKey?)` | Export history |
-| `getUserInfo(apiKey?)` | Identity + configured caps |
-| `getUserQuota(apiKey?)` | Caps plus live usage counters |
+| `getQueueCapacity()` | Queue saturation |
+| `previewQuery(body)` | Free preview |
+| `createExport(body)` | Start export job |
+| `getExportJob(jobId)` | Poll job status |
+| `syncExportJob(jobId)` | Dashboard sync for owned job |
+| `listUserExports(limit)` | Export history |
+| `getUserInfo()` | Identity + configured caps |
+| `getUserQuota()` | Caps plus live usage counters |
+
+None of these take a key: `getApiKey()` reads the environment, so a caller
+cannot pass one in from a request.
 
 ### `src/lib/api-helpers.ts`
 
 | Function | Purpose |
 |----------|---------|
-| `getRequestApiKey(request)` | Header override, else httpOnly cookie |
 | `jsonOk(data)` / `jsonError(error)` | Standard proxy responses |
 
 ### `src/lib/query-form.ts`
@@ -382,7 +390,8 @@ pending → running → completed
 ## Security notes
 
 - Do **not** commit `.env.local` (gitignored).
-- Prefer env key over cookie for long-term use.
+- The key lives only in the server environment; no route reads one from a
+  request header or cookie, so a browser cannot inject or exfiltrate it.
 - Presigned download URLs are public for 48 hours — treat them as sensitive links.
 - Only your own jobs can be synced (`POST /api/v1/sync/export-job`).
 

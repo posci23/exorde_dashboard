@@ -1,9 +1,9 @@
 import { getUserInfo } from "@/lib/api-client";
-import { getRequestApiKey, jsonError, jsonOk } from "@/lib/api-helpers";
+import { jsonError, jsonOk } from "@/lib/api-helpers";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const data = await getUserInfo(await getRequestApiKey(request));
+    const data = await getUserInfo();
     return jsonOk(data);
   } catch (error) {
     return jsonError(error);

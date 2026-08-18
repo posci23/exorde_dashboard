@@ -1,17 +1,5 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { UpstreamApiError } from "./types";
-
-export async function getRequestApiKey(request: Request): Promise<string | undefined> {
-  const headerKey =
-    request.headers.get("x-sentinel-api-key")?.trim() ||
-    request.headers.get("x-api-key")?.trim() ||
-    undefined;
-  if (headerKey) return headerKey;
-
-  const jar = await cookies();
-  return jar.get("sentinel_api_key")?.value?.trim() || undefined;
-}
 
 export function jsonError(error: unknown) {
   if (error instanceof UpstreamApiError) {

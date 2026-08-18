@@ -1,12 +1,12 @@
 import { getExportJob } from "@/lib/api-client";
-import { getRequestApiKey, jsonError, jsonOk } from "@/lib/api-helpers";
+import { jsonError, jsonOk } from "@/lib/api-helpers";
 
 type Params = { params: Promise<{ jobId: string }> };
 
-export async function GET(request: Request, { params }: Params) {
+export async function GET(_request: Request, { params }: Params) {
   try {
     const { jobId } = await params;
-    const data = await getExportJob(jobId, await getRequestApiKey(request));
+    const data = await getExportJob(jobId);
     return jsonOk(data);
   } catch (error) {
     return jsonError(error);

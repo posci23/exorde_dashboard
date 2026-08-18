@@ -1,5 +1,5 @@
 import { createExport } from "@/lib/api-client";
-import { getRequestApiKey, jsonError, jsonOk } from "@/lib/api-helpers";
+import { jsonError, jsonOk } from "@/lib/api-helpers";
 import { UpstreamApiError, queryBodySchema } from "@/lib/types";
 
 export async function POST(request: Request) {
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
         detail: parsed.error.issues.map((i) => i.message).join("; "),
       });
     }
-    const data = await createExport(parsed.data, await getRequestApiKey(request));
+    const data = await createExport(parsed.data);
     return jsonOk(data, 200);
   } catch (error) {
     return jsonError(error);
